@@ -1,0 +1,13 @@
+{
+  "name": "aaron-daily-life-planner",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "python3 -m http.server 5173 --bind 127.0.0.1",
+    "build": "node scripts/build.js",
+    "preview": "python3 -m http.server 4173 --bind 127.0.0.1 -d dist"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
