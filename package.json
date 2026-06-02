@@ -4,10 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "python3 -m http.server 5173 --bind 127.0.0.1",
-    "build": "node scripts/build.js",
-    "preview": "python3 -m http.server 4173 --bind 127.0.0.1 -d dist"
+    "dev": "next dev -H 127.0.0.1",
+    "build": "next build",
+    "start": "next start -H 127.0.0.1",
+    "lint": "next lint"
   },
-  "dependencies": {},
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
   "devDependencies": {}
 }
