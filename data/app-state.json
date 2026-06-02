@@ -1,0 +1,667 @@
+{
+  "users": {
+    "be6db17f-4ec3-47ff-b32e-5959f517c5e9": {
+      "id": "be6db17f-4ec3-47ff-b32e-5959f517c5e9",
+      "displayName": "Smoke Test Family",
+      "createdAt": "2026-05-21T23:03:30.340Z",
+      "updatedAt": "2026-05-21T23:03:30.340Z",
+      "socialLinks": {
+        "icloudPhotosUrl": "",
+        "instagramUrl": "",
+        "tiktokUrl": ""
+      },
+      "location": {
+        "label": "Home",
+        "address": "588 Bell St, Seattle, WA 98121",
+        "latitude": 47.6167,
+        "longitude": -122.3448
+      },
+      "foodPlan": {
+        "favorites": [
+          "peas",
+          "broccoli",
+          "banana"
+        ],
+        "weeklyMenu": []
+      },
+      "amazonErrands": {
+        "tasks": [
+          {
+            "title": "Diapers and wipes",
+            "cadence": "Monthly",
+            "status": "planned"
+          },
+          {
+            "title": "Toddler outfit deals",
+            "cadence": "Weekly",
+            "status": "watching"
+          }
+        ]
+      }
+    },
+    "d65a97c5-6165-4364-acf1-9183f0a9a0b4": {
+      "id": "d65a97c5-6165-4364-acf1-9183f0a9a0b4",
+      "displayName": "Aaron Family",
+      "createdAt": "2026-05-21T23:03:56.747Z",
+      "updatedAt": "2026-05-21T23:03:56.747Z",
+      "socialLinks": {
+        "icloudPhotosUrl": "",
+        "instagramUrl": "",
+        "tiktokUrl": ""
+      },
+      "location": {
+        "label": "Home",
+        "address": "588 Bell St, Seattle, WA 98121",
+        "latitude": 47.6167,
+        "longitude": -122.3448
+      },
+      "foodPlan": {
+        "favorites": [
+          "peas",
+          "broccoli",
+          "banana"
+        ],
+        "weeklyMenu": []
+      },
+      "amazonErrands": {
+        "tasks": [
+          {
+            "title": "Diapers and wipes",
+            "cadence": "Monthly",
+            "status": "planned"
+          },
+          {
+            "title": "Toddler outfit deals",
+            "cadence": "Weekly",
+            "status": "watching"
+          }
+        ]
+      }
+    },
+    "ce51fe8c-17fa-4dec-a35e-a63df2d1c487": {
+      "id": "ce51fe8c-17fa-4dec-a35e-a63df2d1c487",
+      "displayName": "Aaron Family",
+      "createdAt": "2026-05-21T23:11:52.033Z",
+      "updatedAt": "2026-05-21T23:12:04.440Z",
+      "socialLinks": {
+        "icloudPhotosUrl": "photos-redirect://",
+        "instagramUrl": "",
+        "tiktokUrl": ""
+      },
+      "location": {
+        "label": "Home",
+        "address": "588 Bell St, Seattle, WA 98121",
+        "latitude": 47.6167,
+        "longitude": -122.3448
+      },
+      "foodPlan": {
+        "favorites": [
+          "peas",
+          "broccoli",
+          "banana"
+        ],
+        "weeklyMenu": []
+      },
+      "amazonErrands": {
+        "tasks": [
+          {
+            "title": "Diapers and wipes",
+            "cadence": "Monthly",
+            "status": "planned"
+          },
+          {
+            "title": "Toddler outfit deals",
+            "cadence": "Weekly",
+            "status": "watching"
+          }
+        ]
+      }
+    },
+    "7a43a48a-2967-43d5-8cee-d862b2a0f926": {
+      "id": "7a43a48a-2967-43d5-8cee-d862b2a0f926",
+      "displayName": "Aaron Family",
+      "createdAt": "2026-05-21T23:17:45.442Z",
+      "updatedAt": "2026-05-21T23:19:52.734Z",
+      "socialLinks": {
+        "icloudPhotosUrl": "photos-redirect://",
+        "instagramUrl": "",
+        "tiktokUrl": ""
+      },
+      "location": {
+        "label": "Home",
+        "address": "588 Bell St, Seattle, WA 98121",
+        "latitude": 47.6167,
+        "longitude": -122.3448
+      },
+      "foodPlan": {
+        "favorites": [
+          "peas",
+          "broccoli",
+          "banana",
+          "strawberry",
+          "sweet corn",
+          "sweet potato",
+          "dumplings",
+          "baby waffle",
+          "baby smoothie",
+          "yogurt bites"
+        ],
+        "weeklyMenu": [
+          [
+            "Monday",
+            "Banana baby waffle + yogurt bites",
+            "Mini veggie dumplings + peas",
+            "Strawberry smoothie",
+            "Sweet potato mash + broccoli florets"
+          ],
+          [
+            "Tuesday",
+            "Yogurt bowl with banana coins",
+            "Sweet corn veggie fried rice",
+            "Baby smoothie pouch",
+            "Chicken dumpling soup with peas"
+          ],
+          [
+            "Wednesday",
+            "Mini waffle sticks + strawberries",
+            "Broccoli mac bites",
+            "Yogurt bites + banana",
+            "Sweet potato salmon cakes + corn"
+          ],
+          [
+            "Thursday",
+            "Smoothie cup + waffle",
+            "Pea and corn quesadilla triangles",
+            "Strawberries",
+            "Dumplings + soft broccoli"
+          ],
+          [
+            "Friday",
+            "Banana oatmeal + yogurt bites",
+            "Sweet potato veggie patties",
+            "Broccoli cheddar mini muffin",
+            "Family dumpling night with peas"
+          ],
+          [
+            "Weekend",
+            "Toddler brunch plate",
+            "Picnic bento with fruit",
+            "Smoothie after outing",
+            "Simple bowl: grain + veggie + protein"
+          ]
+        ]
+      },
+      "amazonErrands": {
+        "tasks": [
+          {
+            "title": "Amazon monthly subscribe-and-save: diapers and wipes on the 1st at 8:00 AM.",
+            "source": "amazon",
+            "status": "planned"
+          },
+          {
+            "title": "Order status check: every Friday at 4:00 PM until delivered.",
+            "source": "amazon",
+            "status": "planned"
+          },
+          {
+            "title": "Low-stock alert: when fewer than 20 diapers or one unopened wipe pack remains.",
+            "source": "amazon",
+            "status": "planned"
+          }
+        ],
+        "outfitIdeas": [
+          {
+            "item": "Waterproof toddler sneakers",
+            "reason": "Seattle drizzle + playground traction",
+            "source": "Promotion email keyword: toddler shoes, waterproof, 20% off",
+            "linkLabel": "Shop toddler waterproof shoes",
+            "href": "https://www.amazon.com/s?k=toddler+waterproof+sneakers"
+          },
+          {
+            "item": "Layered fleece hoodie",
+            "reason": "Warm stroller layer for 3–6 PM outings",
+            "source": "Promotion email keyword: fleece, outerwear, seasonal sale",
+            "linkLabel": "Shop toddler fleece hoodies",
+            "href": "https://www.target.com/s?searchTerm=toddler+fleece+hoodie"
+          },
+          {
+            "item": "Soft jogger set",
+            "reason": "Easy diaper changes and indoor-play comfort",
+            "source": "Promotion email keyword: toddler set, bundle, clearance",
+            "linkLabel": "Shop toddler jogger sets",
+            "href": "https://www.carters.com/search?q=toddler%20jogger%20set"
+          }
+        ]
+      }
+    },
+    "8b2c94b5-18e9-41d2-bb23-731e479292ba": {
+      "id": "8b2c94b5-18e9-41d2-bb23-731e479292ba",
+      "email": "parent-one@example.com",
+      "displayName": "Parent One",
+      "createdAt": "2026-05-21T23:51:45.363Z",
+      "updatedAt": "2026-05-21T23:51:45.363Z",
+      "socialLinks": {
+        "icloudPhotosUrl": "",
+        "instagramUrl": "",
+        "tiktokUrl": ""
+      },
+      "location": {
+        "label": "Home",
+        "address": "588 Bell St, Seattle, WA 98121",
+        "latitude": 47.6167,
+        "longitude": -122.3448
+      },
+      "foodPlan": {
+        "favorites": [
+          "peas",
+          "broccoli",
+          "banana"
+        ],
+        "weeklyMenu": []
+      },
+      "amazonErrands": {
+        "tasks": [
+          {
+            "title": "Diapers and wipes",
+            "cadence": "Monthly",
+            "status": "planned"
+          },
+          {
+            "title": "Toddler outfit deals",
+            "cadence": "Weekly",
+            "status": "watching"
+          }
+        ]
+      }
+    },
+    "e8b39e03-b6da-4257-9294-2c0d2c56b325": {
+      "id": "e8b39e03-b6da-4257-9294-2c0d2c56b325",
+      "email": "browser-test@example.com",
+      "displayName": "Browser Test Family",
+      "createdAt": "2026-05-21T23:52:15.887Z",
+      "updatedAt": "2026-05-22T19:23:14.333Z",
+      "socialLinks": {
+        "icloudPhotosUrl": "photos-redirect://",
+        "instagramUrl": "",
+        "tiktokUrl": ""
+      },
+      "location": {
+        "label": "Manual location",
+        "address": "588 Bell St, Seattle, WA 98121",
+        "latitude": null,
+        "longitude": null,
+        "source": "manual"
+      },
+      "foodPlan": {
+        "favorites": [
+          "peas",
+          "broccoli",
+          "banana",
+          "strawberry",
+          "sweet corn",
+          "sweet potato",
+          "dumplings",
+          "baby waffle",
+          "baby smoothie",
+          "yogurt bites"
+        ],
+        "weeklyMenu": [
+          [
+            "Monday",
+            "Banana baby waffle + yogurt bites",
+            "Mini veggie dumplings + peas",
+            "Strawberry smoothie",
+            "Sweet potato mash + broccoli florets"
+          ],
+          [
+            "Tuesday",
+            "Yogurt bowl with banana coins",
+            "Sweet corn veggie fried rice",
+            "Baby smoothie pouch",
+            "Chicken dumpling soup with peas"
+          ],
+          [
+            "Wednesday",
+            "Mini waffle sticks + strawberries",
+            "Broccoli mac bites",
+            "Yogurt bites + banana",
+            "Sweet potato salmon cakes + corn"
+          ],
+          [
+            "Thursday",
+            "Smoothie cup + waffle",
+            "Pea and corn quesadilla triangles",
+            "Strawberries",
+            "Dumplings + soft broccoli"
+          ],
+          [
+            "Friday",
+            "Banana oatmeal + yogurt bites",
+            "Sweet potato veggie patties",
+            "Broccoli cheddar mini muffin",
+            "Family dumpling night with peas"
+          ],
+          [
+            "Weekend",
+            "Toddler brunch plate",
+            "Picnic bento with fruit",
+            "Smoothie after outing",
+            "Simple bowl: grain + veggie + protein"
+          ]
+        ]
+      },
+      "amazonErrands": {
+        "tasks": [
+          {
+            "title": "Diapers and wipes",
+            "cadence": "Monthly",
+            "status": "planned"
+          },
+          {
+            "title": "Toddler outfit deals",
+            "cadence": "Weekly",
+            "status": "watching"
+          }
+        ]
+      }
+    },
+    "d74ef470-2bd0-4309-824f-ce05f94d48d7": {
+      "id": "d74ef470-2bd0-4309-824f-ce05f94d48d7",
+      "email": "iriswei@gmail.com",
+      "displayName": "Aaron Family",
+      "createdAt": "2026-05-21T23:53:13.264Z",
+      "updatedAt": "2026-05-21T23:53:35.528Z",
+      "socialLinks": {
+        "icloudPhotosUrl": "",
+        "instagramUrl": "",
+        "tiktokUrl": ""
+      },
+      "location": {
+        "label": "Home",
+        "address": "588 Bell St, Seattle, WA 98121",
+        "latitude": 47.6167,
+        "longitude": -122.3448
+      },
+      "foodPlan": {
+        "favorites": [
+          "peas",
+          "broccoli",
+          "banana"
+        ],
+        "weeklyMenu": []
+      },
+      "amazonErrands": {
+        "tasks": [
+          {
+            "title": "Diapers and wipes",
+            "cadence": "Monthly",
+            "status": "planned"
+          },
+          {
+            "title": "Toddler outfit deals",
+            "cadence": "Weekly",
+            "status": "watching"
+          }
+        ]
+      }
+    },
+    "276f9c6b-2a3c-4403-95af-342632ec0828": {
+      "id": "276f9c6b-2a3c-4403-95af-342632ec0828",
+      "email": "location-new@example.com",
+      "displayName": "Location New",
+      "createdAt": "2026-05-21T23:59:29.352Z",
+      "updatedAt": "2026-05-21T23:59:34.892Z",
+      "socialLinks": {
+        "icloudPhotosUrl": "",
+        "instagramUrl": "",
+        "tiktokUrl": ""
+      },
+      "location": {
+        "label": "Manual location",
+        "address": "Seattle Center",
+        "latitude": null,
+        "longitude": null,
+        "source": "manual"
+      },
+      "foodPlan": {
+        "favorites": [
+          "peas",
+          "broccoli",
+          "banana"
+        ],
+        "weeklyMenu": []
+      },
+      "amazonErrands": {
+        "tasks": [
+          {
+            "title": "Diapers and wipes",
+            "cadence": "Monthly",
+            "status": "planned"
+          },
+          {
+            "title": "Toddler outfit deals",
+            "cadence": "Weekly",
+            "status": "watching"
+          }
+        ]
+      }
+    },
+    "d9c6dca9-5221-48de-93b4-2bdc07668cd1": {
+      "id": "d9c6dca9-5221-48de-93b4-2bdc07668cd1",
+      "email": "next-test@example.com",
+      "displayName": "Next Test",
+      "createdAt": "2026-05-22T20:02:38.766Z",
+      "updatedAt": "2026-05-22T20:02:38.766Z",
+      "socialLinks": {
+        "icloudPhotosUrl": "",
+        "instagramUrl": "",
+        "tiktokUrl": ""
+      },
+      "location": null,
+      "foodPlan": {
+        "favorites": [
+          "peas",
+          "broccoli",
+          "banana"
+        ],
+        "weeklyMenu": []
+      },
+      "amazonErrands": {
+        "tasks": [
+          {
+            "title": "Diapers and wipes",
+            "cadence": "Monthly",
+            "status": "planned"
+          },
+          {
+            "title": "Toddler outfit deals",
+            "cadence": "Weekly",
+            "status": "watching"
+          }
+        ]
+      }
+    },
+    "ac0cc008-3706-478c-a0d1-804736ba18cd": {
+      "id": "ac0cc008-3706-478c-a0d1-804736ba18cd",
+      "email": "iris333wei@gmail.com",
+      "displayName": "Aaron Family",
+      "createdAt": "2026-05-22T20:08:32.991Z",
+      "updatedAt": "2026-05-22T20:09:35.402Z",
+      "socialLinks": {
+        "icloudPhotosUrl": "",
+        "instagramUrl": "",
+        "tiktokUrl": ""
+      },
+      "location": {
+        "label": "Manual location",
+        "address": "Seattle",
+        "latitude": null,
+        "longitude": null,
+        "source": "manual"
+      },
+      "foodPlan": {
+        "favorites": [
+          "peas",
+          "broccoli",
+          "banana"
+        ],
+        "weeklyMenu": []
+      },
+      "amazonErrands": {
+        "tasks": [
+          {
+            "title": "Diapers and wipes",
+            "cadence": "Monthly",
+            "status": "planned"
+          },
+          {
+            "title": "Toddler outfit deals",
+            "cadence": "Weekly",
+            "status": "watching"
+          }
+        ]
+      }
+    }
+  },
+  "posts": [
+    {
+      "id": "0f021f70-5ac3-4132-bba5-7c240740e83a",
+      "userId": "ac0cc008-3706-478c-a0d1-804736ba18cd",
+      "fileName": "IMG_5124.JPG, IMG_5656.JPG, IMG_6003.JPG",
+      "mediaType": "photo",
+      "tone": "温柔可爱",
+      "caption": "今日份Aaron三连拍：软软糯糯的一天，被小小的笑容点亮。IMG_5124.JPG, IMG_5656.JPG, IMG_6003 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-22T20:11:33.042Z"
+    },
+    {
+      "id": "c7b8a592-07f7-4166-aba5-9d7b88c0f29a",
+      "userId": "e8b39e03-b6da-4257-9294-2c0d2c56b325",
+      "fileName": "IMG_4739.JPG, IMG_4769.JPG, IMG_5070.JPG",
+      "mediaType": "photo",
+      "tone": "温柔可爱",
+      "caption": "今日份Aaron三连拍：软软糯糯的一天，被小小的笑容点亮。IMG_4739.JPG, IMG_4769.JPG, IMG_5070 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-22T19:53:30.748Z"
+    },
+    {
+      "id": "23eb166d-14b1-4340-8f5a-893368374471",
+      "userId": "e8b39e03-b6da-4257-9294-2c0d2c56b325",
+      "fileName": "IMG_4739.JPG, IMG_4769.JPG, IMG_5070.JPG",
+      "mediaType": "photo",
+      "tone": "温柔可爱",
+      "caption": "今日份Aaron三连拍：软软糯糯的一天，被小小的笑容点亮。IMG_4739.JPG, IMG_4769.JPG, IMG_5070 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-22T19:53:14.935Z"
+    },
+    {
+      "id": "c694aa85-8b54-465e-b0cd-6f52feb69786",
+      "userId": "e8b39e03-b6da-4257-9294-2c0d2c56b325",
+      "fileName": "IMG_4739.JPG, IMG_4769.JPG, IMG_5070.JPG",
+      "mediaType": "photo",
+      "tone": "温柔可爱",
+      "caption": "今日份Aaron三连拍：软软糯糯的一天，被小小的笑容点亮。IMG_4739.JPG, IMG_4769.JPG, IMG_5070 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-22T19:23:01.654Z"
+    },
+    {
+      "id": "59f4d698-b7bf-4e6e-a631-5db47a5fa5b2",
+      "userId": "e8b39e03-b6da-4257-9294-2c0d2c56b325",
+      "fileName": "IMG_5070.MOV",
+      "tone": "温柔可爱",
+      "caption": "今日份Aaron小电影：软软糯糯的一天，被小小的笑容点亮。IMG_5070 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-22T19:17:54.591Z"
+    },
+    {
+      "id": "4d544531-6b96-40b5-8ec9-304de6746345",
+      "userId": "e8b39e03-b6da-4257-9294-2c0d2c56b325",
+      "fileName": "IMG_5070.MOV",
+      "tone": "温柔可爱",
+      "caption": "今日份Aaron小电影：软软糯糯的一天，被小小的笑容点亮。IMG_5070 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-22T19:17:51.644Z"
+    },
+    {
+      "id": "83c07281-f762-4d31-91e4-53217cdce6e8",
+      "userId": "e8b39e03-b6da-4257-9294-2c0d2c56b325",
+      "fileName": "IMG_5070.MOV",
+      "tone": "温柔可爱",
+      "caption": "今日份Aaron小电影：软软糯糯的一天，被小小的笑容点亮。IMG_5070 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-22T19:17:50.776Z"
+    },
+    {
+      "id": "65b6fcd1-63bc-4c52-83d0-a34deef68dc3",
+      "userId": "e8b39e03-b6da-4257-9294-2c0d2c56b325",
+      "fileName": "IMG_5070.MOV",
+      "tone": "俏皮活泼",
+      "caption": "今日份Aaron小电影：小小能量满格，快乐一路蹦出来。IMG_5070 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-22T19:17:35.398Z"
+    },
+    {
+      "id": "2e351198-4c22-493b-b9ce-4b7a73f942a3",
+      "userId": "e8b39e03-b6da-4257-9294-2c0d2c56b325",
+      "fileName": "IMG_5070.MOV",
+      "tone": "俏皮活泼",
+      "caption": "今日份Aaron小电影：小小能量满格，快乐一路蹦出来。IMG_5070 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-22T19:17:25.420Z"
+    },
+    {
+      "id": "a12416f0-2be4-4ef2-9273-b6538debd2b0",
+      "userId": "e8b39e03-b6da-4257-9294-2c0d2c56b325",
+      "fileName": "IMG_5124.MOV",
+      "tone": "俏皮活泼",
+      "caption": "今日份Aaron小电影：小小能量满格，快乐一路蹦出来。IMG_5124 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-22T00:11:03.022Z"
+    },
+    {
+      "id": "608c0671-fe1a-40e4-98c4-501b2fe61ca5",
+      "userId": "e8b39e03-b6da-4257-9294-2c0d2c56b325",
+      "fileName": "IMG_5124.MOV",
+      "tone": "温柔可爱",
+      "caption": "今日份Aaron小电影：软软糯糯的一天，被小小的笑容点亮。IMG_5124 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-22T00:10:45.470Z"
+    },
+    {
+      "id": "0492f901-b31d-4040-a2b0-b12700557f4a",
+      "userId": "7a43a48a-2967-43d5-8cee-d862b2a0f926",
+      "fileName": "IMG_3611.MOV",
+      "tone": "温柔可爱",
+      "caption": "小宝贝专注玩耍的小模样，暖暖的时光真美好💖 #温柔时光 #萌宝日常 #幸福瞬间",
+      "source": "openai",
+      "createdAt": "2026-05-21T23:18:21.664Z"
+    },
+    {
+      "id": "ec438dd9-a5ae-41ab-95ca-c1069a792cb1",
+      "userId": "ce51fe8c-17fa-4dec-a35e-a63df2d1c487",
+      "fileName": "IMG_3608.MOV",
+      "tone": "车车主题",
+      "caption": "今日份Aaron小电影：车车、小脚步和好奇心一起出发。IMG_3608 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-21T23:15:06.495Z"
+    },
+    {
+      "id": "1d34036c-b5db-4f4d-be86-0a3e8bb85695",
+      "userId": "ce51fe8c-17fa-4dec-a35e-a63df2d1c487",
+      "fileName": "IMG_3608.MOV",
+      "tone": "温柔可爱",
+      "caption": "今日份Aaron小电影：软软糯糯的一天，被小小的笑容点亮。IMG_3608 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-21T23:13:51.696Z"
+    },
+    {
+      "id": "2db207bc-3b97-4101-ae73-b0c89e591b09",
+      "userId": "be6db17f-4ec3-47ff-b32e-5959f517c5e9",
+      "fileName": "aaron-playground.mp4",
+      "tone": "俏皮活泼",
+      "caption": "今日份Aaron小电影：小小能量满格，快乐一路蹦出来。aaron-playground 这一刻太值得珍藏啦。#Aaron成长日记 #两岁日常",
+      "source": "local-fallback",
+      "createdAt": "2026-05-21T23:03:42.429Z"
+    }
+  ]
+}
