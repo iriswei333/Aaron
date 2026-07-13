@@ -521,6 +521,48 @@
           }
         ]
       }
+    },
+    "f90d2bb0-f356-4494-8a3c-94b365b1848f": {
+      "id": "f90d2bb0-f356-4494-8a3c-94b365b1848f",
+      "email": "iii@gmail.com",
+      "displayName": "Aaron Family",
+      "createdAt": "2026-06-15T01:51:24.446Z",
+      "updatedAt": "2026-06-15T01:52:56.330Z",
+      "socialLinks": {
+        "icloudPhotosUrl": "",
+        "instagramUrl": "",
+        "tiktokUrl": ""
+      },
+      "location": {
+        "label": "Current location",
+        "address": "",
+        "latitude": 47.61667615431023,
+        "longitude": -122.34213657245951,
+        "accuracy": 68,
+        "source": "browser-geolocation"
+      },
+      "foodPlan": {
+        "favorites": [
+          "peas",
+          "broccoli",
+          "banana"
+        ],
+        "weeklyMenu": []
+      },
+      "amazonErrands": {
+        "tasks": [
+          {
+            "title": "Diapers and wipes",
+            "cadence": "Monthly",
+            "status": "planned"
+          },
+          {
+            "title": "Toddler outfit deals",
+            "cadence": "Weekly",
+            "status": "watching"
+          }
+        ]
+      }
     }
   },
   "posts": [

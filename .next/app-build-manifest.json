@@ -16,20 +16,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/health/route.js"
     ],
-    "/api/users/[userId]/[[...action]]/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/users/[userId]/[[...action]]/route.js"
-    ],
-    "/api/users/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/users/route.js"
-    ],
     "/api/auth/login/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/auth/login/route.js"
+    ],
+    "/api/users/[userId]/[[...action]]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/users/[userId]/[[...action]]/route.js"
     ]
   }
 }
