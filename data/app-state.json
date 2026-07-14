@@ -486,7 +486,91 @@
       "email": "iris333wei@gmail.com",
       "displayName": "Aaron Family",
       "createdAt": "2026-05-22T20:08:32.991Z",
-      "updatedAt": "2026-05-22T20:09:35.402Z",
+      "updatedAt": "2026-07-14T22:55:12.888Z",
+      "socialLinks": {
+        "icloudPhotosUrl": "",
+        "instagramUrl": "",
+        "tiktokUrl": ""
+      },
+      "location": {
+        "label": "Lake City",
+        "address": "Lake City, Seattle, King County, Washington, 98165, United States",
+        "latitude": 47.7191619,
+        "longitude": -122.2954939,
+        "source": "nominatim-geocoding"
+      },
+      "foodPlan": {
+        "favorites": [
+          "peas",
+          "broccoli",
+          "banana"
+        ],
+        "weeklyMenu": [
+          [
+            "Monday",
+            "Banana baby waffle + yogurt bites",
+            "Mini veggie dumplings + peas",
+            "Strawberry smoothie",
+            "Sweet potato mash + broccoli florets"
+          ],
+          [
+            "Tuesday",
+            "Yogurt bowl with banana coins",
+            "Sweet corn veggie fried rice",
+            "Baby smoothie pouch",
+            "Chicken dumpling soup with peas"
+          ],
+          [
+            "Wednesday",
+            "Mini waffle sticks + strawberries",
+            "Broccoli mac bites",
+            "Yogurt bites + banana",
+            "Sweet potato salmon cakes + corn"
+          ],
+          [
+            "Thursday",
+            "Smoothie cup + waffle",
+            "Pea and corn quesadilla triangles",
+            "Strawberries",
+            "Dumplings + soft broccoli"
+          ],
+          [
+            "Friday",
+            "Banana oatmeal + yogurt bites",
+            "Sweet potato veggie patties",
+            "Broccoli cheddar mini muffin",
+            "Family dumpling night with peas"
+          ],
+          [
+            "Weekend",
+            "Toddler brunch plate",
+            "Picnic bento with fruit",
+            "Smoothie after outing",
+            "Simple bowl: grain + veggie + protein"
+          ]
+        ]
+      },
+      "amazonErrands": {
+        "tasks": [
+          {
+            "title": "Diapers and wipes",
+            "cadence": "Monthly",
+            "status": "planned"
+          },
+          {
+            "title": "Toddler outfit deals",
+            "cadence": "Weekly",
+            "status": "watching"
+          }
+        ]
+      }
+    },
+    "f90d2bb0-f356-4494-8a3c-94b365b1848f": {
+      "id": "f90d2bb0-f356-4494-8a3c-94b365b1848f",
+      "email": "iii@gmail.com",
+      "displayName": "Aaron Family",
+      "createdAt": "2026-06-15T01:51:24.446Z",
+      "updatedAt": "2026-07-14T21:56:42.333Z",
       "socialLinks": {
         "icloudPhotosUrl": "",
         "instagramUrl": "",
@@ -494,7 +578,7 @@
       },
       "location": {
         "label": "Manual location",
-        "address": "Seattle",
+        "address": "10201 NE 4th St, Bellevue, WA 98004",
         "latitude": null,
         "longitude": null,
         "source": "manual"
@@ -521,51 +605,19 @@
           }
         ]
       }
-    },
-    "f90d2bb0-f356-4494-8a3c-94b365b1848f": {
-      "id": "f90d2bb0-f356-4494-8a3c-94b365b1848f",
-      "email": "iii@gmail.com",
-      "displayName": "Aaron Family",
-      "createdAt": "2026-06-15T01:51:24.446Z",
-      "updatedAt": "2026-06-15T01:52:56.330Z",
-      "socialLinks": {
-        "icloudPhotosUrl": "",
-        "instagramUrl": "",
-        "tiktokUrl": ""
-      },
-      "location": {
-        "label": "Current location",
-        "address": "",
-        "latitude": 47.61667615431023,
-        "longitude": -122.34213657245951,
-        "accuracy": 68,
-        "source": "browser-geolocation"
-      },
-      "foodPlan": {
-        "favorites": [
-          "peas",
-          "broccoli",
-          "banana"
-        ],
-        "weeklyMenu": []
-      },
-      "amazonErrands": {
-        "tasks": [
-          {
-            "title": "Diapers and wipes",
-            "cadence": "Monthly",
-            "status": "planned"
-          },
-          {
-            "title": "Toddler outfit deals",
-            "cadence": "Weekly",
-            "status": "watching"
-          }
-        ]
-      }
     }
   },
   "posts": [
+    {
+      "id": "e724100c-4463-4fd4-9a25-6db537583e98",
+      "userId": "ac0cc008-3706-478c-a0d1-804736ba18cd",
+      "fileName": "IMG_2338.JPG",
+      "mediaType": "photo",
+      "tone": "温柔可爱",
+      "caption": "宝贝的笑容太治愈了，妈妈的温柔陪伴最温暖💖小小座椅也变成了幸福的港湾~ #温馨时刻 #宝宝的笑容 #母爱满满",
+      "source": "openai",
+      "createdAt": "2026-07-14T22:09:53.255Z"
+    },
     {
       "id": "0f021f70-5ac3-4132-bba5-7c240740e83a",
       "userId": "ac0cc008-3706-478c-a0d1-804736ba18cd",
