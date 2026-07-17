@@ -1,8 +1,21 @@
-import { createUser, findUserByEmail, mutateStore, normalizeEmail, updateUser } from '../../../../lib/backend.js';
+import {
+  LOCAL_USER_COOKIE,
+  createUser,
+  findUserByEmail,
+  mutateStore,
+  normalizeEmail,
+  updateUser,
+} from '../../../../lib/backend.js';
+import { isSupabaseConfigured } from '../../../../lib/supabase/config.js';
+import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
 export async function POST(request) {
+  if (isSupabaseConfigured()) {
+    return Response.json({ error: 'Supabase auth is enabled. Use the email verification code flow.' }, { status: 400 });
+  }
+
   const body = await request.json();
   const email = normalizeEmail(body.email);
   const displayName = String(body.displayName || '').trim() || 'Aaron Family';
@@ -22,5 +35,12 @@ export async function POST(request) {
     return created;
   });
 
-  return Response.json({ user });
+  const response = NextResponse.json({ user, authMode: 'local' });
+  response.cookies.set(LOCAL_USER_COOKIE, user.id, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+  });
+  return response;
 }

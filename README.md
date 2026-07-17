@@ -4,7 +4,7 @@ A small Next.js family planner for Aaron's daily routines. The app keeps separat
 
 ## Features
 
-- Family profile login backed by a local JSON store
+- Family profile login backed by Supabase Auth when configured, with a local JSON fallback for development
 - Shared iCloud Photos link saving and local photo previews
 - Afternoon play planning with saved location and Open-Meteo weather
 - Toddler weekly menu, editable favorites, and shopping calendar downloads
@@ -17,7 +17,8 @@ A small Next.js family planner for Aaron's daily routines. The app keeps separat
 - Next.js 15
 - React 19
 - Node.js API routes
-- Local JSON persistence in `data/app-state.json`
+- Supabase Auth and Postgres for production profile data
+- Local JSON persistence in `data/app-state.json` when Supabase environment variables are not configured
 - Plain JavaScript and CSS for the client experience
 
 ## Getting Started
@@ -50,9 +51,19 @@ npm run start
 
 ## Environment Variables
 
+Supabase is optional in local development, but required for production user auth and datastore.
+Without Supabase variables, the app falls back to the local JSON profile store.
+
+Create a `.env.local` file:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+```
+
 AI captions are optional. Without an API key, the app returns local fallback captions.
 
-Create a `.env.local` file if you want AI image captions:
+Add these if you want AI image captions:
 
 ```bash
 OPENAI_API_KEY=your_api_key_here
@@ -63,7 +74,18 @@ OPENAI_CAPTION_MODEL=gpt-4.1-mini
 
 ## Data Storage
 
-The backend writes profile data and generated post history to:
+When Supabase is configured, the backend stores signed-in user data in:
+
+- `public.profiles`
+- `public.social_posts`
+
+Run the initial migration in Supabase:
+
+```text
+supabase/migrations/202607150001_initial_profiles.sql
+```
+
+When Supabase is not configured, the backend writes profile data and generated post history to:
 
 ```text
 data/app-state.json
@@ -71,20 +93,30 @@ data/app-state.json
 
 That file is ignored by `.gitignore`, but the current repository already has a tracked copy. Treat it as local development data and avoid committing private family information.
 
-The app also stores a few browser-local values such as the signed-in user id, login email, and saved Apple Photos link in `localStorage`.
+The app stores a few browser-local values such as login email and saved Apple Photos link in `localStorage`.
+
+## Supabase Migration Path
+
+1. Create a Supabase project and enable email magic-link auth.
+2. Apply `supabase/migrations/202607150001_initial_profiles.sql`.
+3. Copy `.env.example` to `.env.local` and set the Supabase URL and publishable key.
+4. Add your deployed `/auth/confirm` URL and local `http://localhost:3000/auth/confirm` or `http://127.0.0.1:3000/auth/confirm` URL to the Supabase auth redirect allow list.
+5. Start the app and sign in with the email magic-link flow. The callback route exchanges Supabase `code` links for a server session, and also accepts `token_hash` links if you later use a custom email template.
+6. Move existing local profile data from `data/app-state.json` into `public.profiles` if needed.
+7. Deploy with the same env vars and keep `data/app-state.json` out of production.
 
 ## API Routes
 
-- `GET /api/health` checks backend availability and reports whether AI captions are configured.
-- `GET /api/users` lists saved user summaries.
-- `POST /api/users` creates a user profile.
-- `POST /api/auth/login` finds or creates a profile by email.
-- `GET /api/users/:userId/profile` returns a full profile.
-- `PUT /api/users/:userId/social-links` updates saved social links.
-- `PUT /api/users/:userId/location` updates the saved location.
-- `PUT /api/users/:userId/food-plan` updates favorite foods and menu data.
-- `PUT /api/users/:userId/amazon-errands` updates errands and outfit ideas.
-- `POST /api/users/:userId/social-media/caption` generates or falls back to a caption and stores the post record.
+- `GET /api/health` checks backend availability and reports auth mode and AI caption status.
+- `GET /api/profile` returns the current signed-in profile.
+- `PUT /api/profile` updates the current signed-in profile display name.
+- `PUT /api/social-links` updates saved social links.
+- `PUT /api/location` updates the saved location.
+- `PUT /api/food-plan` updates favorite foods and menu data.
+- `PUT /api/amazon-errands` updates errands and outfit ideas.
+- `POST /api/social-media/caption` generates or falls back to a caption and stores the post record.
+- `POST /api/auth/login` keeps the local JSON fallback working when Supabase is not configured.
+- `POST /api/auth/logout` clears the local fallback profile cookie.
 
 ## Project Structure
 
@@ -95,6 +127,8 @@ app/
   page.jsx             Client entry mount
 lib/
   backend.js           Local store helpers and caption generation
+  profile-session.js   Session-aware profile helpers for Supabase/local modes
+  supabase/            Supabase client and middleware helpers
 src/
   main.js              Planner UI and browser interactions
   styles.css           Application styles

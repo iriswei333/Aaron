@@ -124,7 +124,7 @@ async function generateMediaCaption(ctx) {
       : await Promise.all(photos.slice(0, 3).map((photo) => imageFileToDataUrl(photo.file)));
     state.captionStatus = 'Generating caption…';
     ctx.renderCurrent();
-    const result = await apiRequest(`/users/${encodeURIComponent(state.user.id)}/social-media/caption`, {
+    const result = await apiRequest('/social-media/caption', {
       method: 'POST',
       body: JSON.stringify({
         fileName: video ? video.name : photos.map((photo) => photo.name).join(', '),

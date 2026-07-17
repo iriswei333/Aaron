@@ -47,10 +47,14 @@ function clean(value) {
 }
 
 export async function apiRequest(path, options = {}) {
+  const localUserId = readStoredValue('aaronUserId', '');
+  console.log(localUserId);
+  console.log(`${API_BASE}${path}`);
   const response = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
       'content-type': 'application/json',
+      ...(localUserId ? { 'x-aaron-local-user-id': localUserId } : {}),
       ...(options.headers || {}),
     },
   });

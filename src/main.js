@@ -12,6 +12,7 @@ import { applyFoodProfile, renderFood, resetFoodState } from './tabs/food.js';
 import { DEFAULT_ALBUM_LINK, applyHomeProfile, renderHome, resetHomeState, slides } from './tabs/home.js';
 import { getLocationCoords, refreshPlayPlanning, renderPlay, resetPlayState } from './tabs/play.js';
 import { renderSocial, resetSocialState } from './tabs/social.js';
+import { createSupabaseBrowserClient } from '../lib/supabase/client.js';
 
 let root = document.getElementById('root');
 
@@ -20,9 +21,11 @@ const state = {
   slide: 0,
   user: null,
   apiReady: false,
+  authMode: 'local',
   apiMessage: 'Connecting family profile…',
   loginEmail: readStoredValue('aaronLoginEmail', ''),
   loginName: '',
+  magicLinkSent: false,
   authStatus: '',
   locationStatus: '',
   foodStatus: '',
@@ -60,6 +63,42 @@ const appContext = {
 
 globalThis.downloadCalendar = downloadCalendar;
 
+function consumeAuthRedirectStatus() {
+  try {
+    const url = new URL(globalThis.location.href);
+    const auth = url.searchParams.get('auth');
+    const hashParams = url.hash.startsWith('#') ? new URLSearchParams(url.hash.slice(1)) : null;
+    const hashError = hashParams?.get('error_code') || hashParams?.get('error');
+    if (auth === 'confirmed') {
+      state.authStatus = 'Email link confirmed. Loading your profile…';
+    }
+    if (auth === 'error') {
+      state.authStatus = 'Email link could not be verified. Please request a fresh sign-in link.';
+    }
+    if (hashError === 'otp_expired') {
+      state.authStatus = 'Email link is invalid, expired, or already used. Please request a fresh sign-in link and open the newest email.';
+    } else if (hashError) {
+      state.authStatus = hashParams?.get('error_description') || 'Email sign-in could not be completed. Please request a fresh sign-in link.';
+    }
+    if (auth) {
+      url.searchParams.delete('auth');
+    }
+    if (auth || hashError) {
+      globalThis.history.replaceState({}, '', `${url.pathname}${url.search}`);
+    }
+  } catch {
+    // Ignore URL cleanup errors in restricted browser contexts.
+  }
+}
+
+function getSupabaseClient() {
+  return createSupabaseBrowserClient();
+}
+
+function usesSupabaseAuth() {
+  return state.authMode === 'supabase' && Boolean(getSupabaseClient());
+}
+
 function ensureRoot() {
   root = root || document.getElementById('root');
   if (!root) {
@@ -80,7 +119,16 @@ function layout(content) {
 
 function renderLogin() {
   ensureRoot();
-  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><span class="brand-mark">👶</span><div><p class="eyebrow">Aaron • family profiles</p><h1>Daily Life Planner</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><p class="eyebrow">Sign in</p><h2>Choose your family profile</h2><p>Use an email to keep each family member’s iCloud link, location, food plan, Amazon errands, and social captions separate.</p><form id="login-form"><label class="input-label" for="login-email">Email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required /><label class="input-label" for="login-name">Display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="Aaron Family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>Continue</button></form><p class="muted">${escapeHtml(state.authStatus || state.apiMessage)}</p></section><section class="panel auth-note"><h2>Multi-user backend</h2><p>Each login maps to a separate backend user record. Existing emails open the same profile; new emails create a fresh one.</p><div class="profile-facts"><span>Social links</span><span>Location</span><span>Food plan</span><span>Amazon errands</span><span>AI captions</span></div></section></main></div>`;
+  const useSupabase = usesSupabaseAuth();
+  const buttonText = useSupabase ? (state.magicLinkSent ? 'Send link again' : 'Send sign-in link') : 'Continue';
+  const heading = useSupabase && state.magicLinkSent ? 'Check your email' : 'Choose your family profile';
+  const intro = useSupabase
+    ? 'Use Supabase magic link email verification to open your private family profile.'
+    : 'Use an email to keep each family member’s local planner data separate.';
+  const backendNote = useSupabase
+    ? 'Supabase Auth owns the session. API routes read the current user from secure cookies and never need a user id in the URL.'
+    : 'Local development mode stores a profile cookie and JSON data until Supabase environment variables are configured.';
+  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><span class="brand-mark">👶</span><div><p class="eyebrow">Aaron • family profiles</p><h1>Daily Life Planner</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><p class="eyebrow">Sign in</p><h2>${heading}</h2><p>${intro}</p><form id="login-form"><label class="input-label" for="login-email">Email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required /><label class="input-label" for="login-name">Display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="Aaron Family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>${buttonText}</button></form><p class="muted">${escapeHtml(state.authStatus || state.apiMessage)}</p></section><section class="panel auth-note"><h2>${useSupabase ? 'Session-backed API' : 'Local profile mode'}</h2><p>${backendNote}</p><div class="profile-facts"><span>Social links</span><span>Location</span><span>Food plan</span><span>Amazon errands</span><span>AI captions</span></div></section></main></div>`;
   document.getElementById('login-form').addEventListener('submit', loginUser);
   document.getElementById('login-email').addEventListener('input', (event) => { state.loginEmail = event.target.value; });
   document.getElementById('login-name').addEventListener('input', (event) => { state.loginName = event.target.value; });
@@ -89,14 +137,15 @@ function renderLogin() {
 async function ensureBackendUser() {
   try {
     const health = await apiRequest('/health');
-    let userId = readStoredValue('aaronUserId', '');
+    state.authMode = health.authMode || 'local';
+    if (usesSupabaseAuth()) {
+      await getSupabaseClient().auth.getSession();
+    }
     let user = null;
-    if (userId) {
-      try {
-        ({ user } = await apiRequest(`/users/${encodeURIComponent(userId)}/profile`));
-      } catch {
-        userId = '';
-      }
+    try {
+      ({ user } = await apiRequest('/profile'));
+    } catch (error) {
+      state.authStatus = state.authStatus || error.message;
     }
     state.user = user || null;
     state.apiReady = true;
@@ -117,39 +166,65 @@ function applyUserProfile(user) {
   state.user = user;
   state.loginEmail = user.email || state.loginEmail;
   state.loginName = user.displayName || '';
+  state.magicLinkSent = false;
   applyHomeProfile(state, user);
   applyFoodProfile(state, user);
   applyErrandsProfile(state, user);
   resetSocialState(state);
   state.locationStatus = user.location ? '' : 'No location saved yet. Share current location or enter one below.';
   refreshPlayPlanning(appContext);
-  writeStoredValue('aaronUserId', user.id);
   if (user.email) writeStoredValue('aaronLoginEmail', user.email);
 }
 
 async function loginUser(event) {
   event?.preventDefault();
-  state.authStatus = 'Signing in…';
+  state.authStatus = usesSupabaseAuth() ? 'Sending sign-in link…' : 'Signing in…';
   renderLogin();
   try {
-    const { user } = await apiRequest('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({
-        email: state.loginEmail,
-        displayName: state.loginName,
-      }),
-    });
+    let user;
+    if (usesSupabaseAuth()) {
+      const supabase = getSupabaseClient();
+      const email = state.loginEmail.trim();
+      const displayName = state.loginName.trim() || 'Aaron Family';
+
+      const origin = globalThis.location?.origin;
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+          ...(origin ? { emailRedirectTo: `${origin}/auth/confirm` } : {}),
+          data: { display_name: displayName },
+        },
+      });
+      if (error) throw error;
+      state.magicLinkSent = true;
+      state.authStatus = 'Check your email and open the sign-in link to finish signing in.';
+      renderLogin();
+      return;
+    } else {
+      ({ user } = await apiRequest('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: state.loginEmail,
+          displayName: state.loginName,
+        }),
+      }));
+    }
     applyUserProfile(user);
     state.authStatus = '';
     state.apiReady = true;
-    state.apiMessage = 'Family profile synced.';
+    state.apiMessage = usesSupabaseAuth() ? 'Family profile synced with Supabase.' : 'Family profile synced.';
   } catch (error) {
     state.authStatus = error.message;
   }
   render();
 }
 
-function logoutUser() {
+async function logoutUser() {
+  if (usesSupabaseAuth()) {
+    await getSupabaseClient().auth.signOut();
+  }
+  await apiRequest('/auth/logout', { method: 'POST' }).catch(() => {});
   state.user = null;
   resetHomeState(state);
   resetFoodState(state);
@@ -157,6 +232,7 @@ function logoutUser() {
   resetSocialState(state);
   resetPlayState(state);
   state.authStatus = 'Signed out. Choose another family profile.';
+  state.magicLinkSent = false;
   removeStoredValue('aaronUserId');
   removeStoredValue('aaronApplePhotosLink');
   render();
@@ -165,7 +241,7 @@ function logoutUser() {
 async function saveUserSection(section, payload) {
   if (!state.user) return;
   try {
-    const { user } = await apiRequest(`/users/${encodeURIComponent(state.user.id)}/${section}`, {
+    const { user } = await apiRequest(`/${section}`, {
       method: 'PUT',
       body: JSON.stringify(payload),
     });
@@ -210,6 +286,7 @@ function render() {
 
 function startApp() {
   try {
+    consumeAuthRedirectStatus();
     render();
     ensureBackendUser();
     setInterval(() => {

@@ -1,239 +1,5 @@
 {
   "users": {
-    "be6db17f-4ec3-47ff-b32e-5959f517c5e9": {
-      "id": "be6db17f-4ec3-47ff-b32e-5959f517c5e9",
-      "displayName": "Smoke Test Family",
-      "createdAt": "2026-05-21T23:03:30.340Z",
-      "updatedAt": "2026-05-21T23:03:30.340Z",
-      "socialLinks": {
-        "icloudPhotosUrl": "",
-        "instagramUrl": "",
-        "tiktokUrl": ""
-      },
-      "location": {
-        "label": "Home",
-        "address": "588 Bell St, Seattle, WA 98121",
-        "latitude": 47.6167,
-        "longitude": -122.3448
-      },
-      "foodPlan": {
-        "favorites": [
-          "peas",
-          "broccoli",
-          "banana"
-        ],
-        "weeklyMenu": []
-      },
-      "amazonErrands": {
-        "tasks": [
-          {
-            "title": "Diapers and wipes",
-            "cadence": "Monthly",
-            "status": "planned"
-          },
-          {
-            "title": "Toddler outfit deals",
-            "cadence": "Weekly",
-            "status": "watching"
-          }
-        ]
-      }
-    },
-    "d65a97c5-6165-4364-acf1-9183f0a9a0b4": {
-      "id": "d65a97c5-6165-4364-acf1-9183f0a9a0b4",
-      "displayName": "Aaron Family",
-      "createdAt": "2026-05-21T23:03:56.747Z",
-      "updatedAt": "2026-05-21T23:03:56.747Z",
-      "socialLinks": {
-        "icloudPhotosUrl": "",
-        "instagramUrl": "",
-        "tiktokUrl": ""
-      },
-      "location": {
-        "label": "Home",
-        "address": "588 Bell St, Seattle, WA 98121",
-        "latitude": 47.6167,
-        "longitude": -122.3448
-      },
-      "foodPlan": {
-        "favorites": [
-          "peas",
-          "broccoli",
-          "banana"
-        ],
-        "weeklyMenu": []
-      },
-      "amazonErrands": {
-        "tasks": [
-          {
-            "title": "Diapers and wipes",
-            "cadence": "Monthly",
-            "status": "planned"
-          },
-          {
-            "title": "Toddler outfit deals",
-            "cadence": "Weekly",
-            "status": "watching"
-          }
-        ]
-      }
-    },
-    "ce51fe8c-17fa-4dec-a35e-a63df2d1c487": {
-      "id": "ce51fe8c-17fa-4dec-a35e-a63df2d1c487",
-      "displayName": "Aaron Family",
-      "createdAt": "2026-05-21T23:11:52.033Z",
-      "updatedAt": "2026-05-21T23:12:04.440Z",
-      "socialLinks": {
-        "icloudPhotosUrl": "photos-redirect://",
-        "instagramUrl": "",
-        "tiktokUrl": ""
-      },
-      "location": {
-        "label": "Home",
-        "address": "588 Bell St, Seattle, WA 98121",
-        "latitude": 47.6167,
-        "longitude": -122.3448
-      },
-      "foodPlan": {
-        "favorites": [
-          "peas",
-          "broccoli",
-          "banana"
-        ],
-        "weeklyMenu": []
-      },
-      "amazonErrands": {
-        "tasks": [
-          {
-            "title": "Diapers and wipes",
-            "cadence": "Monthly",
-            "status": "planned"
-          },
-          {
-            "title": "Toddler outfit deals",
-            "cadence": "Weekly",
-            "status": "watching"
-          }
-        ]
-      }
-    },
-    "7a43a48a-2967-43d5-8cee-d862b2a0f926": {
-      "id": "7a43a48a-2967-43d5-8cee-d862b2a0f926",
-      "displayName": "Aaron Family",
-      "createdAt": "2026-05-21T23:17:45.442Z",
-      "updatedAt": "2026-05-21T23:19:52.734Z",
-      "socialLinks": {
-        "icloudPhotosUrl": "photos-redirect://",
-        "instagramUrl": "",
-        "tiktokUrl": ""
-      },
-      "location": {
-        "label": "Home",
-        "address": "588 Bell St, Seattle, WA 98121",
-        "latitude": 47.6167,
-        "longitude": -122.3448
-      },
-      "foodPlan": {
-        "favorites": [
-          "peas",
-          "broccoli",
-          "banana",
-          "strawberry",
-          "sweet corn",
-          "sweet potato",
-          "dumplings",
-          "baby waffle",
-          "baby smoothie",
-          "yogurt bites"
-        ],
-        "weeklyMenu": [
-          [
-            "Monday",
-            "Banana baby waffle + yogurt bites",
-            "Mini veggie dumplings + peas",
-            "Strawberry smoothie",
-            "Sweet potato mash + broccoli florets"
-          ],
-          [
-            "Tuesday",
-            "Yogurt bowl with banana coins",
-            "Sweet corn veggie fried rice",
-            "Baby smoothie pouch",
-            "Chicken dumpling soup with peas"
-          ],
-          [
-            "Wednesday",
-            "Mini waffle sticks + strawberries",
-            "Broccoli mac bites",
-            "Yogurt bites + banana",
-            "Sweet potato salmon cakes + corn"
-          ],
-          [
-            "Thursday",
-            "Smoothie cup + waffle",
-            "Pea and corn quesadilla triangles",
-            "Strawberries",
-            "Dumplings + soft broccoli"
-          ],
-          [
-            "Friday",
-            "Banana oatmeal + yogurt bites",
-            "Sweet potato veggie patties",
-            "Broccoli cheddar mini muffin",
-            "Family dumpling night with peas"
-          ],
-          [
-            "Weekend",
-            "Toddler brunch plate",
-            "Picnic bento with fruit",
-            "Smoothie after outing",
-            "Simple bowl: grain + veggie + protein"
-          ]
-        ]
-      },
-      "amazonErrands": {
-        "tasks": [
-          {
-            "title": "Amazon monthly subscribe-and-save: diapers and wipes on the 1st at 8:00 AM.",
-            "source": "amazon",
-            "status": "planned"
-          },
-          {
-            "title": "Order status check: every Friday at 4:00 PM until delivered.",
-            "source": "amazon",
-            "status": "planned"
-          },
-          {
-            "title": "Low-stock alert: when fewer than 20 diapers or one unopened wipe pack remains.",
-            "source": "amazon",
-            "status": "planned"
-          }
-        ],
-        "outfitIdeas": [
-          {
-            "item": "Waterproof toddler sneakers",
-            "reason": "Seattle drizzle + playground traction",
-            "source": "Promotion email keyword: toddler shoes, waterproof, 20% off",
-            "linkLabel": "Shop toddler waterproof shoes",
-            "href": "https://www.amazon.com/s?k=toddler+waterproof+sneakers"
-          },
-          {
-            "item": "Layered fleece hoodie",
-            "reason": "Warm stroller layer for 3–6 PM outings",
-            "source": "Promotion email keyword: fleece, outerwear, seasonal sale",
-            "linkLabel": "Shop toddler fleece hoodies",
-            "href": "https://www.target.com/s?searchTerm=toddler+fleece+hoodie"
-          },
-          {
-            "item": "Soft jogger set",
-            "reason": "Easy diaper changes and indoor-play comfort",
-            "source": "Promotion email keyword: toddler set, bundle, clearance",
-            "linkLabel": "Shop toddler jogger sets",
-            "href": "https://www.carters.com/search?q=toddler%20jogger%20set"
-          }
-        ]
-      }
-    },
     "8b2c94b5-18e9-41d2-bb23-731e479292ba": {
       "id": "8b2c94b5-18e9-41d2-bb23-731e479292ba",
       "email": "parent-one@example.com",
@@ -370,7 +136,7 @@
       "email": "iriswei@gmail.com",
       "displayName": "Aaron Family",
       "createdAt": "2026-05-21T23:53:13.264Z",
-      "updatedAt": "2026-05-21T23:53:35.528Z",
+      "updatedAt": "2026-07-15T18:15:07.748Z",
       "socialLinks": {
         "icloudPhotosUrl": "",
         "instagramUrl": "",
@@ -486,18 +252,19 @@
       "email": "iris333wei@gmail.com",
       "displayName": "Aaron Family",
       "createdAt": "2026-05-22T20:08:32.991Z",
-      "updatedAt": "2026-07-14T22:55:12.888Z",
+      "updatedAt": "2026-07-15T18:16:27.656Z",
       "socialLinks": {
         "icloudPhotosUrl": "",
         "instagramUrl": "",
         "tiktokUrl": ""
       },
       "location": {
-        "label": "Lake City",
-        "address": "Lake City, Seattle, King County, Washington, 98165, United States",
-        "latitude": 47.7191619,
-        "longitude": -122.2954939,
-        "source": "nominatim-geocoding"
+        "label": "Current location",
+        "address": "",
+        "latitude": 47.70782291667212,
+        "longitude": -122.33409117864066,
+        "accuracy": 35,
+        "source": "browser-geolocation"
       },
       "foodPlan": {
         "favorites": [
@@ -583,6 +350,41 @@
         "longitude": null,
         "source": "manual"
       },
+      "foodPlan": {
+        "favorites": [
+          "peas",
+          "broccoli",
+          "banana"
+        ],
+        "weeklyMenu": []
+      },
+      "amazonErrands": {
+        "tasks": [
+          {
+            "title": "Diapers and wipes",
+            "cadence": "Monthly",
+            "status": "planned"
+          },
+          {
+            "title": "Toddler outfit deals",
+            "cadence": "Weekly",
+            "status": "watching"
+          }
+        ]
+      }
+    },
+    "57d3001b-5c00-4582-adb4-4868ff05d781": {
+      "id": "57d3001b-5c00-4582-adb4-4868ff05d781",
+      "email": "iriswei@google.com",
+      "displayName": "Aaron Family",
+      "createdAt": "2026-07-15T18:16:03.581Z",
+      "updatedAt": "2026-07-15T18:16:03.581Z",
+      "socialLinks": {
+        "icloudPhotosUrl": "",
+        "instagramUrl": "",
+        "tiktokUrl": ""
+      },
+      "location": null,
       "foodPlan": {
         "favorites": [
           "peas",
