@@ -9,7 +9,7 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; min-height: 100vh; }
-button, input, select { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 button:disabled {
   cursor: not-allowed;
@@ -198,6 +198,17 @@ input, select {
   padding: 13px 14px;
   width: 100%;
 }
+
+textarea {
+  background: #fff;
+  border: 1px solid #f1caae;
+  border-radius: 16px;
+  color: #243d44;
+  min-height: 96px;
+  padding: 13px 14px;
+  resize: vertical;
+  width: 100%;
+}
 .quick-list { display: grid; gap: 10px; margin-top: 20px; }
 .quick-list span { align-items: center; color: #3e555c; display: flex; gap: 9px; font-weight: 700; }
 .quick-list svg { color: #35a872; }
@@ -237,6 +248,89 @@ time { color: #e26f39; font-weight: 900; }
 .play-card.recommended {
   background: #edf8f1;
   border-color: #95cfaa;
+}
+.play-card.selected {
+  background: #edf8f1;
+  border-color: #75bd92;
+}
+
+.play-card-body {
+  min-width: 0;
+  width: 100%;
+}
+
+.play-card-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.small-button {
+  border-radius: 12px;
+  min-height: 36px;
+  margin-top: 0;
+  padding: 8px 12px;
+}
+
+.section-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.playdate-layout {
+  grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.15fr);
+}
+
+.playdate-detail {
+  align-content: start;
+  display: grid;
+  gap: 18px;
+}
+
+.playground-summary h2 {
+  margin-bottom: 8px;
+}
+
+.playdate-form {
+  display: grid;
+  gap: 14px;
+}
+
+.form-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-grid label {
+  display: grid;
+  gap: 7px;
+}
+
+.form-grid span {
+  color: #455a62;
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
+.playdate-card {
+  border-color: #cce2d3;
+}
+
+.playdate-card.private {
+  border-color: #ddc4ea;
+}
+
+.playdate-card-footer {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-top: 14px;
 }
 .mini-link {
   color: #243d44;
@@ -404,11 +498,12 @@ time { color: #e26f39; font-weight: 900; }
   .app-header { align-items: flex-start; flex-direction: column; }
   .tabs { border-radius: 24px; flex-wrap: wrap; width: 100%; }
   .tabs button { flex: 1 1 95px; }
-  .two-cols, .dashboard-row, .menu-grid, .auth-layout { grid-template-columns: 1fr; }
+  .two-cols, .dashboard-row, .menu-grid, .auth-layout, .playdate-layout, .form-grid { grid-template-columns: 1fr; }
   .sync-banner { align-items: flex-start; flex-direction: column; }
   .sync-banner span { text-align: left; }
   .weather-grid { grid-template-columns: 1fr 1fr; }
   .timeline article { grid-template-columns: 1fr; gap: 4px; }
+  .section-heading, .playdate-card-footer { align-items: flex-start; flex-direction: column; }
 }
 
 .home-layout {

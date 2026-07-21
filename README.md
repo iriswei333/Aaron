@@ -6,7 +6,7 @@ A small Next.js family planner for Aaron's daily routines. The app keeps separat
 
 - Family profile login backed by Supabase Auth when configured, with a local JSON fallback for development
 - Shared iCloud Photos link saving and local photo previews
-- Afternoon play planning with saved location and Open-Meteo weather
+- Playground discovery with saved location, Open-Meteo weather, public/private play dates, and public play-date joining
 - Toddler weekly menu, editable favorites, and shopping calendar downloads
 - Amazon errands, diaper/wipe reminders, and outfit recommendation links
 - Social post helper that selects photos or a video frame and drafts a caption
@@ -78,11 +78,14 @@ When Supabase is configured, the backend stores signed-in user data in:
 
 - `public.profiles`
 - `public.social_posts`
+- `public.play_dates`
+- `public.play_date_participants`
 
 Run the initial migration in Supabase:
 
 ```text
 supabase/migrations/202607150001_initial_profiles.sql
+supabase/migrations/202607200001_play_dates.sql
 ```
 
 When Supabase is not configured, the backend writes profile data and generated post history to:
@@ -112,6 +115,9 @@ The app stores a few browser-local values such as login email and saved Apple Ph
 - `PUT /api/profile` updates the current signed-in profile display name.
 - `PUT /api/social-links` updates saved social links.
 - `PUT /api/location` updates the saved location.
+- `GET /api/playdates?playgroundKey=...` returns upcoming visible play dates for a selected playground.
+- `POST /api/playdates` creates a public or private play date at the selected playground.
+- `PUT /api/playdates` joins an existing public play date using `playDateId` from `public.play_dates`.
 - `PUT /api/food-plan` updates favorite foods and menu data.
 - `PUT /api/amazon-errands` updates errands and outfit ideas.
 - `POST /api/social-media/caption` generates or falls back to a caption and stores the post record.
