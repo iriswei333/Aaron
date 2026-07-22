@@ -1,6 +1,6 @@
 {
+  "/api/location/route": "app/api/location/route.js",
+  "/api/family-events/route": "app/api/family-events/route.js",
   "/api/playdates/route": "app/api/playdates/route.js",
-  "/api/profile/route": "app/api/profile/route.js",
-  "/api/health/route": "app/api/health/route.js",
   "/page": "app/page.js"
 }

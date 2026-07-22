@@ -266,6 +266,11 @@ time { color: #e26f39; font-weight: 900; }
 }
 .event-card { display: block; }
 .event-card span { align-items: center; color: #d7632c; display: flex; font-size: 0.82rem; font-weight: 850; gap: 6px; margin-bottom: 8px; text-transform: uppercase; }
+.event-card.search-link-card {
+  background: #f7fbff;
+  border-color: #c9dce8;
+}
+.event-card .play-card-actions { margin-top: 12px; }
 .icon {
   flex: 0 0 auto;
   font-size: 1.18rem;

@@ -7,7 +7,7 @@ A small Next.js daily planner for parents of young kids. The app keeps separate 
 - Parent profile login backed by Supabase Auth when configured, with a local JSON fallback for development
 - Multi-child onboarding for nickname, age or birthday, home city, food notes, favorite activities, caption preferences, and caption privacy
 - Shared iCloud Photos link saving and local photo previews
-- Playground discovery with saved location, Open-Meteo weather, public/private play dates, and public play-date joining
+- Playground discovery with saved location, Open-Meteo weather, weekend family events, public/private play dates, and public play-date joining
 - Toddler weekly menu, editable favorites, and shopping calendar downloads
 - Amazon errands, diaper/wipe reminders, and outfit recommendation links
 - Social post helper that selects photos or a video frame and drafts a caption
@@ -81,6 +81,7 @@ When Supabase is configured, the backend stores signed-in user data in:
 - `public.social_posts`
 - `public.play_dates`
 - `public.play_date_participants`
+- `public.family_event_cache`
 
 Run the initial migration in Supabase:
 
@@ -89,9 +90,10 @@ supabase/migrations/202607150001_initial_profiles.sql
 supabase/migrations/202607200001_play_dates.sql
 supabase/migrations/202607220001_child_profile.sql
 supabase/migrations/202607220002_multiple_children.sql
+supabase/migrations/202607220003_family_event_cache.sql
 ```
 
-When Supabase is not configured, the backend writes profile data and generated post history to:
+When Supabase is not configured, the backend writes profile data, generated post history, play dates, and the family-event cache to:
 
 ```text
 data/app-state.json
@@ -105,11 +107,12 @@ The app stores a few browser-local values such as login email and saved Apple Ph
 
 1. Create a Supabase project and enable email magic-link auth.
 2. Apply `supabase/migrations/202607150001_initial_profiles.sql`.
-3. Copy `.env.example` to `.env.local` and set the Supabase URL and publishable key.
-4. Add your deployed `/auth/confirm` URL and local `http://localhost:3000/auth/confirm` or `http://127.0.0.1:3000/auth/confirm` URL to the Supabase auth redirect allow list.
-5. Start the app and sign in with the email magic-link flow. The callback route exchanges Supabase `code` links for a server session, and also accepts `token_hash` links if you later use a custom email template.
-6. Move existing local profile data from `data/app-state.json` into `public.profiles` if needed.
-7. Deploy with the same env vars and keep `data/app-state.json` out of production.
+3. Apply the follow-up migrations in order through `supabase/migrations/202607220003_family_event_cache.sql`.
+4. Copy `.env.example` to `.env.local` and set the Supabase URL and publishable key.
+5. Add your deployed `/auth/confirm` URL and local `http://localhost:3000/auth/confirm` or `http://127.0.0.1:3000/auth/confirm` URL to the Supabase auth redirect allow list.
+6. Start the app and sign in with the email magic-link flow. The callback route exchanges Supabase `code` links for a server session, and also accepts `token_hash` links if you later use a custom email template.
+7. Move existing local profile data from `data/app-state.json` into `public.profiles` if needed.
+8. Deploy with the same env vars and keep `data/app-state.json` out of production.
 
 ## API Routes
 
@@ -118,6 +121,7 @@ The app stores a few browser-local values such as login email and saved Apple Ph
 - `PUT /api/profile` updates the current signed-in profile display name, children, and active child.
 - `PUT /api/social-links` updates saved social links.
 - `PUT /api/location` updates the saved location.
+- `GET /api/family-events` returns cached weekend family events for the profile city and current weekend; optional `location`, `start`, `end`, and `refresh=1` query params can override the defaults.
 - `GET /api/playdates?playgroundKey=...` returns upcoming visible play dates for a selected playground.
 - `POST /api/playdates` creates a public or private play date at the selected playground.
 - `PUT /api/playdates` joins an existing public play date using `playDateId` from `public.play_dates`.
@@ -136,6 +140,7 @@ app/
   page.jsx             Client entry mount
 lib/
   backend.js           Local store helpers and caption generation
+  family-events.js     Server-side family event fetching, parsing, fallback links, and cache keys
   profile-session.js   Session-aware profile helpers for Supabase/local modes
   supabase/            Supabase client and middleware helpers
 src/
@@ -148,5 +153,6 @@ data/
 ## Notes
 
 - Weather uses Open-Meteo from the browser after a profile has saved latitude and longitude.
+- Weekend family events are fetched server-side only. The API uses the saved profile city or location city, parses ParentMap calendar pages for supported Puget Sound cities, caches results for 12 hours, and falls back to clearly labeled search links when no parsed event cards are available.
 - Uploaded photos and videos are previewed locally in the browser and are not uploaded unless used for optional AI caption generation.
 - Calendar buttons generate `.ics` files in the browser for reminders and shopping blocks.
