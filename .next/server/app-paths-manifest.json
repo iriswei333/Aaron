@@ -1,14 +1,6 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/amazon-errands/route": "app/api/amazon-errands/route.js",
-  "/api/food-plan/route": "app/api/food-plan/route.js",
-  "/api/auth/login/route": "app/api/auth/login/route.js",
-  "/api/health/route": "app/api/health/route.js",
-  "/api/location/route": "app/api/location/route.js",
   "/api/profile/route": "app/api/profile/route.js",
-  "/api/social-links/route": "app/api/social-links/route.js",
-  "/api/auth/logout/route": "app/api/auth/logout/route.js",
-  "/api/social-media/caption/route": "app/api/social-media/caption/route.js",
-  "/auth/confirm/route": "app/auth/confirm/route.js",
+  "/api/playdates/route": "app/api/playdates/route.js",
+  "/api/health/route": "app/api/health/route.js",
   "/page": "app/page.js"
 }

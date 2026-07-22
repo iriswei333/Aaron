@@ -8,6 +8,14 @@ export function readStoredValue(key, fallback) {
   }
 }
 
+export function readFirstStoredValue(keys, fallback) {
+  for (const key of keys) {
+    const value = readStoredValue(key, '');
+    if (value) return value;
+  }
+  return fallback;
+}
+
 export function writeStoredValue(key, value) {
   try {
     globalThis.localStorage?.setItem(key, value);
@@ -47,14 +55,12 @@ function clean(value) {
 }
 
 export async function apiRequest(path, options = {}) {
-  const localUserId = readStoredValue('aaronUserId', '');
-  console.log(localUserId);
-  console.log(`${API_BASE}${path}`);
+  const localUserId = readFirstStoredValue(['sproutCueUserId', 'aaronUserId'], '');
   const response = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
       'content-type': 'application/json',
-      ...(localUserId ? { 'x-aaron-local-user-id': localUserId } : {}),
+      ...(localUserId ? { 'x-sproutcue-local-user-id': localUserId } : {}),
       ...(options.headers || {}),
     },
   });
@@ -79,7 +85,7 @@ export function downloadCalendar(title, start, end, description) {
   const ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Aaron Planner//Daily Life//EN',
+    'PRODID:-//SproutCue//Daily Life//EN',
     'BEGIN:VEVENT',
     `SUMMARY:${clean(title)}`,
     `DTSTART:${start}`,

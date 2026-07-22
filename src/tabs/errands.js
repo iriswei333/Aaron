@@ -1,4 +1,5 @@
 import { downloadCalendar, escapeAttribute, escapeHtml, icon } from '../shared.js';
+import { childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
 
 export const defaultAmazonTasks = [
   { title: 'Amazon monthly subscribe-and-save: diapers and wipes on the 1st at 8:00 AM.', source: 'amazon', status: 'planned' },
@@ -9,7 +10,7 @@ export const defaultAmazonTasks = [
 export const defaultOutfitIdeas = [
   {
     item: 'Waterproof toddler sneakers',
-    reason: 'Seattle drizzle + playground traction',
+    reason: 'Rainy days + playground traction',
     source: 'Promotion email keyword: toddler shoes, waterproof, 20% off',
     linkLabel: 'Shop toddler waterproof shoes',
     href: 'https://www.amazon.com/s?k=toddler+waterproof+sneakers',
@@ -84,11 +85,12 @@ function removeAmazonTask(ctx, index) {
 
 export function renderErrands(ctx) {
   const { state } = ctx;
+  const childName = childDisplayName(getChildProfile(state.user));
   const amazonTasks = state.amazonTasks.length > 0 ? state.amazonTasks : defaultAmazonTasks.map((task) => ({ ...task }));
   const outfitIdeas = state.outfitIdeas.length > 0 ? state.outfitIdeas : defaultOutfitIdeas.map((idea) => ({ ...idea }));
   const reminderText = amazonTasks.map((task) => task.title).join(' ');
 
-  ctx.layout(`<main class="grid two-cols"><section class="panel"><p class="eyebrow">Amazon automation</p><h2>Diapers + wipes monthly order</h2><p>Use this checklist to keep the subscription visible and avoid surprise low-stock mornings.</p><div class="automation-list">${amazonTasks.map((task, index) => `<article class="mini-card editable-card">${icon('🔄')}<p>${escapeHtml(task.title)}</p><button class="icon-button danger" data-remove-amazon="${index}" aria-label="Remove ${escapeAttribute(task.title)}">×</button></article>`).join('')}</div><form id="amazon-task-form" class="shopping-edit"><label class="input-label" for="new-amazon-task">Add Amazon or grocery automation</label><div class="inline-form"><input id="new-amazon-task" value="${escapeAttribute(state.newAmazonTask)}" placeholder="e.g. Grocery delivery every Tuesday at 10 AM" /><button type="submit">Add</button></div></form><p class="muted">${escapeHtml(state.amazonStatus || 'Edit Amazon and grocery errands for the signed-in user, then save.')}</p><button id="download-amazon-reminder">Download monthly reminder</button><button id="save-amazon-errands">Save Amazon errands</button></section><section class="panel"><p class="eyebrow">Email promotion scanner</p><h2>New outfit recommendations</h2><p>Connect promotion emails by searching for toddler shoe/clothing keywords, then choose comfortable pieces for Seattle play.</p>${outfitIdeas.map((idea) => `<article class="event-card outfit-card"><img class="outfit-preview" src="${escapeAttribute(idea.photoUrl)}" alt="Photo preview for ${escapeAttribute(idea.item)}" loading="lazy" /><div><span>👕 ${escapeHtml(idea.source)}</span><h3>${escapeHtml(idea.item)}</h3><p>${escapeHtml(idea.reason)}</p><a class="shopping-link" href="${escapeAttribute(idea.href)}" target="_blank" rel="noreferrer">${escapeHtml(idea.linkLabel)} ↗</a></div></article>`).join('')}</section></main>`);
+  ctx.layout(`<main class="grid two-cols"><section class="panel"><p class="eyebrow">Errand automation</p><h2>Monthly essentials for ${escapeHtml(childName)}</h2><p>Use this checklist to keep subscriptions visible and avoid surprise low-stock mornings.</p><div class="automation-list">${amazonTasks.map((task, index) => `<article class="mini-card editable-card">${icon('🔄')}<p>${escapeHtml(task.title)}</p><button class="icon-button danger" data-remove-amazon="${index}" aria-label="Remove ${escapeAttribute(task.title)}">×</button></article>`).join('')}</div><form id="amazon-task-form" class="shopping-edit"><label class="input-label" for="new-amazon-task">Add Amazon or grocery automation</label><div class="inline-form"><input id="new-amazon-task" value="${escapeAttribute(state.newAmazonTask)}" placeholder="e.g. Grocery delivery every Tuesday at 10 AM" /><button type="submit">Add</button></div></form><p class="muted">${escapeHtml(state.amazonStatus || 'Edit Amazon and grocery errands for the signed-in user, then save.')}</p><button id="download-amazon-reminder">Download monthly reminder</button><button id="save-amazon-errands">Save errands</button></section><section class="panel"><p class="eyebrow">Email promotion scanner</p><h2>New outfit recommendations</h2><p>Connect promotion emails by searching for kid shoe/clothing keywords, then choose comfortable pieces for active play.</p>${outfitIdeas.map((idea) => `<article class="event-card outfit-card"><img class="outfit-preview" src="${escapeAttribute(idea.photoUrl)}" alt="Photo preview for ${escapeAttribute(idea.item)}" loading="lazy" /><div><span>👕 ${escapeHtml(idea.source)}</span><h3>${escapeHtml(idea.item)}</h3><p>${escapeHtml(idea.reason)}</p><a class="shopping-link" href="${escapeAttribute(idea.href)}" target="_blank" rel="noreferrer">${escapeHtml(idea.linkLabel)} ↗</a></div></article>`).join('')}</section></main>`);
 
   document.getElementById('download-amazon-reminder').addEventListener('click', () => downloadCalendar('Order diapers and wipes', '20260601T080000', '20260601T081500', reminderText || 'Monthly Amazon and grocery errand reminder'));
   document.getElementById('save-amazon-errands').addEventListener('click', () => saveAmazonErrands(ctx, amazonTasks, outfitIdeas));

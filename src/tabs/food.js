@@ -1,4 +1,10 @@
 import { downloadCalendar, escapeAttribute, escapeHtml, icon } from '../shared.js';
+import {
+  childAgeLabel,
+  childDisplayName,
+  childPossessiveName,
+  getChildProfile,
+} from '../../lib/profile-defaults.js';
 
 export const defaultToddlerFoods = ['peas', 'broccoli', 'banana', 'strawberry', 'sweet corn', 'sweet potato', 'dumplings', 'baby waffle', 'baby smoothie', 'yogurt bites'];
 
@@ -61,10 +67,17 @@ function removeShoppingItem(ctx, index) {
 
 export function renderFood(ctx) {
   const { state } = ctx;
+  const childProfile = getChildProfile(state.user);
+  const childName = childDisplayName(childProfile);
+  const possessiveChildName = childPossessiveName(childProfile);
+  const ageLabel = childAgeLabel(childProfile);
+  const foodNotes = [childProfile.foodPreferences, childProfile.allergies ? `Avoid: ${childProfile.allergies}` : '']
+    .filter(Boolean)
+    .join(' • ');
   const shoppingList = state.shoppingList.length > 0 ? state.shoppingList : [...defaultToddlerFoods];
   const shoppingText = shoppingList.join(' ');
 
-  ctx.layout(`<main class="stack"><section class="panel title-panel">${icon('👨‍🍳')}<div><p class="eyebrow">Weekly refresh</p><h2>Menu recommendations for a 2-year-old toddler</h2><p>Rotates around Aaron’s favorites while balancing fruit, vegetables, protein, and simple family meals.</p><button id="save-food-plan">Save food plan</button></div></section><section class="menu-grid">${menu.map(([day, b, l, s, d]) => `<article class="panel meal-card"><h3>${day}</h3><p><strong>Breakfast:</strong> ${b}</p><p><strong>Lunch:</strong> ${l}</p><p><strong>Snack:</strong> ${s}</p><p><strong>Dinner:</strong> ${d}</p></article>`).join('')}</section><section class="grid two-cols"><div class="panel"><h2>Whole Foods weekday shopping events</h2><article class="event-card"><span>Tuesday 10:00 AM</span><h3>Fresh produce + snacks</h3><p>Avoids the 3–6 PM weekday play block. Buy fruit, vegetables, yogurt bites, smoothie ingredients, and waffles.</p></article><article class="event-card"><span>Thursday 10:30 AM</span><h3>Freezer + pantry restock</h3><p>Avoids weekday play and leaves time before Thursday weekend playdate planning.</p></article></div><div class="panel"><h2>Shopping list</h2><div class="shopping-list">${shoppingList.map((food, index) => `<div class="shopping-item"><label><input type="checkbox" /> ${escapeHtml(food)}</label><button class="icon-button danger" data-remove-food="${index}" aria-label="Remove ${escapeAttribute(food)}">×</button></div>`).join('')}</div><form id="shopping-form" class="shopping-edit"><label class="input-label" for="new-food">Add food</label><div class="inline-form"><input id="new-food" value="${escapeAttribute(state.newFood)}" placeholder="e.g. blueberries" /><button type="submit">Add</button></div></form><p class="muted">${escapeHtml(state.foodStatus || 'Edit this list for the signed-in user, then save the food plan.')}</p><button id="save-shopping-list">Save shopping list</button><button id="download-shopping-event">🛒 Download shopping event</button></div></section></main>`);
+  ctx.layout(`<main class="stack"><section class="panel title-panel">${icon('👨‍🍳')}<div><p class="eyebrow">Weekly refresh${ageLabel ? ` • ${escapeHtml(ageLabel)}` : ''}</p><h2>Menu ideas for ${escapeHtml(childName)}</h2><p>Rotates around ${escapeHtml(possessiveChildName)} saved favorites while balancing fruit, vegetables, protein, and simple family meals.</p>${foodNotes ? `<p class="muted">Profile notes: ${escapeHtml(foodNotes)}</p>` : ''}<button id="save-food-plan">Save food plan</button></div></section><section class="menu-grid">${menu.map(([day, b, l, s, d]) => `<article class="panel meal-card"><h3>${day}</h3><p><strong>Breakfast:</strong> ${b}</p><p><strong>Lunch:</strong> ${l}</p><p><strong>Snack:</strong> ${s}</p><p><strong>Dinner:</strong> ${d}</p></article>`).join('')}</section><section class="grid two-cols"><div class="panel"><h2>Grocery weekday shopping events</h2><article class="event-card"><span>Tuesday 10:00 AM</span><h3>Fresh produce + snacks</h3><p>Avoids the 3-6 PM weekday play block. Buy fruit, vegetables, yogurt bites, smoothie ingredients, and waffles.</p></article><article class="event-card"><span>Thursday 10:30 AM</span><h3>Freezer + pantry restock</h3><p>Avoids weekday play and leaves time before weekend playdate planning.</p></article></div><div class="panel"><h2>Shopping list</h2><div class="shopping-list">${shoppingList.map((food, index) => `<div class="shopping-item"><label><input type="checkbox" /> ${escapeHtml(food)}</label><button class="icon-button danger" data-remove-food="${index}" aria-label="Remove ${escapeAttribute(food)}">×</button></div>`).join('')}</div><form id="shopping-form" class="shopping-edit"><label class="input-label" for="new-food">Add food</label><div class="inline-form"><input id="new-food" value="${escapeAttribute(state.newFood)}" placeholder="e.g. blueberries" /><button type="submit">Add</button></div></form><p class="muted">${escapeHtml(state.foodStatus || 'Edit this list for the signed-in user, then save the food plan.')}</p><button id="save-shopping-list">Save shopping list</button><button id="download-shopping-event">🛒 Download shopping event</button></div></section></main>`);
 
   document.getElementById('save-food-plan').addEventListener('click', () => saveFoodPlan(ctx, shoppingList));
   document.getElementById('save-shopping-list').addEventListener('click', () => saveFoodPlan(ctx, shoppingList));

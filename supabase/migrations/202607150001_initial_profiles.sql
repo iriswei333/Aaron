@@ -3,7 +3,8 @@ create extension if not exists pgcrypto;
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null default '',
-  display_name text not null default 'Aaron Family',
+  display_name text not null default 'Family Profile',
+  child_profile jsonb not null default '{"activeChildId":"","children":[],"onboardingComplete":false}'::jsonb,
   social_links jsonb not null default '{"icloudPhotosUrl":"","instagramUrl":"","tiktokUrl":""}'::jsonb,
   location jsonb,
   food_plan jsonb not null default '{"favorites":["peas","broccoli","banana"],"weeklyMenu":[]}'::jsonb,

@@ -1,10 +1,11 @@
-# Aaron Daily Life Planner
+# SproutCue
 
-A small Next.js family planner for Aaron's daily routines. The app keeps separate family profiles and helps organize photo links, afternoon play plans, toddler meals, errands, outfit ideas, and social captions.
+A small Next.js daily planner for parents of young kids. The app keeps separate parent profiles, captures each child's setup details, and helps organize photo links, afternoon play plans, kid meals, errands, outfit ideas, and social captions.
 
 ## Features
 
-- Family profile login backed by Supabase Auth when configured, with a local JSON fallback for development
+- Parent profile login backed by Supabase Auth when configured, with a local JSON fallback for development
+- Multi-child onboarding for nickname, age or birthday, home city, food notes, favorite activities, caption preferences, and caption privacy
 - Shared iCloud Photos link saving and local photo previews
 - Playground discovery with saved location, Open-Meteo weather, public/private play dates, and public play-date joining
 - Toddler weekly menu, editable favorites, and shopping calendar downloads
@@ -86,6 +87,8 @@ Run the initial migration in Supabase:
 ```text
 supabase/migrations/202607150001_initial_profiles.sql
 supabase/migrations/202607200001_play_dates.sql
+supabase/migrations/202607220001_child_profile.sql
+supabase/migrations/202607220002_multiple_children.sql
 ```
 
 When Supabase is not configured, the backend writes profile data and generated post history to:
@@ -111,8 +114,8 @@ The app stores a few browser-local values such as login email and saved Apple Ph
 ## API Routes
 
 - `GET /api/health` checks backend availability and reports auth mode and AI caption status.
-- `GET /api/profile` returns the current signed-in profile.
-- `PUT /api/profile` updates the current signed-in profile display name.
+- `GET /api/profile` returns the current signed-in parent profile and children.
+- `PUT /api/profile` updates the current signed-in profile display name, children, and active child.
 - `PUT /api/social-links` updates saved social links.
 - `PUT /api/location` updates the saved location.
 - `GET /api/playdates?playgroundKey=...` returns upcoming visible play dates for a selected playground.
@@ -136,7 +139,7 @@ lib/
   profile-session.js   Session-aware profile helpers for Supabase/local modes
   supabase/            Supabase client and middleware helpers
 src/
-  main.js              Planner UI and browser interactions
+  main.js              Sign-in, child onboarding, planner UI, and browser interactions
   styles.css           Application styles
 data/
   app-state.json       Local profile/post data

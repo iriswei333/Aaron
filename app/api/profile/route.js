@@ -1,7 +1,7 @@
 import {
   getCurrentProfile,
   profileErrorResponse,
-  updateCurrentProfileDisplayName,
+  updateCurrentProfileDetails,
 } from '../../../lib/profile-session.js';
 
 export const runtime = 'nodejs';
@@ -19,7 +19,7 @@ export async function GET(request) {
 export async function PUT(request) {
   try {
     const body = await request.json();
-    const current = await updateCurrentProfileDisplayName(request, body.displayName);
+    const current = await updateCurrentProfileDetails(request, body);
     if (!current.user) return profileErrorResponse(current);
     return Response.json({ user: current.user, authMode: current.mode });
   } catch (error) {

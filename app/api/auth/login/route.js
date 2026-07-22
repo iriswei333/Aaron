@@ -18,7 +18,7 @@ export async function POST(request) {
 
   const body = await request.json();
   const email = normalizeEmail(body.email);
-  const displayName = String(body.displayName || '').trim() || 'Aaron Family';
+  const displayName = String(body.displayName || '').trim() || 'Family Profile';
 
   if (!email || !email.includes('@')) {
     return Response.json({ error: 'Enter a valid email address.' }, { status: 400 });

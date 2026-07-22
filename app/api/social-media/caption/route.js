@@ -13,8 +13,9 @@ export async function POST(request) {
     if (!current.user) return profileErrorResponse(current);
 
     const body = await request.json();
-    const result = await generateAiCaption(body);
-    const saved = await writeCurrentPost(request, body, result);
+    const payload = { ...body, childProfile: current.user.childProfile };
+    const result = await generateAiCaption(payload);
+    const saved = await writeCurrentPost(request, payload, result);
     if (!saved.user) return profileErrorResponse(saved);
 
     return Response.json(result);

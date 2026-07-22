@@ -1,4 +1,10 @@
-import { apiRequest, escapeHtml, icon } from '../shared.js';
+import { apiRequest, escapeAttribute, escapeHtml, icon } from '../shared.js';
+import {
+  captionLanguageOptions,
+  captionSubject,
+  captionToneOptions,
+  getChildProfile,
+} from '../../lib/profile-defaults.js';
 
 export function resetSocialState(state) {
   state.media = [];
@@ -130,6 +136,7 @@ async function generateMediaCaption(ctx) {
         fileName: video ? video.name : photos.map((photo) => photo.name).join(', '),
         mediaType: video ? 'video' : 'photo',
         tone: state.captionTone,
+        captionLanguage: state.captionLanguage,
         imageDataUrls,
       }),
     });
@@ -143,17 +150,49 @@ async function generateMediaCaption(ctx) {
   ctx.renderCurrent();
 }
 
+function localPreviewCaption(state, childProfile) {
+  const language = state.captionLanguage || childProfile.captionLanguage;
+  const subject = captionSubject(childProfile, language);
+  const isVideo = state.media.length === 1 && state.media[0].kind === 'video';
+
+  if (language === 'en') {
+    return isVideo
+      ? `${subject} today: tiny explorer mode, turning an ordinary moment into a little adventure. #ChildhoodDiary #FamilyMoments`
+      : `${subject} in three little frames: busy hands, bright smiles, and one sweet everyday memory. #ChildhoodDiary #FamilyMoments`;
+  }
+
+  return isVideo
+    ? `今日份${subject}小电影：小小探险家，把平凡的一天玩成了冒险。${state.captionTone}，每一秒都想珍藏。`
+    : `今日份${subject}三连拍：小手忙着探索，笑容负责发光。快乐很简单，有爱、有玩具，也有一点点甜甜的惊喜。#成长日记`;
+}
+
 export function renderSocial(ctx) {
   const { state } = ctx;
-  const caption = state.generatedCaption || (state.media.length === 1 && state.media[0].kind === 'video'
-    ? `今日份Aaron小电影🎬：两岁的小小探险家，把平凡的一天玩成了冒险。${state.captionTone}，每一秒都想珍藏。`
-    : '今日份Aaron三连拍📷：小手忙着探索，笑容负责发光。两岁的快乐很简单，有爱、有玩具，也有一点点甜甜的惊喜。#Aaron成长日记');
+  const childProfile = getChildProfile(state.user);
+  const caption = state.generatedCaption || localPreviewCaption(state, childProfile);
+  const toneOptions = captionToneOptions
+    .map((tone) => `<option value="${escapeAttribute(tone)}" ${state.captionTone === tone ? 'selected' : ''}>${escapeHtml(tone)}</option>`)
+    .join('');
+  const languageOptions = captionLanguageOptions
+    .map(([value, label]) => `<option value="${escapeAttribute(value)}" ${state.captionLanguage === value ? 'selected' : ''}>${escapeHtml(label)}</option>`)
+    .join('');
+  const captionHeading = state.captionLanguage === 'en'
+    ? 'Caption'
+    : state.captionLanguage === 'bilingual'
+      ? 'Bilingual caption'
+      : 'Chinese caption';
 
-  ctx.layout(`<main class="grid two-cols"><section class="panel upload-panel"><p class="eyebrow">Today’s best post</p><h2>Pick best 3 photos or 1 video</h2><p>Upload today’s Apple Photos exports. The app selects one video if present; otherwise it picks the top three photos and drafts a Chinese caption.</p><label class="upload-box">${icon('⬆️')}<span>Choose photos or video</span><input id="media-input" type="file" accept="image/*,video/*" multiple /></label><label class="input-label" for="tone">Caption tone</label><select id="tone"><option>温柔可爱</option><option>俏皮活泼</option><option>季节感</option><option>车车主题</option></select><button id="generate-caption" ${state.media.length > 0 ? '' : 'disabled'}>Generate AI caption</button><p class="muted">${escapeHtml(state.captionStatus || 'Photo captions use selected images; video captions use a thumbnail frame and the backend AI service.')}</p></section><section class="panel"><h2>Selected media</h2><div class="media-grid">${state.media.length === 0 ? '<p class="muted">No media selected yet. Upload today’s photos or a video.</p>' : state.media.map((pick) => `<article class="media-card">${pick.kind === 'video' ? `<video src="${pick.url}" controls></video>` : `<img src="${pick.url}" alt="${pick.name}" />`}<h3>${pick.name}</h3><p>Score ${pick.score}/100 • ${pick.reason}</p></article>`).join('')}</div><div class="caption-box"><h3>Chinese caption</h3><p id="caption">${escapeHtml(caption)}</p><button id="copy-caption">➕ Copy caption</button></div></section></main>`);
+  ctx.layout(`<main class="grid two-cols"><section class="panel upload-panel"><p class="eyebrow">Today’s best post</p><h2>Pick best 3 photos or 1 video</h2><p>Upload today’s photo exports. The app selects one video if present; otherwise it picks the top three photos and drafts a caption using the child profile preferences.</p><label class="upload-box">${icon('⬆️')}<span>Choose photos or video</span><input id="media-input" type="file" accept="image/*,video/*" multiple /></label><div class="form-grid two-field-grid"><label><span>Caption language</span><select id="caption-language">${languageOptions}</select></label><label><span>Caption tone</span><select id="tone">${toneOptions}</select></label></div><button id="generate-caption" ${state.media.length > 0 ? '' : 'disabled'}>Generate AI caption</button><p class="muted">${escapeHtml(state.captionStatus || 'Photo captions use selected images; video captions use a thumbnail frame and the backend AI service.')}</p></section><section class="panel"><h2>Selected media</h2><div class="media-grid">${state.media.length === 0 ? '<p class="muted">No media selected yet. Upload today’s photos or a video.</p>' : state.media.map((pick) => `<article class="media-card">${pick.kind === 'video' ? `<video src="${pick.url}" controls></video>` : `<img src="${pick.url}" alt="${pick.name}" />`}<h3>${pick.name}</h3><p>Score ${pick.score}/100 • ${pick.reason}</p></article>`).join('')}</div><div class="caption-box"><h3>${escapeHtml(captionHeading)}</h3><p id="caption">${escapeHtml(caption)}</p><button id="copy-caption">➕ Copy caption</button></div></section></main>`);
 
   document.getElementById('tone').value = state.captionTone;
   document.getElementById('tone').addEventListener('change', (event) => {
     state.captionTone = event.target.value;
+    state.generatedCaption = '';
+    ctx.renderCurrent();
+  });
+  document.getElementById('caption-language').value = state.captionLanguage;
+  document.getElementById('caption-language').addEventListener('change', (event) => {
+    state.captionLanguage = event.target.value;
     state.generatedCaption = '';
     ctx.renderCurrent();
   });
