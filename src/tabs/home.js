@@ -1,22 +1,32 @@
 import { escapeAttribute, escapeHtml, icon, writeStoredValue } from '../shared.js';
-import { childDisplayName, childPossessiveName, getChildProfile } from '../../lib/profile-defaults.js';
+import { childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
 
 const DEFAULT_ALBUM_LINK = 'photos-redirect://';
+const DEFAULT_HOME_BACKGROUND_KEY = 'morning-table';
+const HOME_BACKGROUND_STORAGE_KEY = 'sproutCueHomeBackgroundKey';
 
-const slides = [
-  ['Morning giggles', 'Connect this slide to a shared album of favorite morning moments.', 'peach'],
-  ['Park explorer', 'Add a favorite playground memory from recent family adventures.', 'mint'],
-  ['Dinner helper', 'Link a clip of a meal, snack, or tiny kitchen victory.', 'sky'],
+const defaultBackgrounds = [
+  {
+    key: 'morning-table',
+    name: 'Morning table',
+    detail: 'Books, tiny shoes, snack bowl, and a soft morning start.',
+    src: '/backgrounds/parenting-home-default.png',
+  },
+  {
+    key: 'playground-walk',
+    name: 'Playground walk',
+    detail: 'A stroller blanket and playground details after outdoor time.',
+    src: '/backgrounds/parenting-playground-default.png',
+  },
+  {
+    key: 'art-table',
+    name: 'Art table',
+    detail: 'Crayons, paper shapes, and a tidy afternoon craft setup.',
+    src: '/backgrounds/parenting-art-table-default.png',
+  },
 ];
 
-const photoConnectionOptions = [
-  ['Shared iCloud Photos link', 'Recommended', 'Create an iCloud Shared Album or Shared Library link and paste it here. This keeps Apple authentication inside Apple and avoids storing credentials in this app.'],
-  ['Import from this device', 'Private preview', 'Choose recent photos from the local device. They render immediately on the home page and are not uploaded anywhere.'],
-  ['Apple Shortcuts sync', 'Automation-friendly', 'Use a daily Shortcut to export favorites to a local folder or JSON feed that this app can read in a future hosted version.'],
-  ['Direct iCloud login', 'Not recommended here', 'A static front-end should not collect an iCloud username, password, or 2FA code. Use Apple-owned login pages or a secure backend only.'],
-];
-
-export { DEFAULT_ALBUM_LINK, slides };
+export { DEFAULT_ALBUM_LINK, DEFAULT_HOME_BACKGROUND_KEY };
 
 export function applyHomeProfile(state, user) {
   state.albumLink = user.socialLinks?.icloudPhotosUrl || DEFAULT_ALBUM_LINK;
@@ -25,43 +35,111 @@ export function applyHomeProfile(state, user) {
 
 export function resetHomeState(state) {
   state.albumLink = DEFAULT_ALBUM_LINK;
-  state.homePhotos.forEach((photo) => URL.revokeObjectURL(photo.url));
-  state.homePhotos = [];
-  state.slide = 0;
+  if (state.homeUploadedPhoto?.url) URL.revokeObjectURL(state.homeUploadedPhoto.url);
+  state.homeBackgroundKey = DEFAULT_HOME_BACKGROUND_KEY;
+  state.homeUploadedPhoto = null;
+  state.showHomeBackgroundPicker = false;
+  state.homeBackgroundStatus = '';
 }
 
-function handleHomePhotos(ctx, files) {
+function activeBackground(state) {
+  if (state.homeUploadedPhoto) {
+    return {
+      name: state.homeUploadedPhoto.name,
+      src: state.homeUploadedPhoto.url,
+      source: 'upload',
+    };
+  }
+
+  const selected = defaultBackgrounds.find((background) => background.key === state.homeBackgroundKey)
+    || defaultBackgrounds[0];
+  return {
+    ...selected,
+    source: 'default',
+  };
+}
+
+function clearUploadedBackground(state) {
+  if (state.homeUploadedPhoto?.url) URL.revokeObjectURL(state.homeUploadedPhoto.url);
+  state.homeUploadedPhoto = null;
+}
+
+function handleHomePhoto(ctx, files) {
   const { state } = ctx;
-  state.homePhotos.forEach((photo) => URL.revokeObjectURL(photo.url));
-  state.homePhotos = Array.from(files || []).slice(0, 6).map((file) => ({
+  const [file] = Array.from(files || []);
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    state.homeBackgroundStatus = 'Choose an image file for the home background.';
+    ctx.renderCurrent();
+    return;
+  }
+  clearUploadedBackground(state);
+  state.homeUploadedPhoto = {
     name: file.name,
     url: URL.createObjectURL(file),
-  }));
-  state.slide = 0;
+  };
+  state.showHomeBackgroundPicker = false;
+  state.homeBackgroundStatus = 'Using a private photo from this device for this browser session.';
   ctx.renderCurrent();
+}
+
+function chooseDefaultBackground(ctx, key) {
+  const { state } = ctx;
+  const selected = defaultBackgrounds.find((background) => background.key === key);
+  if (!selected) return;
+  clearUploadedBackground(state);
+  state.homeBackgroundKey = selected.key;
+  state.showHomeBackgroundPicker = false;
+  state.homeBackgroundStatus = `${selected.name} is now the home background.`;
+  writeStoredValue(HOME_BACKGROUND_STORAGE_KEY, selected.key);
+  ctx.renderCurrent();
+}
+
+function backgroundPickerMarkup(state, active) {
+  if (!state.showHomeBackgroundPicker) return '';
+  const uploadedSelected = active.source === 'upload';
+  const choices = defaultBackgrounds.map((background) => `
+    <button class="background-choice ${active.source === 'default' && active.key === background.key ? 'selected' : ''}" type="button" data-background-key="${escapeAttribute(background.key)}" aria-pressed="${active.source === 'default' && active.key === background.key ? 'true' : 'false'}">
+      <img src="${escapeAttribute(background.src)}" alt="" loading="lazy" />
+      <strong>${escapeHtml(background.name)}</strong>
+      <span>${escapeHtml(background.detail)}</span>
+    </button>
+  `).join('');
+
+  return `<div id="background-picker-backdrop" class="background-picker-backdrop"><section class="background-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="background-picker-title"><div class="section-heading"><div><h2 id="background-picker-title">Change background</h2><p>Upload one local photo or choose a calm default scene.</p></div><button id="close-background-picker" class="icon-button" type="button" aria-label="Close background picker">×</button></div><div class="background-picker-grid"><label class="upload-box home-upload-box ${uploadedSelected ? 'selected' : ''}" for="home-photo-input">${icon('🖼️')}<strong>Upload photo</strong><span>Shown only in this browser session. It is not uploaded or saved.</span><input id="home-photo-input" type="file" accept="image/*" /></label><div class="default-backgrounds" aria-label="Default background images">${choices}</div></div></section></div>`;
 }
 
 export function renderHome(ctx) {
   const { state } = ctx;
   const childProfile = getChildProfile(state.user);
   const childName = childDisplayName(childProfile);
-  const possessiveChildName = childPossessiveName(childProfile);
-  const [title, note, color] = slides[state.slide];
-  const activePhoto = state.homePhotos[state.slide % Math.max(state.homePhotos.length, 1)];
-  const photoMarkup = activePhoto
-    ? `<figure class="home-photo-frame"><img src="${activePhoto.url}" alt="Local preview of ${escapeHtml(activePhoto.name)}" /><figcaption>${escapeHtml(activePhoto.name)}</figcaption></figure>`
-    : '';
+  const background = activeBackground(state);
+  const backgroundLabel = background.source === 'upload' ? 'Private local photo' : 'Default background';
+  const backgroundNote = background.source === 'upload'
+    ? 'This photo stays on this device for this browser session.'
+    : 'Choose from calm parenting scenes or add one local photo.';
+  const status = state.homeBackgroundStatus || backgroundNote;
+  const picker = backgroundPickerMarkup(state, background);
 
-  ctx.layout(`<main class="home-layout"><section class="hero-card ${color} ${activePhoto ? 'with-photo' : ''}"><div class="hero-copy"><div class="slide-meta">${icon('✨')}<span>${activePhoto ? 'Local photo preview' : 'Shared photo slideshow'}</span></div><h2>${escapeHtml(title)}</h2><p>${activePhoto ? `This photo of ${escapeHtml(childName)} is displayed only in this browser session and scaled to fit the home card.` : `${escapeHtml(note)} ${escapeHtml(childName)} can always be renamed from the profile screen.`}</p><a class="primary-link" href="${escapeAttribute(state.albumLink)}" target="_blank" rel="noreferrer">Open shared photos</a></div>${photoMarkup}<div class="slide-dots">${slides.map((item, index) => `<button class="${index === state.slide ? 'selected' : ''}" data-slide="${index}" aria-label="Show ${item[0]}"></button>`).join('')}</div></section><section class="panel"><p class="eyebrow">Photo setup</p><h2>Safer ways to show ${escapeHtml(possessiveChildName)} photos</h2><p>Direct iCloud account login should not be built into this static front page. The safer pattern is to let Apple handle authentication, then display a shared album link or local photo previews.</p><label class="input-label" for="album">Shared iCloud Photos link</label><input id="album" value="${escapeAttribute(state.albumLink)}" placeholder="https://www.icloud.com/sharedalbum/..." /><button id="save-social-links">Save social links</button><label class="upload-box compact" for="home-photo-input">${icon('🖼️')}<span>Preview photos from this device</span><input id="home-photo-input" type="file" accept="image/*" multiple /></label><div class="photo-options">${photoConnectionOptions.map(([name, badge, detail]) => `<article><strong>${name}</strong><span>${badge}</span><p>${detail}</p></article>`).join('')}</div></section></main>`);
+  ctx.layout(`<main class="home-layout"><section class="hero-card home-hero" style="--home-background-image: url('${escapeAttribute(background.src)}');"><div class="hero-copy"><div class="slide-meta">${icon('✨')}<span>${escapeHtml(backgroundLabel)}</span></div><h2>Good morning, ${escapeHtml(childName)}</h2><p>One quiet place for today’s play, meals, errands, and small memories.</p><div class="hero-actions"><button id="change-background" type="button">Change background</button></div><p class="home-background-note">${escapeHtml(status)}</p></div></section><section class="panel home-focus-panel"><p class="eyebrow">Today</p><h2>Start with what matters next</h2><div class="home-shortcuts"><button class="home-shortcut" type="button" data-home-tab="play">${icon('🛝')}<span><strong>Play</strong><small>Weather-aware ideas</small></span></button><button class="home-shortcut" type="button" data-home-tab="food">${icon('🥣')}<span><strong>Food</strong><small>Meals and shopping list</small></span></button><button class="home-shortcut" type="button" data-home-tab="errands">${icon('🛒')}<span><strong>Errands</strong><small>Household follow-ups</small></span></button><button class="home-shortcut" type="button" data-home-tab="social">${icon('📷')}<span><strong>Social</strong><small>Caption helper</small></span></button></div></section></main>${picker}`);
 
-  document.getElementById('album').addEventListener('input', (event) => {
-    state.albumLink = event.target.value;
-    writeStoredValue('sproutCueApplePhotosLink', state.albumLink);
+  document.getElementById('change-background').addEventListener('click', () => {
+    state.showHomeBackgroundPicker = true;
+    ctx.renderCurrent();
   });
-  document.getElementById('save-social-links').addEventListener('click', () => ctx.saveUserSection('social-links', { icloudPhotosUrl: state.albumLink }));
-  document.getElementById('home-photo-input').addEventListener('change', (event) => handleHomePhotos(ctx, event.target.files));
-  document.querySelectorAll('[data-slide]').forEach((button) => button.addEventListener('click', () => {
-    state.slide = Number(button.dataset.slide);
+  document.getElementById('close-background-picker')?.addEventListener('click', () => {
+    state.showHomeBackgroundPicker = false;
+    ctx.renderCurrent();
+  });
+  document.getElementById('background-picker-backdrop')?.addEventListener('click', (event) => {
+    if (event.target.id !== 'background-picker-backdrop') return;
+    state.showHomeBackgroundPicker = false;
+    ctx.renderCurrent();
+  });
+  document.getElementById('home-photo-input')?.addEventListener('change', (event) => handleHomePhoto(ctx, event.target.files));
+  document.querySelectorAll('[data-background-key]').forEach((button) => button.addEventListener('click', () => chooseDefaultBackground(ctx, button.dataset.backgroundKey)));
+  document.querySelectorAll('[data-home-tab]').forEach((button) => button.addEventListener('click', () => {
+    state.tab = button.dataset.homeTab;
     ctx.renderCurrent();
   }));
 }

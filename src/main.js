@@ -9,7 +9,7 @@ import {
 } from './shared.js';
 import { applyErrandsProfile, renderErrands, resetErrandsState } from './tabs/errands.js';
 import { applyFoodProfile, renderFood, resetFoodState } from './tabs/food.js';
-import { DEFAULT_ALBUM_LINK, applyHomeProfile, renderHome, resetHomeState, slides } from './tabs/home.js';
+import { DEFAULT_ALBUM_LINK, DEFAULT_HOME_BACKGROUND_KEY, applyHomeProfile, renderHome, resetHomeState } from './tabs/home.js';
 import { getLocationCoords, refreshPlayPlanning, renderPlay, resetPlayState } from './tabs/play.js';
 import { renderSocial, resetSocialState } from './tabs/social.js';
 import { createSupabaseBrowserClient } from '../lib/supabase/client.js';
@@ -31,7 +31,6 @@ let root = document.getElementById('root');
 
 const state = {
   tab: 'home',
-  slide: 0,
   user: null,
   apiReady: false,
   authMode: 'local',
@@ -52,7 +51,10 @@ const state = {
   newAmazonTask: '',
   outfitIdeas: [],
   albumLink: readFirstStoredValue(['sproutCueApplePhotosLink', 'aaronApplePhotosLink'], DEFAULT_ALBUM_LINK),
-  homePhotos: [],
+  homeBackgroundKey: readFirstStoredValue(['sproutCueHomeBackgroundKey'], DEFAULT_HOME_BACKGROUND_KEY),
+  homeUploadedPhoto: null,
+  showHomeBackgroundPicker: false,
+  homeBackgroundStatus: '',
   weather: { label: 'Loading weather…', temperature: '--', precipitation: '--', wind: '--', updated: 'Fetching from Open-Meteo' },
   nearbyPlayOptions: [],
   nearbyStatus: 'Save a location to personalize nearby play options.',
@@ -530,6 +532,7 @@ async function logoutUser() {
   state.magicLinkSent = false;
   removeStoredValue('sproutCueUserId');
   removeStoredValue('sproutCueApplePhotosLink');
+  removeStoredValue('sproutCueHomeBackgroundKey');
   removeStoredValue('aaronUserId');
   removeStoredValue('aaronApplePhotosLink');
   render();
@@ -590,12 +593,6 @@ function startApp() {
     consumeAuthRedirectStatus();
     render();
     ensureBackendUser();
-    setInterval(() => {
-      if (state.user && getChildProfileState(state.user).onboardingComplete && !state.showProfileSetup && state.tab === 'home') {
-        state.slide = (state.slide + 1) % slides.length;
-        renderHome(appContext);
-      }
-    }, 4200);
   } catch (error) {
     renderError(error);
   }
