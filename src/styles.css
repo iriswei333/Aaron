@@ -421,6 +421,57 @@ time { color: #e26f39; font-weight: 900; }
 .menu-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .meal-card { padding: 22px; }
 .meal-card p { margin-bottom: 8px; }
+.food-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.food-actions button {
+  margin-top: 0;
+}
+
+.shopping-event-card {
+  display: grid;
+  gap: 12px;
+}
+
+.shopping-event-card label {
+  display: grid;
+  gap: 6px;
+}
+
+.shopping-event-card small {
+  color: #455a62;
+  font-weight: 850;
+}
+
+.shopping-event-card input,
+.shopping-event-card select {
+  border-radius: 12px;
+  min-height: 40px;
+  padding: 9px 10px;
+}
+
+.schedule-controls {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(120px, 1fr) minmax(96px, 0.75fr) minmax(82px, 0.65fr);
+}
+
+.event-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.event-actions button {
+  margin-top: 0;
+}
+
 .shopping-item {
   align-items: center;
   background: #fffaf5;
@@ -605,6 +656,7 @@ time { color: #e26f39; font-weight: 900; }
   .weather-grid { grid-template-columns: 1fr 1fr; }
   .timeline article { grid-template-columns: 1fr; gap: 4px; }
   .section-heading, .playdate-card-footer { align-items: flex-start; flex-direction: column; }
+  .schedule-controls { grid-template-columns: 1fr; }
 }
 
 .home-layout {

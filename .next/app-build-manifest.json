@@ -26,15 +26,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/family-events/route.js"
     ],
-    "/api/playdates/route": [
+    "/api/food-plan/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/playdates/route.js"
-    ],
-    "/api/location/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/location/route.js"
+      "static/chunks/app/api/food-plan/route.js"
     ]
   }
 }

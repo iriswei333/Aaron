@@ -45,6 +45,10 @@ const state = {
   locationStatus: '',
   foodStatus: '',
   shoppingList: [],
+  weeklyMenu: [],
+  shoppingSchedule: [],
+  foodPlanSeed: 0,
+  foodPlanGeneratedAt: '',
   newFood: '',
   amazonStatus: '',
   amazonTasks: [],
@@ -307,6 +311,7 @@ async function switchActiveChild(childId) {
   });
   const activeChild = getChildProfile({ childProfile });
   state.user = { ...state.user, childProfile };
+  applyFoodProfile(state, state.user);
   state.captionTone = activeChild.captionTone || state.captionTone;
   state.captionLanguage = activeChild.captionLanguage || state.captionLanguage;
   state.generatedCaption = '';
@@ -542,7 +547,7 @@ async function logoutUser() {
   render();
 }
 
-async function saveUserSection(section, payload) {
+async function saveUserSection(section, payload, options = {}) {
   if (!state.user) return;
   try {
     const { user } = await apiRequest(`/${section}`, {
@@ -562,7 +567,7 @@ async function saveUserSection(section, payload) {
     }
     if (section === 'food-plan') {
       applyFoodProfile(state, user);
-      state.foodStatus = 'Shopping list saved for this user.';
+      state.foodStatus = options.successMessage || 'Food plan saved for this user.';
     }
     if (section === 'amazon-errands') {
       applyErrandsProfile(state, user);
@@ -570,6 +575,9 @@ async function saveUserSection(section, payload) {
     }
   } catch (error) {
     state.apiMessage = `Save failed: ${error.message}`;
+    if (section === 'food-plan') {
+      state.foodStatus = `Food plan save failed: ${error.message}`;
+    }
   }
   render();
 }
