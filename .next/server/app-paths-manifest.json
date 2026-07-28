@@ -1,6 +1,3 @@
 {
-  "/api/food-plan/route": "app/api/food-plan/route.js",
-  "/api/profile/route": "app/api/profile/route.js",
-  "/api/family-events/route": "app/api/family-events/route.js",
-  "/page": "app/page.js"
+  "/_not-found/page": "app/_not-found/page.js"
 }

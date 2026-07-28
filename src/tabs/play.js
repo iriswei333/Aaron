@@ -804,7 +804,8 @@ function renderFamilyEventCard(event) {
   ].filter(Boolean);
   const actionLabel = event.resultType === 'search-link' ? 'Open source' : 'Open event';
   const cardClass = event.resultType === 'search-link' ? 'event-card search-link-card' : 'event-card';
-  return `<article class="${cardClass}"><span>${escapeHtml(badgeParts.join(' • '))}</span><h3>${escapeHtml(event.title || 'Family event')}</h3><p>${escapeHtml(event.summary || 'Family-friendly weekend option.')}</p>${detailParts.length ? `<small>${escapeHtml(detailParts.join(' • '))}</small>` : ''}${event.url ? `<div class="play-card-actions"><a class="mini-link" href="${escapeAttribute(event.url)}" target="_blank" rel="noreferrer">${actionLabel}</a></div>` : ''}</article>`;
+  const image = event.imageUrl || 'https://images.unsplash.com/photo-1504150558240-0b4d9e5c0d87?auto=format&fit=crop&w=640&q=80';
+  return `<article class="${cardClass} event-card-with-thumb"><img class="resource-thumb" src="${escapeAttribute(image)}" alt="" loading="lazy" /><div><span>${escapeHtml(badgeParts.join(' • '))}</span><h3>${escapeHtml(event.title || 'Family event')}</h3><p>${escapeHtml(event.summary || 'Family-friendly weekend option.')}</p>${detailParts.length ? `<small>${escapeHtml(detailParts.join(' • '))}</small>` : ''}${event.url ? `<div class="play-card-actions"><a class="mini-link" href="${escapeAttribute(event.url)}" target="_blank" rel="noreferrer">${actionLabel}</a></div>` : ''}</div></article>`;
 }
 
 function renderFamilyEvents(state) {
@@ -851,7 +852,8 @@ export function renderPlay(ctx) {
   const playOptionsMarkup = playOptions.length > 0
     ? playOptions.map((option) => {
       const isSelected = currentPlayground?.key === option.key;
-      return `<article class="mini-card play-card ${isSelected ? 'selected' : ''}">${icon(option.preference === 'indoor' ? '🏠' : '🌳')}<div class="play-card-body"><h3>${escapeHtml(option.name)}</h3><p>${escapeHtml(option.type)} • ${escapeHtml(option.distance)}</p><small>${escapeHtml(option.best)} • Best: ${escapeHtml(option.weather)}</small><div class="play-card-actions"><button type="button" class="secondary-button small-button" data-select-playground="${escapeAttribute(option.key)}" aria-pressed="${isSelected ? 'true' : 'false'}">${isSelected ? 'Selected' : 'View play dates'}</button>${option.href ? `<a class="mini-link" href="${escapeAttribute(option.href)}" target="_blank" rel="noreferrer">Open map</a>` : ''}</div></div></article>`;
+      const image = option.imageUrl || (option.preference === 'indoor' ? 'https://images.unsplash.com/photo-1560185008-b033106af5c3?auto=format&fit=crop&w=480&q=80' : 'https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&w=480&q=80');
+      return `<article class="mini-card play-card ${isSelected ? 'selected' : ''}"><img class="resource-thumb" src="${escapeAttribute(image)}" alt="" loading="lazy" /><div class="play-card-body"><h3>${escapeHtml(option.name)}</h3><p>${escapeHtml(option.type)} • ${escapeHtml(option.distance)}</p><small>${escapeHtml(option.best)} • Best: ${escapeHtml(option.weather)}</small><div class="play-card-actions"><button type="button" class="secondary-button small-button" data-select-playground="${escapeAttribute(option.key)}" aria-pressed="${isSelected ? 'true' : 'false'}">${isSelected ? 'Selected' : 'View play dates'}</button>${option.href ? `<a class="mini-link" href="${escapeAttribute(option.href)}" target="_blank" rel="noreferrer">Open map</a>` : ''}</div></div></article>`;
     }).join('')
     : '<p class="muted">Save a location to generate nearby indoor and outdoor play options.</p>';
   const currentPlaygroundMarkup = currentPlayground

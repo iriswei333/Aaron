@@ -100,4 +100,12 @@ export function downloadCalendar(title, start, end, description) {
   link.download = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.ics`;
   link.click();
   URL.revokeObjectURL(url);
+  const key = 'sproutCueCalendarItems';
+  try {
+    const current = JSON.parse(globalThis.localStorage?.getItem(key) || '[]');
+    current.unshift({ id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, title, start, end, description, downloadedAt: new Date().toISOString() });
+    globalThis.localStorage?.setItem(key, JSON.stringify(current.slice(0, 20)));
+  } catch {
+    // Calendar downloads still work when browser storage is unavailable.
+  }
 }

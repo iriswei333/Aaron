@@ -166,6 +166,44 @@ function localPreviewCaption(state, childProfile) {
     : `今日份${subject}三连拍：小手忙着探索，笑容负责发光。快乐很简单，有爱、有玩具，也有一点点甜甜的惊喜。#成长日记`;
 }
 
+async function loadChat(ctx, contactId = '') {
+  const { state } = ctx;
+  try {
+    const data = await apiRequest(`/chat${contactId ? `?contactId=${encodeURIComponent(contactId)}` : ''}`);
+    state.chatContacts = data.contacts || [];
+    state.chatMessages = data.messages || [];
+    if (!state.activeChatContactId && state.chatContacts[0]) state.activeChatContactId = state.chatContacts[0].id;
+  } catch (error) { state.captionStatus = `Chat unavailable: ${error.message}`; }
+  if (state.tab === 'social') ctx.renderCurrent();
+}
+
+async function sendChat(ctx, event) {
+  event.preventDefault();
+  const { state } = ctx;
+  const form = event.currentTarget;
+  const text = form.elements.namedItem('chat-text').value.trim();
+  const file = form.elements.namedItem('chat-media').files?.[0];
+  if (!state.activeChatContactId || (!text && !file)) return;
+  let mediaUrl = '';
+  let mediaType = '';
+  if (file) {
+    if (file.size > 8 * 1024 * 1024) return;
+    mediaUrl = await new Promise((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.readAsDataURL(file); });
+    mediaType = file.type.startsWith('video/') ? 'video' : 'photo';
+  }
+  await apiRequest('/chat', { method: 'POST', body: JSON.stringify({ recipientId: state.activeChatContactId, text, mediaType, mediaUrl }) });
+  await loadChat(ctx, state.activeChatContactId);
+}
+
+function renderChat(ctx) {
+  const { state } = ctx;
+  const contacts = state.chatContacts || [];
+  const active = contacts.find((contact) => contact.id === state.activeChatContactId) || contacts[0];
+  const contactList = contacts.length ? contacts.map((contact) => `<button type="button" class="chat-contact ${active?.id === contact.id ? 'selected' : ''}" data-chat-contact="${escapeAttribute(contact.id)}"><span class="avatar">${escapeHtml((contact.displayName || 'P').slice(0, 1).toUpperCase())}</span><span>${escapeHtml(contact.displayName)}</span></button>`).join('') : '<p class="muted">Create or join a playdate with another family to open a private chat.</p>';
+  const messages = active ? (state.chatMessages || []).map((message) => `<article class="chat-message ${message.senderId === state.user?.id ? 'mine' : ''}">${message.mediaUrl ? (message.mediaType === 'video' ? `<video src="${escapeAttribute(message.mediaUrl)}" controls></video>` : `<img src="${escapeAttribute(message.mediaUrl)}" alt="Shared photo" />`) : ''}${message.text ? `<p>${escapeHtml(message.text)}</p>` : ''}<small>${new Date(message.createdAt).toLocaleString([], { hour: 'numeric', minute: '2-digit' })}</small></article>`).join('') : '';
+  return `<div class="chat-layout"><aside class="chat-contacts">${contactList}</aside><section class="chat-thread">${active ? `<div class="chat-thread-heading"><strong>${escapeHtml(active.displayName)}</strong><small>Connected through a playdate</small></div><div class="chat-messages">${messages || '<p class="muted">Say hello and make the meetup easy.</p>'}</div><form id="chat-form" class="chat-compose"><input name="chat-text" placeholder="Message, emoji, or meetup note…" maxlength="2000" /><label class="chat-attach" title="Attach photo or short video">＋<input name="chat-media" type="file" accept="image/*,video/*" /></label><button type="submit">Send</button></form>` : '<div class="chat-empty"><span>💬</span><p>Your playdate circle will appear here.</p></div>'}</section></div>`;
+}
+
 export function renderSocial(ctx) {
   const { state } = ctx;
   const childProfile = getChildProfile(state.user);
@@ -182,8 +220,13 @@ export function renderSocial(ctx) {
       ? 'Bilingual caption'
       : 'Chinese caption';
 
+  if (!state.chatContacts.length) loadChat(ctx);
+
   ctx.layout(`<main class="grid two-cols"><section class="panel upload-panel"><p class="eyebrow">Today’s best post</p><h2>Pick best 3 photos or 1 video</h2><p>Upload today’s photo exports. The app selects one video if present; otherwise it picks the top three photos and drafts a caption using the child profile preferences.</p><label class="upload-box">${icon('⬆️')}<span>Choose photos or video</span><input id="media-input" type="file" accept="image/*,video/*" multiple /></label><div class="form-grid two-field-grid"><label><span>Caption language</span><select id="caption-language">${languageOptions}</select></label><label><span>Caption tone</span><select id="tone">${toneOptions}</select></label></div><button id="generate-caption" ${state.media.length > 0 ? '' : 'disabled'}>Generate AI caption</button><p class="muted">${escapeHtml(state.captionStatus || 'Photo captions use selected images; video captions use a thumbnail frame and the backend AI service.')}</p></section><section class="panel"><h2>Selected media</h2><div class="media-grid">${state.media.length === 0 ? '<p class="muted">No media selected yet. Upload today’s photos or a video.</p>' : state.media.map((pick) => `<article class="media-card">${pick.kind === 'video' ? `<video src="${pick.url}" controls></video>` : `<img src="${pick.url}" alt="${pick.name}" />`}<h3>${pick.name}</h3><p>Score ${pick.score}/100 • ${pick.reason}</p></article>`).join('')}</div><div class="caption-box"><h3>${escapeHtml(captionHeading)}</h3><p id="caption">${escapeHtml(caption)}</p><button id="copy-caption">➕ Copy caption</button></div></section></main>`);
 
+  document.querySelector('main')?.insertAdjacentHTML('afterbegin', `<section class="panel chat-panel"><div class="section-heading"><div><p class="eyebrow">Private family circle</p><h2>Playdate chat</h2><p class="muted">Parents who share a playdate can message 1:1.</p></div></div>${renderChat(ctx)}</section>`);
+  document.querySelectorAll('[data-chat-contact]').forEach((button) => button.addEventListener('click', () => { state.activeChatContactId = button.dataset.chatContact; loadChat(ctx, state.activeChatContactId); }));
+  document.getElementById('chat-form')?.addEventListener('submit', (event) => sendChat(ctx, event));
   document.getElementById('tone').value = state.captionTone;
   document.getElementById('tone').addEventListener('change', (event) => {
     state.captionTone = event.target.value;

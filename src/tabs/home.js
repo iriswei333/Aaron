@@ -1,4 +1,4 @@
-import { escapeAttribute, escapeHtml, icon, writeStoredValue } from '../shared.js';
+import { escapeAttribute, escapeHtml, icon, readStoredValue, writeStoredValue } from '../shared.js';
 import { childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
 
 const DEFAULT_ALBUM_LINK = 'photos-redirect://';
@@ -109,6 +109,22 @@ function backgroundPickerMarkup(state, active) {
   return `<div id="background-picker-backdrop" class="background-picker-backdrop"><section class="background-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="background-picker-title"><div class="section-heading"><div><h2 id="background-picker-title">Change background</h2><p>Upload one local photo or choose a calm default scene.</p></div><button id="close-background-picker" class="icon-button" type="button" aria-label="Close background picker">×</button></div><div class="background-picker-grid"><label class="upload-box home-upload-box ${uploadedSelected ? 'selected' : ''}" for="home-photo-input">${icon('🖼️')}<strong>Upload photo</strong><span>Shown only in this browser session. It is not uploaded or saved.</span><input id="home-photo-input" type="file" accept="image/*" /></label><div class="default-backgrounds" aria-label="Default background images">${choices}</div></div></section></div>`;
 }
 
+function homeObjects(state) {
+  const objects = [];
+  (state.playDates || []).filter((item) => item.isHost || item.isJoined).slice(0, 3).forEach((item) => objects.push({ icon: '🛝', type: 'Playdate', title: item.playgroundName, detail: new Date(item.startsAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) }));
+  const plan = state.user?.foodPlan;
+  if (plan?.weeklyMenu?.length || plan?.byChild) objects.push({ icon: '🥣', type: 'Saved food plan', title: 'Weekly meals', detail: plan.lastGeneratedAt ? 'Recently updated' : 'Saved for your family' });
+  try {
+    JSON.parse(readStoredValue('sproutCueCalendarItems', '[]')).slice(0, 3).forEach((item) => objects.push({ icon: '🗓️', type: 'Calendar download', title: item.title, detail: 'Saved to your calendar' }));
+  } catch { /* ignore malformed local history */ }
+  return objects.slice(0, 6);
+}
+
+function objectCards(objects, compact = false) {
+  if (!objects.length) return `<div class="empty-object-state">${icon('🌱')}<span>No saved family objects yet. Create a playdate, save a food plan, or download an event.</span></div>`;
+  return `<div class="home-object-grid ${compact ? 'compact' : ''}">${objects.map((item) => `<article class="home-object-card"><span class="object-icon">${item.icon}</span><div><small>${escapeHtml(item.type)}</small><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.detail)}</span></div></article>`).join('')}</div>`;
+}
+
 export function renderHome(ctx) {
   const { state } = ctx;
   const childProfile = getChildProfile(state.user);
@@ -120,8 +136,9 @@ export function renderHome(ctx) {
     : 'Choose from calm parenting scenes or add one local photo.';
   const status = state.homeBackgroundStatus || backgroundNote;
   const picker = backgroundPickerMarkup(state, background);
+  const objects = homeObjects(state);
 
-  ctx.layout(`<main class="home-layout"><section class="hero-card home-hero" style="--home-background-image: url('${escapeAttribute(background.src)}');"><div class="hero-copy"><div class="slide-meta">${icon('✨')}<span>${escapeHtml(backgroundLabel)}</span></div><h2>Good morning, ${escapeHtml(childName)}</h2><p>One quiet place for today’s play, meals, errands, and small memories.</p><div class="hero-actions"><button id="change-background" type="button">Change background</button></div><p class="home-background-note">${escapeHtml(status)}</p></div></section><section class="panel home-focus-panel"><p class="eyebrow">Today</p><h2>Start with what matters next</h2><div class="home-shortcuts"><button class="home-shortcut" type="button" data-home-tab="play">${icon('🛝')}<span><strong>Play</strong><small>Weather-aware ideas</small></span></button><button class="home-shortcut" type="button" data-home-tab="food">${icon('🥣')}<span><strong>Food</strong><small>Meals and shopping list</small></span></button><button class="home-shortcut" type="button" data-home-tab="errands">${icon('🛒')}<span><strong>Errands</strong><small>Household follow-ups</small></span></button><button class="home-shortcut" type="button" data-home-tab="social">${icon('📷')}<span><strong>Social</strong><small>Caption helper</small></span></button></div></section></main>${picker}`);
+  ctx.layout(`<main class="home-layout"><section class="hero-card home-hero" style="--home-background-image: url('${escapeAttribute(background.src)}');"><div class="hero-copy"><div class="slide-meta">${icon('✨')}<span>${escapeHtml(backgroundLabel)}</span></div><h2>Good morning, ${escapeHtml(childName)}</h2><p>One quiet place for today’s play, meals, errands, and small memories.</p><div class="hero-actions"><button id="change-background" class="small-button background-button" type="button">Change background</button></div><p class="home-background-note">${escapeHtml(status)}</p></div>${objects.length ? `<aside class="hero-objects"><p class="eyebrow">Your family objects</p>${objectCards(objects, true)}</aside>` : ''}</section><section class="panel home-focus-panel"><p class="eyebrow">Your family objects</p><h2>Start with what matters next</h2>${objectCards(objects)}</section><section class="panel home-rhythm-note"><p class="eyebrow">Family rhythm</p><h3>Warm, soft, practical — a daily dashboard for busy parents.</h3><p>Keep the next playdate, saved meal plan, calendar moment, and family chat close at hand.</p></section></main>${picker}`);
 
   document.getElementById('change-background').addEventListener('click', () => {
     state.showHomeBackgroundPicker = true;
