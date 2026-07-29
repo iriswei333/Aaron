@@ -409,6 +409,7 @@ time { color: #e26f39; font-weight: 900; }
 .shopping-link:hover { color: #d7632c; }
 .mini-card svg { color: #4b9f83; flex: 0 0 auto; margin-top: 2px; }
 .resource-thumb { background: #e8f1eb; border-radius: 16px; flex: 0 0 86px; height: 86px; object-fit: cover; width: 86px; }
+.playground-hero-thumb { background: #e8f1eb; border-radius: 18px; height: 150px; margin-bottom: 16px; object-fit: cover; width: 100%; }
 .event-card-with-thumb { align-items: stretch; display: grid; gap: 14px; grid-template-columns: 92px 1fr; }
 .event-card-with-thumb .resource-thumb { height: 100%; min-height: 112px; width: 92px; }
 .mini-card p { margin-bottom: 0; }

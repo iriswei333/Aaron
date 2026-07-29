@@ -11,35 +11,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
     ],
-    "/api/health/route": [
+    "/api/auth/login/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/health/route.js"
-    ],
-    "/api/profile/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/profile/route.js"
-    ],
-    "/auth/confirm/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/auth/confirm/route.js"
-    ],
-    "/api/family-events/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/family-events/route.js"
-    ],
-    "/api/playdates/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/playdates/route.js"
-    ],
-    "/api/auth/logout/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/auth/logout/route.js"
+      "static/chunks/app/api/auth/login/route.js"
     ]
   }
 }

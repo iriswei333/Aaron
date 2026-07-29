@@ -246,63 +246,6 @@ function playOptionWeather(type) {
   return 'dry or light drizzle';
 }
 
-function overpassQuery({ latitude, longitude }) {
-  const radius = 4500;
-  const selectors = [
-    '["leisure"="playground"]',
-    '["leisure"="park"]',
-    '["amenity"="library"]',
-    '["tourism"="museum"]',
-  ];
-  const clauses = selectors.flatMap((selector) => [
-    `node${selector}(around:${radius},${latitude},${longitude});`,
-    `way${selector}(around:${radius},${latitude},${longitude});`,
-    `relation${selector}(around:${radius},${latitude},${longitude});`,
-  ]).join('\n');
-  return `[out:json][timeout:12];(${clauses});out center tags 40;`;
-}
-
-async function fetchNearbyPlayOptions(coords) {
-  const response = await fetchWithTimeout('https://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    headers: { 'content-type': 'text/plain;charset=UTF-8' },
-    body: overpassQuery(coords),
-  }, 12000);
-  if (!response.ok) throw new Error('Nearby place lookup failed.');
-  const data = await response.json();
-  const seen = new Set();
-  return (data.elements || [])
-    .map((element) => {
-      const latitude = toNumber(element.lat ?? element.center?.lat);
-      const longitude = toNumber(element.lon ?? element.center?.lon);
-      const name = element.tags?.name?.trim();
-      if (!name || latitude === null || longitude === null || element.tags?.access === 'private') return null;
-      const key = name.toLowerCase();
-      if (seen.has(key)) return null;
-      seen.add(key);
-      const type = playOptionType(element.tags);
-      const miles = distanceMiles(coords, { latitude, longitude });
-      return {
-        key: playgroundKey(name, { latitude, longitude }, element.id ? `osm-${element.type}-${element.id}` : ''),
-        name,
-        type,
-        distance: formatDistance(miles),
-        sortDistance: miles,
-        latitude,
-        longitude,
-        address: element.tags?.['addr:full'] || element.tags?.['addr:street'] || '',
-        best: playOptionBest(type),
-        weather: playOptionWeather(type),
-        preference: type.includes('Indoor') ? 'indoor' : 'outdoor',
-        href: mapsSearchUrl(name, { latitude, longitude }),
-        source: 'nearby',
-      };
-    })
-    .filter(Boolean)
-    .sort((a, b) => a.sortDistance - b.sortDistance)
-    .slice(0, 12);
-}
-
 export function resetPlayState(state) {
   state.locationStatus = '';
   state.weather = { label: 'Location needed for weather', temperature: '--', precipitation: '--', wind: '--', updated: 'Sign in and save a location' };
@@ -391,11 +334,13 @@ async function loadNearbyPlayOptions(ctx) {
   if (state.tab === 'play') ctx.renderCurrent();
 
   try {
-    const nearbyOptions = await fetchNearbyPlayOptions(coords);
+    const payload = await apiRequest(`/playgrounds?latitude=${coords.latitude}&longitude=${coords.longitude}`);
+    const nearbyOptions = Array.isArray(payload.playgrounds) ? payload.playgrounds : [];
     if (requestId !== nearbyRequestId) return;
     if (nearbyOptions.length > 0) {
       state.nearbyPlayOptions = nearbyOptions;
-      state.nearbyStatus = `Found ${nearbyOptions.length} nearby options around ${shortLocation(location)}.`;
+      const cacheLabel = payload.cached ? 'cached' : 'updated';
+      state.nearbyStatus = `Showing ${nearbyOptions.length} ${cacheLabel} nearby options around ${shortLocation(location)}.`;
     } else {
       state.nearbyPlayOptions = fallbackOptions;
       state.nearbyStatus = `No live nearby places found around ${shortLocation(location)}; showing map searches.`;
@@ -853,11 +798,11 @@ export function renderPlay(ctx) {
     ? playOptions.map((option) => {
       const isSelected = currentPlayground?.key === option.key;
       const image = option.imageUrl || (option.preference === 'indoor' ? 'https://images.unsplash.com/photo-1560185008-b033106af5c3?auto=format&fit=crop&w=480&q=80' : 'https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&w=480&q=80');
-      return `<article class="mini-card play-card ${isSelected ? 'selected' : ''}"><img class="resource-thumb" src="${escapeAttribute(image)}" alt="" loading="lazy" /><div class="play-card-body"><h3>${escapeHtml(option.name)}</h3><p>${escapeHtml(option.type)} • ${escapeHtml(option.distance)}</p><small>${escapeHtml(option.best)} • Best: ${escapeHtml(option.weather)}</small><div class="play-card-actions"><button type="button" class="secondary-button small-button" data-select-playground="${escapeAttribute(option.key)}" aria-pressed="${isSelected ? 'true' : 'false'}">${isSelected ? 'Selected' : 'View play dates'}</button>${option.href ? `<a class="mini-link" href="${escapeAttribute(option.href)}" target="_blank" rel="noreferrer">Open map</a>` : ''}</div></div></article>`;
+      return `<article class="mini-card play-card ${isSelected ? 'selected' : ''}"><img class="resource-thumb" src="${escapeAttribute(image)}" alt="Thumbnail of ${escapeAttribute(option.name)}" loading="lazy" /><div class="play-card-body"><h3>${escapeHtml(option.name)}</h3><p>${escapeHtml(option.type)} • ${escapeHtml(option.distance)}</p><small>${escapeHtml(option.best)} • Best: ${escapeHtml(option.weather)}</small><div class="play-card-actions"><button type="button" class="secondary-button small-button" data-select-playground="${escapeAttribute(option.key)}" aria-pressed="${isSelected ? 'true' : 'false'}">${isSelected ? 'Selected' : 'View play dates'}</button>${option.href ? `<a class="mini-link" href="${escapeAttribute(option.href)}" target="_blank" rel="noreferrer">Open map</a>` : ''}</div></div></article>`;
     }).join('')
     : '<p class="muted">Save a location to generate nearby indoor and outdoor play options.</p>';
   const currentPlaygroundMarkup = currentPlayground
-    ? `<div class="playground-summary"><p class="eyebrow">${currentPlayground.preference === 'indoor' ? 'Indoor backup' : 'Selected playground'}</p><h2>${escapeHtml(currentPlayground.name)}</h2><p>${escapeHtml(currentPlayground.type)} • ${escapeHtml(currentPlayground.distance)}</p><small>${escapeHtml(currentPlayground.best)} • Best: ${escapeHtml(currentPlayground.weather)}</small>${currentPlayground.href ? `<a class="primary-link" href="${escapeAttribute(currentPlayground.href)}" target="_blank" rel="noreferrer">Open map</a>` : ''}</div><form id="playdate-form" class="playdate-form"><div class="form-grid"><label><span>Date</span><input name="playdate-date" type="date" value="${escapeAttribute(defaults.date)}" required /></label><label><span>Start</span><input name="playdate-start" type="time" value="${escapeAttribute(defaults.startTime)}" required /></label><label><span>End</span><input name="playdate-end" type="time" min="${escapeAttribute(defaults.startTime)}" value="${escapeAttribute(defaults.endTime)}" required /></label><label><span>Status</span><select name="playdate-visibility"><option value="private">Private</option><option value="public">Public</option></select></label><label><span>Age range</span><input name="playdate-age-range" placeholder="${ageLabel ? `Around ${escapeAttribute(ageLabel)}` : 'Ages 2-4'}" maxlength="40" /></label><label><span>Max families</span><input name="playdate-max-families" type="number" min="2" max="20" placeholder="No limit" /></label></div><label class="input-label" for="playdate-notes">Notes</label><textarea id="playdate-notes" name="playdate-notes" maxlength="240" placeholder="Splash pad, snacks, stroller-friendly meetup spot"></textarea><button type="submit">Create play date</button></form>${state.playDateFormStatus ? `<p class="muted">${escapeHtml(state.playDateFormStatus)}</p>` : ''}`
+    ? `<div class="playground-summary">${currentPlayground.imageUrl ? `<img class="playground-hero-thumb" src="${escapeAttribute(currentPlayground.imageUrl)}" alt="Thumbnail of ${escapeAttribute(currentPlayground.name)}" loading="lazy" />` : ''}<p class="eyebrow">${currentPlayground.preference === 'indoor' ? 'Indoor backup' : 'Selected playground'}</p><h2>${escapeHtml(currentPlayground.name)}</h2><p>${escapeHtml(currentPlayground.type)} • ${escapeHtml(currentPlayground.distance)}</p><small>${escapeHtml(currentPlayground.best)} • Best: ${escapeHtml(currentPlayground.weather)}</small>${currentPlayground.href ? `<a class="primary-link" href="${escapeAttribute(currentPlayground.href)}" target="_blank" rel="noreferrer">Open map</a>` : ''}</div><form id="playdate-form" class="playdate-form"><div class="form-grid"><label><span>Date</span><input name="playdate-date" type="date" value="${escapeAttribute(defaults.date)}" required /></label><label><span>Start</span><input name="playdate-start" type="time" value="${escapeAttribute(defaults.startTime)}" required /></label><label><span>End</span><input name="playdate-end" type="time" min="${escapeAttribute(defaults.startTime)}" value="${escapeAttribute(defaults.endTime)}" required /></label><label><span>Status</span><select name="playdate-visibility"><option value="private">Private</option><option value="public">Public</option></select></label><label><span>Age range</span><input name="playdate-age-range" placeholder="${ageLabel ? `Around ${escapeAttribute(ageLabel)}` : 'Ages 2-4'}" maxlength="40" /></label><label><span>Max families</span><input name="playdate-max-families" type="number" min="2" max="20" placeholder="No limit" /></label></div><label class="input-label" for="playdate-notes">Notes</label><textarea id="playdate-notes" name="playdate-notes" maxlength="240" placeholder="Splash pad, snacks, stroller-friendly meetup spot"></textarea><button type="submit">Create play date</button></form>${state.playDateFormStatus ? `<p class="muted">${escapeHtml(state.playDateFormStatus)}</p>` : ''}`
     : '<p class="muted">Save a location or choose a starter place to create a play date.</p>';
 
   ctx.layout(`<main class="stack"><section class="dashboard-row"><div class="panel weather-panel"><p class="eyebrow">🌤 Live play planning</p><h2>Find a nearby place for ${escapeHtml(childName)}</h2><p class="muted">Home base: ${escapeHtml(locationText)}</p><p>Pick a playground, create a private or public play date, or join a public play date already planned there.</p><div class="weather-grid"><strong>${escapeHtml(state.weather.label)}</strong><span>${escapeHtml(state.weather.temperature)}</span><span>Rain: ${escapeHtml(state.weather.precipitation)}</span><span>Wind: ${escapeHtml(state.weather.wind)}</span></div><small>Updated: ${escapeHtml(state.weather.updated)}. Weather still helps decide whether to choose an outdoor spot or an indoor backup.</small></div><div class="panel location-tool">${icon('📍')}<h3>Planning location</h3><p>${escapeHtml(locationStatus)}</p><form id="location-form"><label class="input-label" for="location-address">Address or place</label><input id="location-address" value="${escapeAttribute(location?.address || '')}" placeholder="Home address, city, or favorite play area" /><button type="submit">Save address</button></form><button id="use-current-location" class="secondary-button">Use current location</button></div></section><section class="grid playdate-layout"><div class="panel"><h2>Nearby play options</h2><p class="muted">${escapeHtml(state.nearbyStatus)}</p><div class="cards-list">${playOptionsMarkup}</div></div><div class="panel playdate-detail">${currentPlaygroundMarkup}</div></section><section class="panel"><div class="section-heading"><div><h2>Upcoming play dates</h2><p class="muted">${escapeHtml(state.playDateStatus)}</p></div><button id="refresh-playdates" type="button" class="secondary-button small-button" ${currentPlayground ? '' : 'disabled'}>Refresh</button></div><div class="cards-list">${renderPlayDateList(state, currentPlayground)}</div></section><section class="grid two-cols"><div class="panel"><div class="section-heading"><div><h2>Weekend family events</h2><p class="muted">${escapeHtml(state.familyEventsStatus || 'Checking weekend event sources...')}</p></div><button id="refresh-family-events" type="button" class="secondary-button small-button">Refresh</button></div>${renderFamilyEvents(state)}</div><div class="panel"><h2>Holiday planning reminders</h2>${holidays.map(([holiday, reminder]) => `<article class="mini-card">${icon('🎁')}<div><h3>${holiday === 'Birthday' ? `${escapeHtml(childDisplayName(childProfile, 'Child'))}'s birthday` : holiday}</h3><p>${reminder}</p></div></article>`).join('')}</div></section></main>`);
