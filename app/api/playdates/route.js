@@ -4,7 +4,9 @@ import {
   joinLocalPlayDate,
   joinSupabasePlayDate,
   listLocalPlayDates,
+  listLocalUserPlayDates,
   listSupabasePlayDates,
+  listSupabaseUserPlayDates,
 } from '../../../lib/backend.js';
 import { getCurrentProfile, profileErrorResponse } from '../../../lib/profile-session.js';
 
@@ -16,10 +18,15 @@ export async function GET(request) {
     if (!current.user) return profileErrorResponse(current);
 
     const url = new URL(request.url);
+    const mine = url.searchParams.get('mine') === '1';
     const playgroundKey = url.searchParams.get('playgroundKey') || '';
-    const playDates = current.mode === 'supabase'
-      ? await listSupabasePlayDates(current.supabase, current.authUser, playgroundKey)
-      : await listLocalPlayDates(current.localUserId, playgroundKey);
+    const playDates = mine
+      ? current.mode === 'supabase'
+        ? await listSupabaseUserPlayDates(current.supabase, current.authUser)
+        : await listLocalUserPlayDates(current.localUserId)
+      : current.mode === 'supabase'
+        ? await listSupabasePlayDates(current.supabase, current.authUser, playgroundKey)
+        : await listLocalPlayDates(current.localUserId, playgroundKey);
 
     return Response.json({ playDates, authMode: current.mode });
   } catch (error) {

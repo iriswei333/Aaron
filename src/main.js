@@ -65,6 +65,7 @@ const state = {
   selectedPlaygroundKey: '',
   playDatePlaygroundKey: '',
   playDates: [],
+  profilePlayDates: [],
   playDateStatus: 'Choose a playground to view public play dates.',
   playDateFormStatus: '',
   familyEvents: [],

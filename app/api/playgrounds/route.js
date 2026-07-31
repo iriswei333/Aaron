@@ -64,6 +64,6 @@ export async function GET(request) {
     }
     return Response.json({ ...saved, cached: false, authMode: current.mode });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message || 'Nearby playground lookup failed.' }, { status: error.status || 500 });
   }
 }

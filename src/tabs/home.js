@@ -111,7 +111,7 @@ function backgroundPickerMarkup(state, active) {
 
 function homeObjects(state) {
   const objects = [];
-  (state.playDates || []).filter((item) => item.isHost || item.isJoined).slice(0, 3).forEach((item) => objects.push({ icon: '🛝', type: 'Playdate', title: item.playgroundName, detail: new Date(item.startsAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) }));
+  (state.profilePlayDates || []).slice(0, 3).forEach((item) => objects.push({ icon: '🛝', type: item.isHost ? 'Hosted playdate' : 'Joined playdate', title: item.playgroundName, detail: new Date(item.startsAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) }));
   const plan = state.user?.foodPlan;
   if (plan?.weeklyMenu?.length || plan?.byChild) objects.push({ icon: '🥣', type: 'Saved food plan', title: 'Weekly meals', detail: plan.lastGeneratedAt ? 'Recently updated' : 'Saved for your family' });
   try {

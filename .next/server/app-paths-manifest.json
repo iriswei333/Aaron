@@ -1,4 +1,9 @@
 {
-  "/api/auth/login/route": "app/api/auth/login/route.js",
+  "/api/health/route": "app/api/health/route.js",
+  "/api/profile/route": "app/api/profile/route.js",
+  "/api/playgrounds/route": "app/api/playgrounds/route.js",
+  "/api/playdates/route": "app/api/playdates/route.js",
+  "/api/family-events/route": "app/api/family-events/route.js",
+  "/api/chat/route": "app/api/chat/route.js",
   "/page": "app/page.js"
 }
