@@ -5,6 +5,7 @@ import {
   childPossessiveName,
   getChildProfile,
 } from '../../lib/profile-defaults.js';
+import { buildFamilyLogistics } from '../../lib/kid-logistics.js';
 
 export const defaultToddlerFoods = ['peas', 'broccoli', 'banana', 'strawberry', 'sweet corn', 'sweet potato', 'dumplings', 'baby waffle', 'baby smoothie', 'yogurt bites'];
 
@@ -366,16 +367,52 @@ function formatShoppingWindow(event) {
 }
 
 function shoppingSummary(event, shoppingList) {
-  const foods = shoppingList.slice(0, 6).join(', ');
-  return foods
-    ? `${event.title}. Bring home: ${foods}${shoppingList.length > 6 ? ', and more' : ''}.`
-    : event.title;
+  const itemCount = Array.isArray(shoppingList) ? shoppingList.length : 0;
+  return itemCount > 0
+    ? `${event.title}. Current menu checklist: ${itemCount} item${itemCount === 1 ? '' : 's'}.`
+    : `${event.title}. Current menu checklist is empty.`;
 }
 
 function resolveWeeklyMenu(childPlan, childProfile, favorites, seed) {
   const savedMenu = normalizeWeeklyMenu(childPlan.weeklyMenu);
   if (savedMenu.length > 0 && !isLegacyStaticWeeklyMenu(childPlan.weeklyMenu)) return savedMenu;
   return generateWeeklyMenu({ childProfile, favorites, seed });
+}
+
+function normalizeStringList(value) {
+  return Array.isArray(value) ? [...new Set(value.map((item) => cleanText(item, 80).toLowerCase()).filter(Boolean))] : [];
+}
+
+function menuShoppingItems(menu, customItems = []) {
+  const knownFoods = [...new Set([
+    ...Object.values(foodPools).flat(),
+    ...defaultToddlerFoods,
+  ])].sort((a, b) => b.length - a.length);
+  const items = [];
+  normalizeWeeklyMenu(menu).forEach((meal) => {
+    [meal.breakfast, meal.lunch, meal.snack, meal.dinner].forEach((text) => {
+      const lower = text.toLowerCase();
+      knownFoods.forEach((food) => {
+        if (lower.includes(food.toLowerCase())) addUnique(items, food);
+      });
+    });
+  });
+  normalizeStringList(customItems).forEach((item) => addUnique(items, item));
+  return items.length > 0 ? items : normalizeFoodList([], []);
+}
+
+function checklistGroups(items) {
+  const groups = { 'Produce': [], 'Protein + dairy': [], 'Pantry + freezer': [] };
+  items.forEach((item) => {
+    const category = categorizeFood(item);
+    const group = category === 'fruits' || category === 'vegetables'
+      ? 'Produce'
+      : category === 'proteins' || category === 'dairy'
+        ? 'Protein + dairy'
+        : 'Pantry + freezer';
+    groups[group].push(item);
+  });
+  return groups;
 }
 
 export function applyFoodProfile(state, user) {
@@ -388,6 +425,9 @@ export function applyFoodProfile(state, user) {
   state.shoppingSchedule = normalizeShoppingSchedule(childPlan.shoppingSchedule);
   state.foodPlanSeed = seed;
   state.foodPlanGeneratedAt = cleanText(childPlan.lastGeneratedAt, 40);
+  state.lockedMealDays = normalizeStringList(childPlan.lockedMealDays);
+  state.checkedShoppingItems = normalizeStringList(childPlan.checkedShoppingItems);
+  state.customShoppingItems = normalizeStringList(childPlan.customShoppingItems);
   state.foodStatus = '';
 }
 
@@ -397,6 +437,9 @@ export function resetFoodState(state) {
   state.shoppingSchedule = defaultShoppingSchedule();
   state.foodPlanSeed = 0;
   state.foodPlanGeneratedAt = '';
+  state.lockedMealDays = [];
+  state.checkedShoppingItems = [];
+  state.customShoppingItems = [];
   state.newFood = '';
   state.foodStatus = '';
 }
@@ -411,6 +454,9 @@ function currentChildPlan(ctx, overrides = {}) {
     favorites,
     weeklyMenu: normalizeWeeklyMenu(overrides.weeklyMenu ?? state.weeklyMenu),
     shoppingSchedule: normalizeShoppingSchedule(overrides.shoppingSchedule ?? state.shoppingSchedule),
+    lockedMealDays: normalizeStringList(overrides.lockedMealDays ?? state.lockedMealDays),
+    checkedShoppingItems: normalizeStringList(overrides.checkedShoppingItems ?? state.checkedShoppingItems),
+    customShoppingItems: normalizeStringList(overrides.customShoppingItems ?? state.customShoppingItems),
     menuSeed: seed,
     lastGeneratedAt: cleanText(overrides.lastGeneratedAt ?? childPlan.lastGeneratedAt, 40) || new Date().toISOString(),
   };
@@ -441,10 +487,47 @@ function regenerateFoodPlan(ctx) {
   const childProfile = getChildProfile(state.user);
   const seed = cleanNumber(state.foodPlanSeed, 0, 0, 1000000) + 1;
   const favorites = normalizeFoodList(state.shoppingList);
-  state.weeklyMenu = generateWeeklyMenu({ childProfile, favorites, seed });
+  const nextMenu = generateWeeklyMenu({ childProfile, favorites, seed });
+  const locked = new Set(state.lockedMealDays || []);
+  state.weeklyMenu = nextMenu.map((meal, index) => locked.has(meal.day) ? state.weeklyMenu[index] || meal : meal);
   state.foodPlanSeed = seed;
   state.foodPlanGeneratedAt = new Date().toISOString();
   state.foodStatus = 'New weekly menu generated. Save the food plan to keep it.';
+  ctx.renderCurrent();
+}
+
+function regenerateMeal(ctx, index) {
+  const { state } = ctx;
+  const meal = state.weeklyMenu[index];
+  if (!meal) return;
+  if ((state.lockedMealDays || []).includes(meal.day)) {
+    state.foodStatus = `${meal.day} is locked. Unlock it before regenerating.`;
+    ctx.renderCurrent();
+    return;
+  }
+  const childProfile = getChildProfile(state.user);
+  const seed = cleanNumber(state.foodPlanSeed, 0, 0, 1000000) + 1;
+  const replacement = generateWeeklyMenu({ childProfile, favorites: normalizeFoodList(state.shoppingList), seed })[index];
+  state.weeklyMenu = state.weeklyMenu.map((item, itemIndex) => itemIndex === index ? replacement : item);
+  state.foodPlanSeed = seed;
+  state.foodPlanGeneratedAt = new Date().toISOString();
+  state.foodStatus = `${meal.day} refreshed. Other days stayed in place.`;
+  ctx.renderCurrent();
+}
+
+function toggleMealLock(ctx, day) {
+  const locked = new Set(ctx.state.lockedMealDays || []);
+  if (locked.has(day)) locked.delete(day); else locked.add(day);
+  ctx.state.lockedMealDays = [...locked];
+  ctx.state.foodStatus = locked.has(day) ? `${day} locked. Regenerate the week to reshuffle the other days.` : `${day} unlocked.`;
+  ctx.renderCurrent();
+}
+
+function toggleShoppingItem(ctx, item) {
+  const key = item.toLowerCase();
+  const checked = new Set(ctx.state.checkedShoppingItems || []);
+  if (checked.has(key)) checked.delete(key); else checked.add(key);
+  ctx.state.checkedShoppingItems = [...checked];
   ctx.renderCurrent();
 }
 
@@ -458,16 +541,17 @@ function addShoppingItem(ctx, event) {
     return;
   }
 
-  const exists = state.shoppingList.some((food) => food.toLowerCase() === value.toLowerCase());
+  const exists = state.customShoppingItems.some((food) => food.toLowerCase() === value.toLowerCase());
   if (exists) {
-    state.foodStatus = `${value} is already on the list.`;
+    state.foodStatus = `${value} is already in the menu checklist.`;
     ctx.renderCurrent();
     return;
   }
 
   state.shoppingList = [...state.shoppingList, value];
+  state.customShoppingItems = [...state.customShoppingItems, value];
   state.newFood = '';
-  state.foodStatus = `${value} added. Regenerate the week or save when ready.`;
+  state.foodStatus = `${value} added to the menu checklist. Save when ready.`;
   ctx.renderCurrent();
 }
 
@@ -528,14 +612,14 @@ function updateShoppingSchedule(ctx, index, field, value, shouldRender = false) 
   if (shouldRender) ctx.renderCurrent();
 }
 
-function downloadShoppingEvent(schedule, shoppingList) {
+function downloadShoppingEvent(schedule, checklistItems) {
   const start = nextDateForWeekday(schedule.weekday, schedule.time);
   const end = addMinutes(start, schedule.durationMinutes);
   downloadCalendar(
     schedule.title || 'Grocery shopping',
     calendarDateTime(start),
     calendarDateTime(end),
-    shoppingSummary(schedule, shoppingList),
+    shoppingSummary(schedule, checklistItems),
   );
 }
 
@@ -545,12 +629,27 @@ function weekdayOptions(selected) {
     .join('');
 }
 
-function renderMealCard(meal) {
-  return `<article class="panel meal-card"><h3>${escapeHtml(meal.day)}</h3><p><strong>Breakfast:</strong> ${escapeHtml(meal.breakfast)}</p><p><strong>Lunch:</strong> ${escapeHtml(meal.lunch)}</p><p><strong>Snack:</strong> ${escapeHtml(meal.snack)}</p><p><strong>Dinner:</strong> ${escapeHtml(meal.dinner)}</p></article>`;
+function renderMealCard(meal, lockedDays = []) {
+  const mealSlots = [['Breakfast', meal.breakfast], ['Lunch', meal.lunch], ['Snack', meal.snack], ['Dinner', meal.dinner]];
+  const locked = lockedDays.includes(meal.day);
+  return `<article class="panel meal-card"><div class="meal-card-header"><div><p class="eyebrow">${locked ? 'Locked block' : 'Menu block'}</p><h3>${escapeHtml(meal.day)}</h3></div><span class="lock-mark" aria-hidden="true">${locked ? '🔒' : '↻'}</span></div>${mealSlots.map(([label, value]) => `<p><strong>${label}:</strong> ${escapeHtml(value)}</p>`).join('')}<div class="meal-card-actions"><button class="secondary-button small-button" type="button" data-regenerate-meal="${escapeAttribute(meal.day)}">Regenerate</button><button class="secondary-button small-button" type="button" data-toggle-meal-lock="${escapeAttribute(meal.day)}">${locked ? 'Unlock' : 'Lock block'}</button></div><div class="meal-resources"><details><summary>Recipe idea</summary><p>${escapeHtml(recipeForMeal(meal))}</p></details><details><summary>Nutrition facts</summary><p>${escapeHtml(nutritionForMeal(meal))}</p></details></div></article>`;
 }
 
-function renderShoppingEvent(schedule, index, shoppingList) {
-  return `<article class="event-card shopping-event-card"><span>${escapeHtml(formatShoppingWindow(schedule))}</span><label><small>Shopping focus</small><input data-schedule-index="${index}" data-schedule-field="title" value="${escapeAttribute(schedule.title)}" maxlength="80" /></label><div class="schedule-controls"><label><small>Weekday</small><select data-schedule-index="${index}" data-schedule-field="weekday">${weekdayOptions(schedule.weekday)}</select></label><label><small>Start</small><input type="time" data-schedule-index="${index}" data-schedule-field="time" value="${escapeAttribute(schedule.time)}" /></label><label><small>Minutes</small><input type="number" min="15" max="180" step="15" data-schedule-index="${index}" data-schedule-field="durationMinutes" value="${escapeAttribute(schedule.durationMinutes)}" /></label></div><p>${escapeHtml(shoppingSummary(schedule, shoppingList))}</p><div class="event-actions"><button class="secondary-button small-button" type="button" data-download-shopping-event="${index}">Download event</button><button class="secondary-button small-button danger-button" type="button" data-remove-shopping-block="${index}">Remove</button></div></article>`;
+function recipeForMeal(meal) {
+  return `Prep the ${meal.dinner.toLowerCase()} components until soft, then serve in toddler-sized pieces. Offer water and adjust texture, seasoning, and portion to your child.`;
+}
+
+function nutritionForMeal(meal) {
+  const text = `${meal.breakfast} ${meal.lunch} ${meal.snack} ${meal.dinner}`.toLowerCase();
+  const nutrients = ['Fruit and vegetable variety'];
+  if (/chicken|salmon|tofu|bean|turkey|hummus|fish/.test(text)) nutrients.push('protein source');
+  if (/yogurt|cheese|milk/.test(text)) nutrients.push('calcium-rich food');
+  if (/rice|pasta|waffle|oat|toast|pita|grain|noodle/.test(text)) nutrients.push('energy-giving grains');
+  return `${nutrients.join(', ')}. Planning estimate only; portions and nutrition vary by brand, recipe, and serving size.`;
+}
+
+function renderShoppingEvent(schedule, index, checklistItems) {
+  return `<article class="event-card shopping-event-card"><div class="shopping-event-heading"><div><span>${escapeHtml(formatShoppingWindow(schedule))}</span><h3>${escapeHtml(schedule.title)}</h3></div><button class="secondary-button small-button" type="button" data-edit-schedule="${index}">Edit timing</button></div><p>${escapeHtml(shoppingSummary(schedule, checklistItems))}</p><div class="schedule-editor" data-schedule-editor="${index}"><label><small>Shopping focus</small><input data-schedule-index="${index}" data-schedule-field="title" value="${escapeAttribute(schedule.title)}" maxlength="80" /></label><div class="schedule-controls"><label><small>Weekday</small><select data-schedule-index="${index}" data-schedule-field="weekday">${weekdayOptions(schedule.weekday)}</select></label><label><small>Start</small><input type="time" data-schedule-index="${index}" data-schedule-field="time" value="${escapeAttribute(schedule.time)}" /></label><label><small>Minutes</small><input type="number" min="15" max="180" step="15" data-schedule-index="${index}" data-schedule-field="durationMinutes" value="${escapeAttribute(schedule.durationMinutes)}" /></label></div><div class="event-actions"><button class="secondary-button small-button" type="button" data-download-shopping-event="${index}">Download event</button><button class="secondary-button small-button danger-button" type="button" data-remove-shopping-block="${index}">Remove</button></div></div></article>`;
 }
 
 export function renderFood(ctx) {
@@ -567,11 +666,20 @@ export function renderFood(ctx) {
     ? normalizeWeeklyMenu(state.weeklyMenu)
     : generateWeeklyMenu({ childProfile, favorites: shoppingList, seed: state.foodPlanSeed || 0 });
   const shoppingSchedule = normalizeShoppingSchedule(state.shoppingSchedule);
+  const checklistItems = menuShoppingItems(weeklyMenu, state.customShoppingItems);
+  const checklist = checklistGroups(checklistItems);
+  const logistics = buildFamilyLogistics(state.user, { restockItems: state.restockItems });
+  const familyLogisticsItems = [
+    ...logistics.restockDue.map((item) => `${item.item}${item.daysLeft === null ? '' : ` (est. ~${item.daysLeft} days left)`}`),
+    ...logistics.items.map((item) => item.text),
+  ];
+  const checked = new Set((state.checkedShoppingItems || []).filter((item) => checklistItems.includes(item)).map((item) => item.toLowerCase()));
+  state.checkedShoppingItems = [...checked];
   const generatedAt = state.foodPlanGeneratedAt
     ? new Date(state.foodPlanGeneratedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
     : 'Draft not saved yet';
 
-  ctx.layout(`<main class="stack"><section class="panel title-panel">${icon('👨‍🍳')}<div><p class="eyebrow">Weekly refresh${ageLabel ? ` • ${escapeHtml(ageLabel)}` : ''}</p><h2>Menu ideas for ${escapeHtml(childName)}</h2><p>Builds a weekly menu from ${escapeHtml(possessiveChildName)} saved foods, profile notes, and allergy fields.</p>${foodNotes ? `<p class="muted">Profile notes: ${escapeHtml(foodNotes)}</p>` : ''}<div class="food-actions"><button id="regenerate-food-plan" class="secondary-button" type="button">Regenerate week</button><button id="save-food-plan" type="button">Save food plan</button></div><small>Last generated: ${escapeHtml(generatedAt)}</small></div></section><section class="menu-grid">${weeklyMenu.map(renderMealCard).join('')}</section><section class="grid two-cols"><div class="panel"><div class="section-heading"><div><h2>Grocery weekday shopping events</h2><p class="muted">Choose the weekday blocks that fit your week, then download calendar events for the next matching date.</p></div><button id="add-shopping-block" class="secondary-button small-button" type="button">Add block</button></div>${shoppingSchedule.map((event, index) => renderShoppingEvent(event, index, shoppingList)).join('')}</div><div class="panel"><h2>Shopping list</h2><div class="shopping-list">${shoppingList.map((food, index) => `<div class="shopping-item"><label><input type="checkbox" /> ${escapeHtml(food)}</label><button class="icon-button danger" type="button" data-remove-food="${index}" aria-label="Remove ${escapeAttribute(food)}">×</button></div>`).join('')}</div><form id="shopping-form" class="shopping-edit"><label class="input-label" for="new-food">Add food</label><div class="inline-form"><input id="new-food" value="${escapeAttribute(state.newFood)}" placeholder="e.g. blueberries" /><button type="submit">Add</button></div></form><p class="muted">${escapeHtml(state.foodStatus || 'Edit foods and shopping blocks, regenerate the week, then save the food plan.')}</p><div class="food-actions"><button id="save-shopping-list" class="secondary-button" type="button">Save shopping list</button></div></div></section></main>`);
+  ctx.layout(`<main class="stack"><section class="panel title-panel">${icon('👨‍🍳')}<div><p class="eyebrow">Weekly refresh${ageLabel ? ` • ${escapeHtml(ageLabel)}` : ''}</p><h2>Menu ideas for ${escapeHtml(childName)}</h2><p>Builds a weekly menu from ${escapeHtml(possessiveChildName)} saved foods, profile notes, and allergy fields.</p>${foodNotes ? `<p class="muted">Profile notes: ${escapeHtml(foodNotes)}</p>` : ''}<div class="family-context"><strong>Family logistics context</strong><span>${escapeHtml(logistics.kids.map((kid) => `${kid.name} • ${kid.ageLabel || 'age from profile'} • ${kid.stage}`).join(' | ') || 'Add child birthdays in Edit profile')}</span></div><div class="food-actions"><button id="regenerate-food-plan" class="secondary-button" type="button">Regenerate unlocked days</button><button id="save-food-plan" type="button">Save food plan</button></div><small>Last generated: ${escapeHtml(generatedAt)}</small></div></section><section class="menu-grid">${weeklyMenu.map((meal) => renderMealCard(meal, state.lockedMealDays || [])).join('')}</section><section class="grid two-cols"><div class="panel"><div class="section-heading"><div><h2>Grocery weekday shopping events</h2><p class="muted">Download a calendar event using the current menu checklist. The event stays compact; the full list remains in the checklist.</p></div><button id="add-shopping-block" class="secondary-button small-button" type="button">Add block</button></div>${shoppingSchedule.map((event, index) => renderShoppingEvent(event, index, checklistItems)).join('')}</div><div class="panel"><div class="section-heading"><div><h2>Menu + kid logistics checklist</h2><p class="muted">Every family item is tagged to the child facts that caused it to appear.</p></div><span class="checklist-count">${checked.size}/${checklistItems.length}</span></div><div class="logistics-inline-list">${familyLogisticsItems.map((item) => `<span>${escapeHtml(item)}</span>`).join('')}</div><div class="shopping-checklist">${Object.entries(checklist).map(([group, items]) => `<details open><summary>${escapeHtml(group)} <small>${items.length} items</small></summary><div class="shopping-list">${items.map((item) => `<label class="shopping-check-item"><input type="checkbox" data-check-shopping="${escapeAttribute(item)}" ${checked.has(item.toLowerCase()) ? 'checked' : ''} /><span>${escapeHtml(item)}</span></label>`).join('')}</div></details>`).join('')}</div><form id="shopping-form" class="shopping-edit"><label class="input-label" for="new-food">Food to keep in rotation</label><div class="inline-form"><input id="new-food" value="${escapeAttribute(state.newFood)}" placeholder="e.g. blueberries" /><button type="submit">Add</button></div></form><p class="muted">${escapeHtml(state.foodStatus || 'Lock a day you love, regenerate the rest, then save when ready.')}</p><div class="food-actions"><button id="save-shopping-list" class="secondary-button" type="button">Save food plan</button></div></div></section></main>`);
 
   state.weeklyMenu = weeklyMenu;
   state.shoppingSchedule = shoppingSchedule;
@@ -583,10 +691,18 @@ export function renderFood(ctx) {
   document.getElementById('shopping-form').addEventListener('submit', (event) => addShoppingItem(ctx, event));
   document.getElementById('new-food').addEventListener('input', (event) => { state.newFood = event.target.value; });
   document.querySelectorAll('[data-remove-food]').forEach((button) => button.addEventListener('click', () => removeShoppingItem(ctx, Number(button.dataset.removeFood))));
+  document.querySelectorAll('[data-regenerate-meal]').forEach((button) => button.addEventListener('click', () => regenerateMeal(ctx, weeklyMenu.findIndex((meal) => meal.day === button.dataset.regenerateMeal))));
+  document.querySelectorAll('[data-toggle-meal-lock]').forEach((button) => button.addEventListener('click', () => toggleMealLock(ctx, button.dataset.toggleMealLock)));
+  document.querySelectorAll('[data-check-shopping]').forEach((input) => input.addEventListener('change', () => toggleShoppingItem(ctx, input.dataset.checkShopping)));
+  document.querySelectorAll('[data-edit-schedule]').forEach((button) => button.addEventListener('click', () => {
+    const editor = document.querySelector(`[data-schedule-editor="${button.dataset.editSchedule}"]`);
+    const isOpen = editor.classList.toggle('is-open');
+    button.textContent = isOpen ? 'Done editing' : 'Edit timing';
+  }));
   document.querySelectorAll('[data-remove-shopping-block]').forEach((button) => button.addEventListener('click', () => removeShoppingBlock(ctx, Number(button.dataset.removeShoppingBlock))));
   document.querySelectorAll('[data-download-shopping-event]').forEach((button) => button.addEventListener('click', () => {
     const schedule = normalizeShoppingSchedule(state.shoppingSchedule);
-    downloadShoppingEvent(schedule[Number(button.dataset.downloadShoppingEvent)], shoppingList);
+    downloadShoppingEvent(schedule[Number(button.dataset.downloadShoppingEvent)], checklistItems);
   }));
   document.querySelectorAll('[data-schedule-field]').forEach((input) => {
     const field = input.dataset.scheduleField;

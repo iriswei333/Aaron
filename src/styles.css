@@ -446,6 +446,15 @@ time { color: #e26f39; font-weight: 900; }
 .menu-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .meal-card { padding: 22px; }
 .meal-card p { margin-bottom: 8px; }
+.meal-card-header, .shopping-event-heading { align-items: flex-start; display: flex; gap: 12px; justify-content: space-between; }
+.meal-card-header .eyebrow { margin-bottom: 4px; }
+.meal-card-header h3 { margin-bottom: 12px; }
+.lock-mark { font-size: 1.1rem; }
+.meal-card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.meal-resources { border-top: 1px solid #f1d9c5; display: grid; gap: 6px; margin-top: 16px; padding-top: 12px; }
+.meal-resources details { background: #fffaf5; border-radius: 12px; padding: 9px 11px; }
+.meal-resources summary, .shopping-checklist summary { color: #3e555c; cursor: pointer; font-weight: 850; }
+.meal-resources p { font-size: .88rem; margin: 8px 0 0; }
 .food-actions {
   align-items: center;
   display: flex;
@@ -462,6 +471,11 @@ time { color: #e26f39; font-weight: 900; }
   display: grid;
   gap: 12px;
 }
+
+.shopping-event-heading h3 { margin: 0; }
+.shopping-event-heading span { margin-bottom: 5px; }
+.schedule-editor { display: none; gap: 12px; }
+.schedule-editor.is-open { display: grid; }
 
 .shopping-event-card label {
   display: grid;
@@ -507,6 +521,16 @@ time { color: #e26f39; font-weight: 900; }
   min-height: 46px;
   padding: 4px 6px 4px 12px;
 }
+
+.shopping-checklist { display: grid; gap: 10px; margin: 18px 0; }
+.shopping-checklist details { background: #fffaf5; border: 1px solid #f3d1b8; border-radius: 16px; padding: 12px 14px; }
+.shopping-checklist details[open] summary { margin-bottom: 10px; }
+.shopping-checklist summary small { float: right; font-weight: 600; }
+.shopping-check-item { align-items: center; border-bottom: 1px dashed #ecd5c1; display: flex; gap: 10px; min-height: 38px; }
+.shopping-check-item:last-child { border-bottom: 0; }
+.shopping-check-item input { accent-color: #35a872; width: auto; }
+.shopping-check-item input:checked + span { color: #718078; text-decoration: line-through; }
+.checklist-count { background: #edf8f1; border-radius: 999px; color: #2e7c4d; font-size: .8rem; font-weight: 850; padding: 7px 10px; }
 
 .shopping-list label { align-items: center; display: flex; gap: 10px; text-transform: capitalize; }
 .shopping-list input { accent-color: #e26f39; width: auto; }
@@ -703,6 +727,34 @@ time { color: #e26f39; font-weight: 900; }
   font-weight: 850;
   padding: 8px 12px;
 }
+
+.family-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem .8rem;
+  margin: 1rem 0;
+  padding: .75rem 1rem;
+  border: 1px solid var(--line, #dfe7df);
+  border-radius: 12px;
+  background: #f5faf4;
+  color: #526252;
+}
+
+.family-context strong { color: #263b2b; }
+.logistics-card { align-items: center; justify-content: space-between; gap: 1rem; }
+.logistics-card > div { display: grid; gap: .25rem; }
+.logistics-card small { color: #657267; }
+.kid-chip {
+  display: inline-block;
+  width: fit-content;
+  padding: .15rem .45rem;
+  border-radius: 999px;
+  background: #e4f1e3;
+  color: #35623e;
+  font-size: .75rem;
+}
+.logistics-inline-list { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1rem; }
+.logistics-inline-list span { padding: .45rem .65rem; border-radius: 8px; background: #f5faf4; color: #48614d; font-size: .9rem; }
 
 @media (max-width: 860px) {
   .header-top { align-items: stretch; flex-direction: column; }
@@ -949,6 +1001,7 @@ time { color: #e26f39; font-weight: 900; }
 
 @media (max-width: 860px) {
   .home-layout { grid-template-columns: 1fr; }
+  .menu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .background-picker-grid,
   .default-backgrounds {
     grid-template-columns: 1fr;
@@ -956,6 +1009,9 @@ time { color: #e26f39; font-weight: 900; }
 }
 
 @media (max-width: 700px) {
+  .menu-grid { grid-template-columns: 1fr; }
+  .two-cols { grid-template-columns: 1fr; }
+  .shopping-event-heading { display: grid; }
   .hero-card { min-height: auto; }
   .home-hero {
     background-image:

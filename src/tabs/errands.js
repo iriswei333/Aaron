@@ -1,5 +1,6 @@
 import { downloadCalendar, escapeAttribute, escapeHtml, icon } from '../shared.js';
 import { childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
+import { buildFamilyLogistics } from '../../lib/kid-logistics.js';
 
 export const defaultAmazonTasks = [
   { title: 'Amazon monthly subscribe-and-save: diapers and wipes on the 1st at 8:00 AM.', source: 'amazon', status: 'planned' },
@@ -46,6 +47,7 @@ export function applyErrandsProfile(state, user) {
     ? user.amazonErrands.outfitIdeas.map((idea, index) => ({ ...defaultOutfitIdeas[index % defaultOutfitIdeas.length], ...idea }))
     : defaultOutfitIdeas.map((idea) => ({ ...idea }));
   state.amazonStatus = '';
+  state.restockItems = user.amazonErrands?.restockItems && typeof user.amazonErrands.restockItems === 'object' ? user.amazonErrands.restockItems : {};
 }
 
 export function resetErrandsState(state) {
@@ -53,10 +55,20 @@ export function resetErrandsState(state) {
   state.outfitIdeas = defaultOutfitIdeas.map((idea) => ({ ...idea }));
   state.newAmazonTask = '';
   state.amazonStatus = '';
+  state.restockItems = {};
 }
 
 function saveAmazonErrands(ctx, tasks = ctx.state.amazonTasks, outfitIdeas = ctx.state.outfitIdeas) {
-  return ctx.saveUserSection('amazon-errands', { tasks, outfitIdeas });
+  return ctx.saveUserSection('amazon-errands', { tasks, outfitIdeas, restockItems: ctx.state.restockItems || {} });
+}
+
+function markRestockBought(ctx, kidId) {
+  ctx.state.restockItems = {
+    ...(ctx.state.restockItems || {}),
+    [kidId]: { ...(ctx.state.restockItems?.[kidId] || {}), lastPurchased: new Date().toISOString().slice(0, 10), confirmedByUser: true },
+  };
+  ctx.state.amazonStatus = 'Purchase recorded. Save errands to keep the personalized estimate.';
+  ctx.renderCurrent();
 }
 
 function addAmazonTask(ctx, event) {
@@ -89,12 +101,15 @@ export function renderErrands(ctx) {
   const amazonTasks = state.amazonTasks.length > 0 ? state.amazonTasks : defaultAmazonTasks.map((task) => ({ ...task }));
   const outfitIdeas = state.outfitIdeas.length > 0 ? state.outfitIdeas : defaultOutfitIdeas.map((idea) => ({ ...idea }));
   const reminderText = amazonTasks.map((task) => task.title).join(' ');
+  const logistics = buildFamilyLogistics(state.user, { restockItems: state.restockItems });
+  const familyItems = [...logistics.restockDue.map((item) => ({ ...item, text: `Restock: ${item.item}${item.daysLeft === null ? '' : ` (est. ~${item.daysLeft} days left)`}`, reason: 'restock' })), ...logistics.items];
 
-  ctx.layout(`<main class="grid two-cols"><section class="panel"><p class="eyebrow">Errand automation</p><h2>Monthly essentials for ${escapeHtml(childName)}</h2><p>Use this checklist to keep subscriptions visible and avoid surprise low-stock mornings.</p><div class="automation-list">${amazonTasks.map((task, index) => `<article class="mini-card editable-card">${icon('🔄')}<p>${escapeHtml(task.title)}</p><button class="icon-button danger" data-remove-amazon="${index}" aria-label="Remove ${escapeAttribute(task.title)}">×</button></article>`).join('')}</div><form id="amazon-task-form" class="shopping-edit"><label class="input-label" for="new-amazon-task">Add Amazon or grocery automation</label><div class="inline-form"><input id="new-amazon-task" value="${escapeAttribute(state.newAmazonTask)}" placeholder="e.g. Grocery delivery every Tuesday at 10 AM" /><button type="submit">Add</button></div></form><p class="muted">${escapeHtml(state.amazonStatus || 'Edit Amazon and grocery errands for the signed-in user, then save.')}</p><button id="download-amazon-reminder">Download monthly reminder</button><button id="save-amazon-errands">Save errands</button></section><section class="panel"><p class="eyebrow">Email promotion scanner</p><h2>New outfit recommendations</h2><p>Connect promotion emails by searching for kid shoe/clothing keywords, then choose comfortable pieces for active play.</p>${outfitIdeas.map((idea) => `<article class="event-card outfit-card"><img class="outfit-preview" src="${escapeAttribute(idea.photoUrl)}" alt="Photo preview for ${escapeAttribute(idea.item)}" loading="lazy" /><div><span>👕 ${escapeHtml(idea.source)}</span><h3>${escapeHtml(idea.item)}</h3><p>${escapeHtml(idea.reason)}</p><a class="shopping-link" href="${escapeAttribute(idea.href)}" target="_blank" rel="noreferrer">${escapeHtml(idea.linkLabel)} ↗</a></div></article>`).join('')}</section></main>`);
+  ctx.layout(`<main class="grid two-cols"><section class="panel"><p class="eyebrow">Family logistics</p><h2>Restock plan for ${escapeHtml(childName)}</h2><p>Derived from each child’s birthday, observed size, food preferences, and purchase history.</p><div class="automation-list">${familyItems.length ? familyItems.map((item) => `<article class="mini-card logistics-card"><div><strong>${escapeHtml(item.text)}</strong><span class="kid-chip">${escapeHtml(item.kidName || 'Family')}</span><small>Because: ${escapeHtml(item.reason)}${item.daysLeft === null && item.reason === 'restock' ? ' • add a purchase anchor to estimate days left' : ''}</small></div>${item.reason === 'restock' ? `<button class="secondary-button small-button" data-mark-restock="${escapeAttribute(item.kidId)}">Mark bought today</button>` : ''}</article>`).join('') : '<p class="muted">Add a birthday to a child profile to derive age-stage errands.</p>'}</div><h3>Automations</h3><div class="automation-list">${amazonTasks.map((task, index) => `<article class="mini-card editable-card">${icon('🔄')}<p>${escapeHtml(task.title)}</p><button class="icon-button danger" data-remove-amazon="${index}" aria-label="Remove ${escapeAttribute(task.title)}">×</button></article>`).join('')}</div><form id="amazon-task-form" class="shopping-edit"><label class="input-label" for="new-amazon-task">Add Amazon or grocery automation</label><div class="inline-form"><input id="new-amazon-task" value="${escapeAttribute(state.newAmazonTask)}" placeholder="e.g. Grocery delivery every Tuesday at 10 AM" /><button type="submit">Add</button></div></form><p class="muted">${escapeHtml(state.amazonStatus || 'Each line shows why it belongs in this family plan.')}</p><button id="download-amazon-reminder">Download monthly reminder</button><button id="save-amazon-errands">Save errands</button></section><section class="panel"><p class="eyebrow">Email promotion scanner</p><h2>New outfit recommendations</h2><p>Connect promotion emails by searching for kid shoe/clothing keywords, then choose comfortable pieces for active play.</p>${outfitIdeas.map((idea) => `<article class="event-card outfit-card"><img class="outfit-preview" src="${escapeAttribute(idea.photoUrl)}" alt="Photo preview for ${escapeAttribute(idea.item)}" loading="lazy" /><div><span>👕 ${escapeHtml(idea.source)}</span><h3>${escapeHtml(idea.item)}</h3><p>${escapeHtml(idea.reason)}</p><a class="shopping-link" href="${escapeAttribute(idea.href)}" target="_blank" rel="noreferrer">${escapeHtml(idea.linkLabel)} ↗</a></div></article>`).join('')}</section></main>`);
 
   document.getElementById('download-amazon-reminder').addEventListener('click', () => downloadCalendar('Order diapers and wipes', '20260601T080000', '20260601T081500', reminderText || 'Monthly Amazon and grocery errand reminder'));
   document.getElementById('save-amazon-errands').addEventListener('click', () => saveAmazonErrands(ctx, amazonTasks, outfitIdeas));
   document.getElementById('amazon-task-form').addEventListener('submit', (event) => addAmazonTask(ctx, event));
   document.getElementById('new-amazon-task').addEventListener('input', (event) => { state.newAmazonTask = event.target.value; });
   document.querySelectorAll('[data-remove-amazon]').forEach((button) => button.addEventListener('click', () => removeAmazonTask(ctx, Number(button.dataset.removeAmazon))));
+  document.querySelectorAll('[data-mark-restock]').forEach((button) => button.addEventListener('click', () => markRestockBought(ctx, button.dataset.markRestock)));
 }
