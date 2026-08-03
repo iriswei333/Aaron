@@ -1,169 +1,14 @@
-import { apiRequest, escapeAttribute, escapeHtml, icon } from '../shared.js';
-import {
-  captionLanguageOptions,
-  captionSubject,
-  captionToneOptions,
-  getChildProfile,
-} from '../../lib/profile-defaults.js';
+import { apiRequest, escapeAttribute, escapeHtml } from '../shared.js';
+import { childAgeLabel, childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
 
 export function resetSocialState(state) {
-  state.media = [];
-  state.generatedCaption = '';
-  state.captionStatus = '';
-}
-
-async function copyText(value) {
-  try {
-    if (globalThis.navigator?.clipboard?.writeText) {
-      await globalThis.navigator.clipboard.writeText(value);
-      return;
-    }
-  } catch {
-    // Fall through to the textarea copy fallback.
-  }
-
-  const textarea = document.createElement('textarea');
-  textarea.value = value;
-  textarea.setAttribute('readonly', '');
-  textarea.style.position = 'fixed';
-  textarea.style.opacity = '0';
-  document.body.appendChild(textarea);
-  textarea.select();
-  document.execCommand?.('copy');
-  textarea.remove();
-}
-
-function handleFiles(ctx, files) {
-  const { state } = ctx;
-  state.generatedCaption = '';
-  state.captionStatus = '';
-  const selected = Array.from(files || []).slice(0, 8).map((file, index) => ({
-    file,
-    name: file.name,
-    kind: file.type.startsWith('video') ? 'video' : 'photo',
-    score: 98 - index * 7 - (file.type.startsWith('video') ? 2 : 0),
-    reason: file.type.startsWith('video') ? '视频优先：动作和声音更适合记录今天的故事。' : '照片清晰、表情自然，适合当天分享。',
-    url: URL.createObjectURL(file),
-  }));
-  const video = selected.find((item) => item.kind === 'video');
-  state.media = video ? [video] : selected.filter((item) => item.kind === 'photo').slice(0, 3);
-  ctx.renderCurrent();
-}
-
-function extractVideoFrame(videoUrl) {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement('video');
-    const cleanup = () => {
-      video.pause();
-      video.removeAttribute('src');
-      video.load();
-    };
-    video.muted = true;
-    video.playsInline = true;
-    video.preload = 'metadata';
-    video.src = videoUrl;
-    video.addEventListener('loadeddata', () => {
-      video.currentTime = Math.min(0.5, Math.max(0, (video.duration || 1) / 3));
-    }, { once: true });
-    video.addEventListener('seeked', () => {
-      try {
-        const canvas = document.createElement('canvas');
-        const width = Math.min(video.videoWidth || 720, 720);
-        const height = Math.round(width * ((video.videoHeight || 720) / (video.videoWidth || 720)));
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext('2d').drawImage(video, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-        cleanup();
-        resolve(dataUrl);
-      } catch (error) {
-        cleanup();
-        reject(error);
-      }
-    }, { once: true });
-    video.addEventListener('error', () => {
-      cleanup();
-      reject(new Error('Could not read a frame from this video.'));
-    }, { once: true });
-  });
-}
-
-function imageFileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    const objectUrl = URL.createObjectURL(file);
-    image.onload = () => {
-      try {
-        const maxSize = 900;
-        const scale = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
-        const width = Math.max(1, Math.round(image.naturalWidth * scale));
-        const height = Math.max(1, Math.round(image.naturalHeight * scale));
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext('2d').drawImage(image, 0, 0, width, height);
-        URL.revokeObjectURL(objectUrl);
-        resolve(canvas.toDataURL('image/jpeg', 0.84));
-      } catch (error) {
-        URL.revokeObjectURL(objectUrl);
-        reject(error);
-      }
-    };
-    image.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error('Could not read this photo.'));
-    };
-    image.src = objectUrl;
-  });
-}
-
-async function generateMediaCaption(ctx) {
-  const { state } = ctx;
-  if (state.media.length === 0 || !state.user) return;
-  const video = state.media.find((item) => item.kind === 'video');
-  const photos = state.media.filter((item) => item.kind === 'photo');
-  state.captionStatus = video ? 'Reading video frame…' : 'Reading selected photos…';
-  ctx.renderCurrent();
-  try {
-    const imageDataUrls = video
-      ? [await extractVideoFrame(video.url)]
-      : await Promise.all(photos.slice(0, 3).map((photo) => imageFileToDataUrl(photo.file)));
-    state.captionStatus = 'Generating caption…';
-    ctx.renderCurrent();
-    const result = await apiRequest('/social-media/caption', {
-      method: 'POST',
-      body: JSON.stringify({
-        fileName: video ? video.name : photos.map((photo) => photo.name).join(', '),
-        mediaType: video ? 'video' : 'photo',
-        tone: state.captionTone,
-        captionLanguage: state.captionLanguage,
-        imageDataUrls,
-      }),
-    });
-    state.generatedCaption = result.caption;
-    state.captionStatus = result.source === 'openai'
-      ? `AI caption generated from ${video ? 'video frame' : 'selected photos'}.`
-      : 'Local fallback caption generated. Add OPENAI_API_KEY for AI vision captions.';
-  } catch (error) {
-    state.captionStatus = `Caption failed: ${error.message}`;
-  }
-  ctx.renderCurrent();
-}
-
-function localPreviewCaption(state, childProfile) {
-  const language = state.captionLanguage || childProfile.captionLanguage;
-  const subject = captionSubject(childProfile, language);
-  const isVideo = state.media.length === 1 && state.media[0].kind === 'video';
-
-  if (language === 'en') {
-    return isVideo
-      ? `${subject} today: tiny explorer mode, turning an ordinary moment into a little adventure. #ChildhoodDiary #FamilyMoments`
-      : `${subject} in three little frames: busy hands, bright smiles, and one sweet everyday memory. #ChildhoodDiary #FamilyMoments`;
-  }
-
-  return isVideo
-    ? `今日份${subject}小电影：小小探险家，把平凡的一天玩成了冒险。${state.captionTone}，每一秒都想珍藏。`
-    : `今日份${subject}三连拍：小手忙着探索，笑容负责发光。快乐很简单，有爱、有玩具，也有一点点甜甜的惊喜。#成长日记`;
+  state.chatContacts = [];
+  state.chatMessages = [];
+  state.activeChatContactId = '';
+  state.chatStatus = '';
+  state.parentingResources = [];
+  state.parentingResourcesStatus = '';
+  state.parentingResourcesAgeFilter = '';
 }
 
 async function loadChat(ctx, contactId = '') {
@@ -173,7 +18,25 @@ async function loadChat(ctx, contactId = '') {
     state.chatContacts = data.contacts || [];
     state.chatMessages = data.messages || [];
     if (!state.activeChatContactId && state.chatContacts[0]) state.activeChatContactId = state.chatContacts[0].id;
-  } catch (error) { state.captionStatus = `Chat unavailable: ${error.message}`; }
+  } catch (error) {
+    state.chatStatus = `Chat unavailable: ${error.message}`;
+  }
+  if (state.tab === 'social') ctx.renderCurrent();
+}
+
+async function loadParentingResources(ctx) {
+  const { state } = ctx;
+  try {
+    state.parentingResourcesStatus = 'Finding age-matched parenting tips…';
+    if (state.tab === 'social') ctx.renderCurrent();
+    const data = await apiRequest('/parenting-resources');
+    state.parentingResources = Array.isArray(data.resources) ? data.resources : [];
+    state.parentingResourcesAgeFilter = data.ageFilter || '';
+    state.parentingResourcesStatus = `Five ParentMap articles for ${data.ageFilter === 'baby' ? 'baby' : data.ageFilter === 'elementary' ? 'elementary' : 'toddlers and preschoolers'}.`;
+  } catch (error) {
+    state.parentingResources = [];
+    state.parentingResourcesStatus = `Could not load parenting resources: ${error.message}`;
+  }
   if (state.tab === 'social') ctx.renderCurrent();
 }
 
@@ -188,7 +51,11 @@ async function sendChat(ctx, event) {
   let mediaType = '';
   if (file) {
     if (file.size > 8 * 1024 * 1024) return;
-    mediaUrl = await new Promise((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.readAsDataURL(file); });
+    mediaUrl = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
     mediaType = file.type.startsWith('video/') ? 'video' : 'photo';
   }
   await apiRequest('/chat', { method: 'POST', body: JSON.stringify({ recipientId: state.activeChatContactId, text, mediaType, mediaUrl }) });
@@ -199,47 +66,34 @@ function renderChat(ctx) {
   const { state } = ctx;
   const contacts = state.chatContacts || [];
   const active = contacts.find((contact) => contact.id === state.activeChatContactId) || contacts[0];
-  const contactList = contacts.length ? contacts.map((contact) => `<button type="button" class="chat-contact ${active?.id === contact.id ? 'selected' : ''}" data-chat-contact="${escapeAttribute(contact.id)}"><span class="avatar">${escapeHtml((contact.displayName || 'P').slice(0, 1).toUpperCase())}</span><span>${escapeHtml(contact.displayName)}</span></button>`).join('') : '<p class="muted">Create or join a playdate with another family to open a private chat.</p>';
-  const messages = active ? (state.chatMessages || []).map((message) => `<article class="chat-message ${message.senderId === state.user?.id ? 'mine' : ''}">${message.mediaUrl ? (message.mediaType === 'video' ? `<video src="${escapeAttribute(message.mediaUrl)}" controls></video>` : `<img src="${escapeAttribute(message.mediaUrl)}" alt="Shared photo" />`) : ''}${message.text ? `<p>${escapeHtml(message.text)}</p>` : ''}<small>${new Date(message.createdAt).toLocaleString([], { hour: 'numeric', minute: '2-digit' })}</small></article>`).join('') : '';
+  const contactList = contacts.length
+    ? contacts.map((contact) => `<button type="button" class="chat-contact ${active?.id === contact.id ? 'selected' : ''}" data-chat-contact="${escapeAttribute(contact.id)}"><span class="avatar">${escapeHtml((contact.displayName || 'P').slice(0, 1).toUpperCase())}</span><span>${escapeHtml(contact.displayName)}</span></button>`).join('')
+    : '<p class="muted">Create or join a playdate with another family to open a private chat.</p>';
+  const messages = active
+    ? (state.chatMessages || []).map((message) => `<article class="chat-message ${message.senderId === state.user?.id ? 'mine' : ''}">${message.mediaUrl ? (message.mediaType === 'video' ? `<video src="${escapeAttribute(message.mediaUrl)}" controls></video>` : `<img src="${escapeAttribute(message.mediaUrl)}" alt="Shared photo" />`) : ''}${message.text ? `<p>${escapeHtml(message.text)}</p>` : ''}<small>${new Date(message.createdAt).toLocaleString([], { hour: 'numeric', minute: '2-digit' })}</small></article>`).join('')
+    : '';
   return `<div class="chat-layout"><aside class="chat-contacts">${contactList}</aside><section class="chat-thread">${active ? `<div class="chat-thread-heading"><strong>${escapeHtml(active.displayName)}</strong><small>Connected through a playdate</small></div><div class="chat-messages">${messages || '<p class="muted">Say hello and make the meetup easy.</p>'}</div><form id="chat-form" class="chat-compose"><input name="chat-text" placeholder="Message, emoji, or meetup note…" maxlength="2000" /><label class="chat-attach" title="Attach photo or short video">＋<input name="chat-media" type="file" accept="image/*,video/*" /></label><button type="submit">Send</button></form>` : '<div class="chat-empty"><span>💬</span><p>Your playdate circle will appear here.</p></div>'}</section></div>`;
+}
+
+function renderResourceCard(resource) {
+  const image = resource.thumbnailUrl || 'https://images.unsplash.com/photo-1472162072942-cd5147eb3902?auto=format&fit=crop&w=640&q=80';
+  return `<article class="resource-card"><img src="${escapeAttribute(image)}" alt="" loading="lazy" /><div><span>${escapeHtml(resource.tag || 'Parenting tips')}</span><h3>${escapeHtml(resource.title)}</h3>${resource.summary ? `<p>${escapeHtml(resource.summary)}</p>` : ''}<a class="mini-link" href="${escapeAttribute(resource.url)}" target="_blank" rel="noreferrer">Read article</a></div></article>`;
 }
 
 export function renderSocial(ctx) {
   const { state } = ctx;
   const childProfile = getChildProfile(state.user);
-  const caption = state.generatedCaption || localPreviewCaption(state, childProfile);
-  const toneOptions = captionToneOptions
-    .map((tone) => `<option value="${escapeAttribute(tone)}" ${state.captionTone === tone ? 'selected' : ''}>${escapeHtml(tone)}</option>`)
-    .join('');
-  const languageOptions = captionLanguageOptions
-    .map(([value, label]) => `<option value="${escapeAttribute(value)}" ${state.captionLanguage === value ? 'selected' : ''}>${escapeHtml(label)}</option>`)
-    .join('');
-  const captionHeading = state.captionLanguage === 'en'
-    ? 'Caption'
-    : state.captionLanguage === 'bilingual'
-      ? 'Bilingual caption'
-      : 'Chinese caption';
-
+  const childName = childDisplayName(childProfile, 'your child');
+  const ageLabel = childAgeLabel(childProfile) || 'your child’s age range';
   if (!state.chatContacts.length) loadChat(ctx);
+  if (!state.parentingResourcesStatus) loadParentingResources(ctx);
 
-  ctx.layout(`<main class="grid two-cols"><section class="panel upload-panel"><p class="eyebrow">Today’s best post</p><h2>Pick best 3 photos or 1 video</h2><p>Upload today’s photo exports. The app selects one video if present; otherwise it picks the top three photos and drafts a caption using the child profile preferences.</p><label class="upload-box">${icon('⬆️')}<span>Choose photos or video</span><input id="media-input" type="file" accept="image/*,video/*" multiple /></label><div class="form-grid two-field-grid"><label><span>Caption language</span><select id="caption-language">${languageOptions}</select></label><label><span>Caption tone</span><select id="tone">${toneOptions}</select></label></div><button id="generate-caption" ${state.media.length > 0 ? '' : 'disabled'}>Generate AI caption</button><p class="muted">${escapeHtml(state.captionStatus || 'Photo captions use selected images; video captions use a thumbnail frame and the backend AI service.')}</p></section><section class="panel"><h2>Selected media</h2><div class="media-grid">${state.media.length === 0 ? '<p class="muted">No media selected yet. Upload today’s photos or a video.</p>' : state.media.map((pick) => `<article class="media-card">${pick.kind === 'video' ? `<video src="${pick.url}" controls></video>` : `<img src="${pick.url}" alt="${pick.name}" />`}<h3>${pick.name}</h3><p>Score ${pick.score}/100 • ${pick.reason}</p></article>`).join('')}</div><div class="caption-box"><h3>${escapeHtml(captionHeading)}</h3><p id="caption">${escapeHtml(caption)}</p><button id="copy-caption">➕ Copy caption</button></div></section></main>`);
+  ctx.layout(`<main class="stack"><section class="panel chat-panel"><div class="section-heading"><div><p class="eyebrow">Private family circle</p><h2>Playdate chat</h2><p class="muted">Parents who share a playdate can message 1:1.</p></div></div>${renderChat(ctx)}${state.chatStatus ? `<p class="muted">${escapeHtml(state.chatStatus)}</p>` : ''}</section><section class="panel"><div class="section-heading"><div><p class="eyebrow">Parenting resources</p><h2>Tips for ${escapeHtml(childName)}</h2><p class="muted">${escapeHtml(state.parentingResourcesStatus || `Matching ParentMap articles to ${ageLabel}.`)}</p></div><button id="refresh-parenting-resources" type="button" class="secondary-button small-button">Refresh</button></div><div class="resource-grid">${state.parentingResources.length ? state.parentingResources.map(renderResourceCard).join('') : '<p class="muted">Age-matched articles will appear here.</p>'}</div></section></main>`);
 
-  document.querySelector('main')?.insertAdjacentHTML('afterbegin', `<section class="panel chat-panel"><div class="section-heading"><div><p class="eyebrow">Private family circle</p><h2>Playdate chat</h2><p class="muted">Parents who share a playdate can message 1:1.</p></div></div>${renderChat(ctx)}</section>`);
-  document.querySelectorAll('[data-chat-contact]').forEach((button) => button.addEventListener('click', () => { state.activeChatContactId = button.dataset.chatContact; loadChat(ctx, state.activeChatContactId); }));
+  document.querySelectorAll('[data-chat-contact]').forEach((button) => button.addEventListener('click', () => {
+    state.activeChatContactId = button.dataset.chatContact;
+    loadChat(ctx, state.activeChatContactId);
+  }));
   document.getElementById('chat-form')?.addEventListener('submit', (event) => sendChat(ctx, event));
-  document.getElementById('tone').value = state.captionTone;
-  document.getElementById('tone').addEventListener('change', (event) => {
-    state.captionTone = event.target.value;
-    state.generatedCaption = '';
-    ctx.renderCurrent();
-  });
-  document.getElementById('caption-language').value = state.captionLanguage;
-  document.getElementById('caption-language').addEventListener('change', (event) => {
-    state.captionLanguage = event.target.value;
-    state.generatedCaption = '';
-    ctx.renderCurrent();
-  });
-  document.getElementById('media-input').addEventListener('change', (event) => handleFiles(ctx, event.target.files));
-  document.getElementById('generate-caption').addEventListener('click', () => generateMediaCaption(ctx));
-  document.getElementById('copy-caption').addEventListener('click', () => copyText(caption));
+  document.getElementById('refresh-parenting-resources')?.addEventListener('click', () => loadParentingResources(ctx));
 }

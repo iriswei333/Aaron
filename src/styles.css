@@ -583,6 +583,12 @@ time { color: #e26f39; font-weight: 900; }
 .caption-box { background: #243d44; border-radius: 22px; color: white; margin-top: 18px; padding: 20px; }
 .caption-box h3, .caption-box p { color: white; }
 .caption-box button { background: #ffb66f; color: #432300; }
+.resource-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.resource-card { background: #fffaf5; border: 1px solid #f3d7c0; border-radius: 18px; overflow: hidden; }
+.resource-card img { aspect-ratio: 16 / 9; background: #e8f1eb; object-fit: cover; width: 100%; }
+.resource-card > div { display: grid; gap: 8px; padding: 14px; }
+.resource-card span { color: #d7632c; font-size: .75rem; font-weight: 850; text-transform: uppercase; }
+.resource-card h3 { font-size: 1rem; margin: 0; }
 .muted { color: #708087; }
 
 .home-hero { background-image: linear-gradient(90deg, rgba(242,222,208,.96) 0%, rgba(242,222,208,.86) 52%, rgba(242,222,208,.52) 100%), var(--home-background-image); background-color: #f2ded0; background-position: center; background-size: cover; }
@@ -744,6 +750,9 @@ time { color: #e26f39; font-weight: 900; }
 .logistics-card { align-items: center; justify-content: space-between; gap: 1rem; }
 .logistics-card > div { display: grid; gap: .25rem; }
 .logistics-card small { color: #657267; }
+.logistics-controls { align-items: end; display: flex !important; flex-wrap: wrap; gap: .5rem; }
+.logistics-controls label { display: grid; gap: .2rem; min-width: 92px; }
+.logistics-controls input { width: 92px; }
 .kid-chip {
   display: inline-block;
   width: fit-content;

@@ -17,12 +17,101 @@ const playSearchTemplates = [
   ['Parks with toddler paths', 'Outdoor park', 'open space, stroller loops, and snack breaks', 'clear afternoons'],
 ];
 
-const holidays = [
-  ['Thanksgiving', 'One month before: choose menu, book travel or host plan, start toddler-friendly activity basket.'],
-  ['Christmas / winter holidays', 'One month before: family photos, gift list, outfits, childcare calendar, shipping deadlines.'],
-  ['Lunar New Year', 'One month before: outfit, family calls, red envelopes, toddler craft, celebratory meal.'],
-  ['Birthday', 'One month before: theme, guest list, cake, gift ideas, nap-friendly party time.'],
+const holidayDefinitions = [
+  ['New Year’s Day', (year) => [year, 1, 1], 'Reset routines, update the family calendar, and plan an easy first-week activity.'],
+  ['Valentine’s Day', (year) => [year, 2, 14], 'Pick a simple toddler craft, family treat, or low-key kindness activity.'],
+  ['Easter', easterDate, 'Plan an egg hunt, family meal, or weather-friendly spring activity.'],
+  ['Memorial Day', (year) => lastWeekdayOfMonth(year, 5, 1), 'Check travel plans and find a relaxed outdoor activity for the long weekend.'],
+  ['Independence Day', (year) => [year, 7, 4], 'Plan around naps, heat, crowds, and a quieter alternative to fireworks.'],
+  ['Labor Day', (year) => firstWeekdayOfMonth(year, 9, 1, 1), 'Plan the last summer outing, a park day, or an easy long-weekend reset.'],
+  ['Halloween', (year) => [year, 10, 31], 'Choose a comfortable costume, practice trick-or-treating, and plan a calm wind-down.'],
+  ['Veterans Day', (year) => [year, 11, 11], 'Look for a community event or a simple family gratitude activity.'],
+  ['Thanksgiving', (year) => nthWeekdayOfMonth(year, 11, 4, 4), 'Choose a menu, confirm travel or hosting plans, and start a toddler-friendly activity basket.'],
+  ['Christmas / winter holidays', (year) => [year, 12, 25], 'Start the gift list, outfits, childcare calendar, and shipping deadline check.'],
 ];
+
+function dateFromParts([year, month, day]) {
+  return new Date(year, month - 1, day);
+}
+
+function firstWeekdayOfMonth(year, month, weekday) {
+  const date = new Date(year, month - 1, 1);
+  date.setDate(date.getDate() + ((weekday - date.getDay() + 7) % 7));
+  return [date.getFullYear(), date.getMonth() + 1, date.getDate()];
+}
+
+function lastWeekdayOfMonth(year, month, weekday) {
+  const date = new Date(year, month, 0);
+  date.setDate(date.getDate() - ((date.getDay() - weekday + 7) % 7));
+  return [date.getFullYear(), date.getMonth() + 1, date.getDate()];
+}
+
+function nthWeekdayOfMonth(year, month, nth, weekday) {
+  const date = dateFromParts(firstWeekdayOfMonth(year, month, weekday));
+  date.setDate(date.getDate() + (nth - 1) * 7);
+  return [date.getFullYear(), date.getMonth() + 1, date.getDate()];
+}
+
+function easterDate(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return [year, month, day];
+}
+
+function dateOnlyValue(date) {
+  return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function formatHolidayDate(date) {
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function daysUntil(date, now) {
+  return Math.round((dateOnlyValue(date) - dateOnlyValue(now)) / 86400000);
+}
+
+function holidayTiming(days) {
+  if (days <= 14) return 'This is coming up soon—keep plans simple and flexible.';
+  if (days <= 45) return 'A good time to make the first plan and check the family calendar.';
+  return 'A gentle early reminder so there is time to plan without a last-minute rush.';
+}
+
+export function getUpcomingHolidayPlanning(now = new Date(), childProfile = null, limit = 3) {
+  const candidates = [];
+  for (const [name, getDate, reminder] of holidayDefinitions) {
+    const year = now.getFullYear();
+    for (const candidateYear of [year, year + 1]) {
+      const date = dateFromParts(getDate(candidateYear));
+      if (date >= new Date(now.getFullYear(), now.getMonth(), now.getDate())) {
+        candidates.push({ name, date, reminder, daysUntil: daysUntil(date, now) });
+      }
+    }
+  }
+  const birthday = childProfile?.birthday ? new Date(`${childProfile.birthday}T00:00:00`) : null;
+  if (birthday && !Number.isNaN(birthday.getTime())) {
+    birthday.setFullYear(now.getFullYear());
+    if (birthday < new Date(now.getFullYear(), now.getMonth(), now.getDate())) birthday.setFullYear(now.getFullYear() + 1);
+    candidates.push({ name: `${childDisplayName(childProfile, 'Child')}'s birthday`, date: birthday, reminder: 'Choose a theme, guest list, cake, gift ideas, and nap-friendly party time.', daysUntil: daysUntil(birthday, now), personalized: true });
+  }
+  return candidates.sort((a, b) => a.date - b.date).slice(0, limit).map((holiday, index) => ({
+    ...holiday,
+    dateLabel: formatHolidayDate(holiday.date),
+    countdown: holiday.daysUntil === 0 ? 'Today' : holiday.daysUntil === 1 ? 'Tomorrow' : `In ${holiday.daysUntil} days`,
+    timing: index === 0 ? holidayTiming(holiday.daysUntil) : '',
+  }));
+}
 
 let weatherRequestId = 0;
 let nearbyRequestId = 0;
@@ -799,6 +888,7 @@ export function renderPlay(ctx) {
   const childProfile = getChildProfile(state.user);
   const childName = childDisplayName(childProfile);
   const ageLabel = childAgeLabel(childProfile);
+  const upcomingHolidays = getUpcomingHolidayPlanning(new Date(), childProfile);
   const playOptions = getRecommendedPlayOptions(state);
   const currentPlayground = selectedPlayground(playOptions, state.selectedPlaygroundKey);
   const defaults = defaultPlayDateWindow();
@@ -836,7 +926,10 @@ export function renderPlay(ctx) {
     ? `<div class="playground-summary">${currentPlayground.imageUrl ? `<img class="playground-hero-thumb" src="${escapeAttribute(currentPlayground.imageUrl)}" alt="Thumbnail of ${escapeAttribute(currentPlayground.name)}" loading="lazy" />` : ''}<p class="eyebrow">${currentPlayground.preference === 'indoor' ? 'Indoor backup' : 'Selected playground'}</p><h2>${escapeHtml(currentPlayground.name)}</h2><p>${escapeHtml(currentPlayground.type)} • ${escapeHtml(currentPlayground.distance)}</p><p class="playground-overview">${escapeHtml(currentPlayground.overview || `${currentPlayground.name} is a nearby ${currentPlayground.type.toLowerCase()} option.`)}</p>${Array.isArray(currentPlayground.highlights) && currentPlayground.highlights.length ? `<div class="playground-highlights">${currentPlayground.highlights.slice(0, 4).map((highlight) => `<span>${escapeHtml(highlight)}</span>`).join('')}</div>` : ''}<p class="playground-recommendation"><strong>Why it’s recommended</strong><br />${escapeHtml(playgroundRecommendationReason(currentPlayground, state))}</p><small>${escapeHtml(currentPlayground.best)} • Best: ${escapeHtml(currentPlayground.weather)}</small>${currentPlayground.href ? `<a class="primary-link" href="${escapeAttribute(currentPlayground.href)}" target="_blank" rel="noreferrer">Open map</a>` : ''}</div><form id="playdate-form" class="playdate-form"><div class="form-grid"><label><span>Date</span><input name="playdate-date" type="date" value="${escapeAttribute(defaults.date)}" required /></label><label><span>Start</span><input name="playdate-start" type="time" value="${escapeAttribute(defaults.startTime)}" required /></label><label><span>End</span><input name="playdate-end" type="time" min="${escapeAttribute(defaults.startTime)}" value="${escapeAttribute(defaults.endTime)}" required /></label><label><span>Status</span><select name="playdate-visibility"><option value="private">Private</option><option value="public">Public</option></select></label><label><span>Age range</span><input name="playdate-age-range" placeholder="${ageLabel ? `Around ${escapeAttribute(ageLabel)}` : 'Ages 2-4'}" maxlength="40" /></label><label><span>Max families</span><input name="playdate-max-families" type="number" min="2" max="20" placeholder="No limit" /></label></div><label class="input-label" for="playdate-notes">Notes</label><textarea id="playdate-notes" name="playdate-notes" maxlength="240" placeholder="Splash pad, snacks, stroller-friendly meetup spot"></textarea><button type="submit">Create play date</button></form>${state.playDateFormStatus ? `<p class="muted">${escapeHtml(state.playDateFormStatus)}</p>` : ''}`
     : '<p class="muted">Save a location or choose a starter place to create a play date.</p>';
 
-  ctx.layout(`<main class="stack"><section class="dashboard-row"><div class="panel weather-panel"><p class="eyebrow">🌤 Live play planning</p><h2>Find a nearby place for ${escapeHtml(childName)}</h2><p class="muted">Home base: ${escapeHtml(locationText)}</p><p>Pick a playground, create a private or public play date, or join a public play date already planned there.</p><div class="weather-grid"><strong>${escapeHtml(state.weather.label)}</strong><span>${escapeHtml(state.weather.temperature)}</span><span>Rain: ${escapeHtml(state.weather.precipitation)}</span><span>Wind: ${escapeHtml(state.weather.wind)}</span></div><small>Updated: ${escapeHtml(state.weather.updated)}. Weather still helps decide whether to choose an outdoor spot or an indoor backup.</small></div><div class="panel location-tool">${icon('📍')}<h3>Planning location</h3><p>${escapeHtml(locationStatus)}</p><form id="location-form"><label class="input-label" for="location-address">Address or place</label><input id="location-address" value="${escapeAttribute(location?.address || '')}" placeholder="Home address, city, or favorite play area" /><button type="submit">Save address</button></form><button id="use-current-location" class="secondary-button">Use current location</button></div></section><section class="grid playdate-layout"><div class="panel"><h2>Nearby play options</h2><p class="muted">${escapeHtml(state.nearbyStatus)}</p><div class="cards-list">${playOptionsMarkup}</div></div><div class="panel playdate-detail">${currentPlaygroundMarkup}</div></section><section class="panel"><div class="section-heading"><div><h2>Upcoming play dates</h2><p class="muted">${escapeHtml(state.playDateStatus)}</p></div><button id="refresh-playdates" type="button" class="secondary-button small-button" ${currentPlayground ? '' : 'disabled'}>Refresh</button></div><div class="cards-list">${renderPlayDateList(state, currentPlayground)}</div></section><section class="grid two-cols"><div class="panel"><div class="section-heading"><div><h2>Weekend family events</h2><p class="muted">${escapeHtml(state.familyEventsStatus || 'Checking weekend event sources...')}</p></div><button id="refresh-family-events" type="button" class="secondary-button small-button">Refresh</button></div>${renderFamilyEvents(state)}</div><div class="panel"><h2>Holiday planning reminders</h2>${holidays.map(([holiday, reminder]) => `<article class="mini-card">${icon('🎁')}<div><h3>${holiday === 'Birthday' ? `${escapeHtml(childDisplayName(childProfile, 'Child'))}'s birthday` : holiday}</h3><p>${reminder}</p></div></article>`).join('')}</div></section></main>`);
+  const holidayMarkup = upcomingHolidays.length
+    ? `<p class="muted">Based on today, ${escapeHtml(upcomingHolidays[0].name)} is next.</p>${upcomingHolidays.map((holiday, index) => `<article class="mini-card">${icon(holiday.personalized ? '🎂' : '🎁')}<div><h3>${escapeHtml(holiday.name)}</h3><p><strong>${escapeHtml(holiday.dateLabel)} · ${escapeHtml(holiday.countdown)}</strong></p><p>${escapeHtml(holiday.reminder)}</p>${index === 0 ? `<small>${escapeHtml(holiday.timing)}</small>` : ''}</div></article>`).join('')}`
+    : '<p class="muted">No upcoming holidays found.</p>';
+  ctx.layout(`<main class="stack"><section class="dashboard-row"><div class="panel weather-panel"><p class="eyebrow">🌤 Live play planning</p><h2>Find a nearby place for ${escapeHtml(childName)}</h2><p class="muted">Home base: ${escapeHtml(locationText)}</p><p>Pick a playground, create a private or public play date, or join a public play date already planned there.</p><div class="weather-grid"><strong>${escapeHtml(state.weather.label)}</strong><span>${escapeHtml(state.weather.temperature)}</span><span>Rain: ${escapeHtml(state.weather.precipitation)}</span><span>Wind: ${escapeHtml(state.weather.wind)}</span></div><small>Updated: ${escapeHtml(state.weather.updated)}. Weather still helps decide whether to choose an outdoor spot or an indoor backup.</small></div><div class="panel location-tool">${icon('📍')}<h3>Planning location</h3><p>${escapeHtml(locationStatus)}</p><form id="location-form"><label class="input-label" for="location-address">Address or place</label><input id="location-address" value="${escapeAttribute(location?.address || '')}" placeholder="Home address, city, or favorite play area" /><button type="submit">Save address</button></form><button id="use-current-location" class="secondary-button">Use current location</button></div></section><section class="grid playdate-layout"><div class="panel"><h2>Nearby play options</h2><p class="muted">${escapeHtml(state.nearbyStatus)}</p><div class="cards-list">${playOptionsMarkup}</div></div><div class="panel playdate-detail">${currentPlaygroundMarkup}</div></section><section class="panel"><div class="section-heading"><div><h2>Upcoming play dates</h2><p class="muted">${escapeHtml(state.playDateStatus)}</p></div><button id="refresh-playdates" type="button" class="secondary-button small-button" ${currentPlayground ? '' : 'disabled'}>Refresh</button></div><div class="cards-list">${renderPlayDateList(state, currentPlayground)}</div></section><section class="grid two-cols"><div class="panel"><div class="section-heading"><div><h2>Weekend family events</h2><p class="muted">${escapeHtml(state.familyEventsStatus || 'Checking weekend event sources...')}</p></div><button id="refresh-family-events" type="button" class="secondary-button small-button">Refresh</button></div>${renderFamilyEvents(state)}</div><div class="panel"><h2>Holiday planning</h2>${holidayMarkup}</div></section></main>`);
 
   document.getElementById('location-form').addEventListener('submit', (event) => saveManualLocation(ctx, event));
   document.getElementById('use-current-location').addEventListener('click', () => requestCurrentLocation(ctx));
