@@ -1,4 +1,4 @@
-import { downloadCalendar, escapeAttribute, escapeHtml, icon } from '../shared.js';
+import { escapeAttribute, escapeHtml, icon } from '../shared.js';
 import {
   childAgeLabel,
   childDisplayName,
@@ -11,7 +11,7 @@ export const defaultToddlerFoods = ['peas', 'broccoli', 'banana', 'strawberry', 
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const SHOPPING_WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const SHOPPING_WEEKDAYS = [...WEEKDAYS];
 const DEFAULT_DURATION_MINUTES = 60;
 
 const legacyStaticMenu = [
@@ -316,6 +316,7 @@ function normalizeShoppingSchedule(value) {
       time,
       durationMinutes: cleanNumber(item?.durationMinutes, DEFAULT_DURATION_MINUTES, 15, 180),
       title: cleanText(item?.title, 80) || (index === 0 ? 'Fresh produce + snacks' : 'Freezer + pantry restock'),
+      saved: item?.saved === true,
     };
   }).slice(0, 4);
 }
@@ -331,26 +332,6 @@ function nextDateForWeekday(weekday, time, now = new Date()) {
   date.setDate(now.getDate() + dayOffset);
   date.setHours(hour, minute, 0, 0);
   return date;
-}
-
-function addMinutes(date, minutes) {
-  return new Date(date.getTime() + minutes * 60 * 1000);
-}
-
-function padDatePart(value) {
-  return String(value).padStart(2, '0');
-}
-
-function calendarDateTime(date) {
-  return [
-    date.getFullYear(),
-    padDatePart(date.getMonth() + 1),
-    padDatePart(date.getDate()),
-    'T',
-    padDatePart(date.getHours()),
-    padDatePart(date.getMinutes()),
-    '00',
-  ].join('');
 }
 
 function formatTimeLabel(time) {
@@ -612,15 +593,11 @@ function updateShoppingSchedule(ctx, index, field, value, shouldRender = false) 
   if (shouldRender) ctx.renderCurrent();
 }
 
-function downloadShoppingEvent(schedule, checklistItems) {
-  const start = nextDateForWeekday(schedule.weekday, schedule.time);
-  const end = addMinutes(start, schedule.durationMinutes);
-  downloadCalendar(
-    schedule.title || 'Grocery shopping',
-    calendarDateTime(start),
-    calendarDateTime(end),
-    shoppingSummary(schedule, checklistItems),
-  );
+function saveShoppingEvent(ctx, index) {
+  const schedule = normalizeShoppingSchedule(ctx.state.shoppingSchedule);
+  if (!schedule[index]) return;
+  ctx.state.shoppingSchedule = schedule.map((item, itemIndex) => itemIndex === index ? { ...item, saved: true } : item);
+  saveFoodPlan(ctx, `${schedule[index].title} saved as a family event.`);
 }
 
 function weekdayOptions(selected) {
@@ -649,7 +626,7 @@ function nutritionForMeal(meal) {
 }
 
 function renderShoppingEvent(schedule, index, checklistItems) {
-  return `<article class="event-card shopping-event-card"><div class="shopping-event-heading"><div><span>${escapeHtml(formatShoppingWindow(schedule))}</span><h3>${escapeHtml(schedule.title)}</h3></div><button class="secondary-button small-button" type="button" data-edit-schedule="${index}">Edit timing</button></div><p>${escapeHtml(shoppingSummary(schedule, checklistItems))}</p><div class="schedule-editor" data-schedule-editor="${index}"><label><small>Shopping focus</small><input data-schedule-index="${index}" data-schedule-field="title" value="${escapeAttribute(schedule.title)}" maxlength="80" /></label><div class="schedule-controls"><label><small>Weekday</small><select data-schedule-index="${index}" data-schedule-field="weekday">${weekdayOptions(schedule.weekday)}</select></label><label><small>Start</small><input type="time" data-schedule-index="${index}" data-schedule-field="time" value="${escapeAttribute(schedule.time)}" /></label><label><small>Minutes</small><input type="number" min="15" max="180" step="15" data-schedule-index="${index}" data-schedule-field="durationMinutes" value="${escapeAttribute(schedule.durationMinutes)}" /></label></div><div class="event-actions"><button class="secondary-button small-button" type="button" data-download-shopping-event="${index}">Download event</button><button class="secondary-button small-button danger-button" type="button" data-remove-shopping-block="${index}">Remove</button></div></div></article>`;
+  return `<article class="event-card shopping-event-card"><div class="shopping-event-heading"><div><span>${escapeHtml(formatShoppingWindow(schedule))}</span><h3>${escapeHtml(schedule.title)}</h3></div><button class="secondary-button small-button" type="button" data-edit-schedule="${index}">Edit timing</button></div><p>${escapeHtml(shoppingSummary(schedule, checklistItems))}</p><div class="schedule-editor" data-schedule-editor="${index}"><label><small>Shopping focus</small><input data-schedule-index="${index}" data-schedule-field="title" value="${escapeAttribute(schedule.title)}" maxlength="80" /></label><div class="schedule-controls"><label><small>Weekday</small><select data-schedule-index="${index}" data-schedule-field="weekday">${weekdayOptions(schedule.weekday)}</select></label><label><small>Start</small><input type="time" data-schedule-index="${index}" data-schedule-field="time" value="${escapeAttribute(schedule.time)}" /></label><label><small>Minutes</small><input type="number" min="15" max="180" step="15" data-schedule-index="${index}" data-schedule-field="durationMinutes" value="${escapeAttribute(schedule.durationMinutes)}" /></label></div><div class="event-actions"><button class="secondary-button small-button" type="button" data-save-shopping-event="${index}">${schedule.saved ? 'Saved event' : 'Save event'}</button><button class="secondary-button small-button danger-button" type="button" data-remove-shopping-block="${index}">Remove</button></div></div></article>`;
 }
 
 export function renderFood(ctx) {
@@ -676,7 +653,12 @@ export function renderFood(ctx) {
     ? new Date(state.foodPlanGeneratedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
     : 'Draft not saved yet';
 
-  ctx.layout(`<main class="stack"><section class="panel title-panel">${icon('👨‍🍳')}<div><p class="eyebrow">Weekly refresh${ageLabel ? ` • ${escapeHtml(ageLabel)}` : ''}</p><h2>Menu ideas for ${escapeHtml(childName)}</h2><p>Builds a weekly menu from ${escapeHtml(possessiveChildName)} saved foods, profile notes, and allergy fields.</p>${foodNotes ? `<p class="muted">Profile notes: ${escapeHtml(foodNotes)}</p>` : ''}<div class="family-context"><strong>Family logistics context</strong><span>${escapeHtml(logistics.kids.map((kid) => `${kid.name} • ${kid.ageLabel || 'age from profile'} • ${kid.stage}`).join(' | ') || 'Add child birthdays in Edit profile')}</span></div><div class="food-actions"><button id="regenerate-food-plan" class="secondary-button" type="button">Regenerate unlocked days</button><button id="save-food-plan" type="button">Save food plan</button></div><small>Last generated: ${escapeHtml(generatedAt)}</small></div></section><section class="menu-grid">${weeklyMenu.map((meal) => renderMealCard(meal, state.lockedMealDays || [])).join('')}</section><section class="grid two-cols"><div class="panel"><div class="section-heading"><div><h2>Grocery weekday shopping events</h2><p class="muted">Download a calendar event using the current menu checklist. The event stays compact; the full list remains in the checklist.</p></div><button id="add-shopping-block" class="secondary-button small-button" type="button">Add block</button></div>${shoppingSchedule.map((event, index) => renderShoppingEvent(event, index, checklistItems)).join('')}</div><div class="panel"><div class="section-heading"><div><h2>Food grocery checklist</h2><p class="muted">Menu ingredients and age-stage foods appear here. Care supplies and restock timing live in Errands.</p></div><span class="checklist-count">${checked.size}/${checklistItems.length}</span></div><div class="shopping-checklist">${Object.entries(checklist).map(([group, items]) => `<details open><summary>${escapeHtml(group)} <small>${items.length} items</small></summary><div class="shopping-list">${items.map((item) => `<label class="shopping-check-item"><input type="checkbox" data-check-shopping="${escapeAttribute(item)}" ${checked.has(item.toLowerCase()) ? 'checked' : ''} /><span>${escapeHtml(item)}</span></label>`).join('')}</div></details>`).join('')}</div><form id="shopping-form" class="shopping-edit"><label class="input-label" for="new-food">Food to keep in rotation</label><div class="inline-form"><input id="new-food" value="${escapeAttribute(state.newFood)}" placeholder="e.g. blueberries" /><button type="submit">Add</button></div></form><p class="muted">${escapeHtml(state.foodStatus || 'Lock a day you love, regenerate the rest, then save when ready.')}</p><div class="food-actions"><button id="save-shopping-list" class="secondary-button" type="button">Save food plan</button></div></div></section></main>`);
+  ctx.layout(`<main class="stack"><section class="panel title-panel">${icon('👨‍🍳')}<div><p class="eyebrow">Weekly refresh${ageLabel ? ` • ${escapeHtml(ageLabel)}` : ''}</p><h2>Menu ideas for ${escapeHtml(childName)}</h2><p>Builds a weekly menu from ${escapeHtml(possessiveChildName)} saved foods, profile notes, and allergy fields.</p>${foodNotes ? `<p class="muted">Profile notes: ${escapeHtml(foodNotes)}</p>` : ''}<div class="family-context"><strong>Family logistics context</strong><span>${escapeHtml(logistics.kids.map((kid) => `${kid.name} • ${kid.ageLabel || 'age from profile'} • ${kid.stage}`).join(' | ') || 'Add child birthdays in Edit profile')}</span></div><div class="food-actions"><button id="regenerate-food-plan" class="secondary-button" type="button">Regenerate unlocked days</button><button id="save-food-plan" type="button">Save food plan</button></div><small>Last generated: ${escapeHtml(generatedAt)}</small></div></section><section class="menu-grid">${weeklyMenu.map((meal) => renderMealCard(meal, state.lockedMealDays || [])).join('')}</section><section class="grid two-cols"><div id="food-shopping-events" class="panel"><div class="section-heading"><div><h2>Grocery shopping events</h2><p class="muted">Save an event to keep it as a family object on Home. The full grocery list remains in the Food tab.</p></div><button id="add-shopping-block" class="secondary-button small-button" type="button">Add block</button></div>${shoppingSchedule.map((event, index) => renderShoppingEvent(event, index, checklistItems)).join('')}</div><div class="panel"><div class="section-heading"><div><h2>Food grocery checklist</h2><p class="muted">Menu ingredients and age-stage foods appear here. Care supplies and restock timing live in Errands.</p></div><span class="checklist-count">${checked.size}/${checklistItems.length}</span></div><div class="shopping-checklist">${Object.entries(checklist).map(([group, items]) => `<details open><summary>${escapeHtml(group)} <small>${items.length} items</small></summary><div class="shopping-list">${items.map((item) => `<label class="shopping-check-item"><input type="checkbox" data-check-shopping="${escapeAttribute(item)}" ${checked.has(item.toLowerCase()) ? 'checked' : ''} /><span>${escapeHtml(item)}</span></label>`).join('')}</div></details>`).join('')}</div><form id="shopping-form" class="shopping-edit"><label class="input-label" for="new-food">Food to keep in rotation</label><div class="inline-form"><input id="new-food" value="${escapeAttribute(state.newFood)}" placeholder="e.g. blueberries" /><button type="submit">Add</button></div></form><p class="muted">${escapeHtml(state.foodStatus || 'Lock a day you love, regenerate the rest, then save when ready.')}</p><div class="food-actions"><button id="save-shopping-list" class="secondary-button" type="button">Save food plan</button></div></div></section></main>`);
+
+  if (state.foodFocus === 'shopping-events') {
+    state.foodFocus = '';
+    globalThis.requestAnimationFrame?.(() => document.getElementById('food-shopping-events')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
 
   state.weeklyMenu = weeklyMenu;
   state.shoppingSchedule = shoppingSchedule;
@@ -697,10 +679,7 @@ export function renderFood(ctx) {
     button.textContent = isOpen ? 'Done editing' : 'Edit timing';
   }));
   document.querySelectorAll('[data-remove-shopping-block]').forEach((button) => button.addEventListener('click', () => removeShoppingBlock(ctx, Number(button.dataset.removeShoppingBlock))));
-  document.querySelectorAll('[data-download-shopping-event]').forEach((button) => button.addEventListener('click', () => {
-    const schedule = normalizeShoppingSchedule(state.shoppingSchedule);
-    downloadShoppingEvent(schedule[Number(button.dataset.downloadShoppingEvent)], checklistItems);
-  }));
+  document.querySelectorAll('[data-save-shopping-event]').forEach((button) => button.addEventListener('click', () => saveShoppingEvent(ctx, Number(button.dataset.saveShoppingEvent))));
   document.querySelectorAll('[data-schedule-field]').forEach((input) => {
     const field = input.dataset.scheduleField;
     const index = Number(input.dataset.scheduleIndex);

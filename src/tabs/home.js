@@ -1,5 +1,6 @@
-import { escapeAttribute, escapeHtml, icon, readStoredValue, writeStoredValue } from '../shared.js';
+import { escapeAttribute, escapeHtml, icon, writeStoredValue } from '../shared.js';
 import { childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
+import { buildFamilyLogistics } from '../../lib/kid-logistics.js';
 
 const DEFAULT_ALBUM_LINK = 'photos-redirect://';
 const DEFAULT_HOME_BACKGROUND_KEY = 'morning-table';
@@ -111,18 +112,38 @@ function backgroundPickerMarkup(state, active) {
 
 function homeObjects(state) {
   const objects = [];
-  (state.profilePlayDates || []).slice(0, 3).forEach((item) => objects.push({ icon: '🛝', type: item.isHost ? 'Hosted playdate' : 'Joined playdate', title: item.playgroundName, detail: new Date(item.startsAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) }));
+  (state.profilePlayDates || []).slice(0, 3).forEach((item) => objects.push({
+    icon: '🛝',
+    type: item.isHost ? 'Hosted playdate' : 'Joined playdate',
+    title: item.playgroundName,
+    detail: new Date(item.startsAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }),
+    tab: 'play',
+    focus: 'playdates',
+  }));
   const plan = state.user?.foodPlan;
-  if (plan?.weeklyMenu?.length || plan?.byChild) objects.push({ icon: '🥣', type: 'Saved food plan', title: 'Weekly meals', detail: plan.lastGeneratedAt ? 'Recently updated' : 'Saved for your family' });
-  try {
-    JSON.parse(readStoredValue('sproutCueCalendarItems', '[]')).slice(0, 3).forEach((item) => objects.push({ icon: '🗓️', type: 'Calendar download', title: item.title, detail: 'Saved to your calendar' }));
-  } catch { /* ignore malformed local history */ }
+  if (plan?.weeklyMenu?.length || plan?.byChild) objects.push({ icon: '🥣', type: 'Saved food plan', title: 'Weekly meals', detail: plan.lastGeneratedAt ? 'Recently updated' : 'Saved for your family', tab: 'food' });
+  const logistics = buildFamilyLogistics(state.user, { restockItems: state.restockItems, logisticsItems: state.logisticsItems });
+  const nextDueItem = logistics.items
+    .filter((item) => item.nextRestockDate)
+    .sort((a, b) => a.nextRestockDate.localeCompare(b.nextRestockDate))[0];
+  const reminder = nextDueItem || state.amazonReminder;
+  if (reminder) {
+    const dueDate = nextDueItem?.nextRestockDate || reminder.dueDate;
+    objects.push({ icon: '🧺', type: 'Next family reminder', title: nextDueItem?.text || reminder.text || 'Logistics item', detail: dueDate ? `Buy by ${new Date(`${dueDate}T00:00:00`).toLocaleDateString([], { month: 'short', day: 'numeric' })}` : 'Open errands to review', tab: 'errands' });
+  }
+  (state.shoppingSchedule || []).filter((event) => event.saved).slice(0, 3).forEach((event) => {
+    objects.push({ icon: '🛒', type: 'Saved grocery event', title: event.title, detail: `${event.weekday} at ${event.time}`, tab: 'food', focus: 'shopping-events' });
+  });
+  (state.familyObjects || []).filter((item) => item.kind === 'weekend-event').slice(0, 3).forEach((item) => {
+    const detail = [item.dateLabel, item.timeLabel, item.venue].filter(Boolean).join(' • ') || 'Saved weekend event';
+    objects.push({ icon: '🎟️', type: 'Attending weekend event', title: item.title, detail, tab: 'play', focus: 'family-events' });
+  });
   return objects.slice(0, 6);
 }
 
 function objectCards(objects, compact = false) {
-  if (!objects.length) return `<div class="empty-object-state">${icon('🌱')}<span>No saved family objects yet. Create a playdate, save a food plan, or download an event.</span></div>`;
-  return `<div class="home-object-grid ${compact ? 'compact' : ''}">${objects.map((item) => `<article class="home-object-card"><span class="object-icon">${item.icon}</span><div><small>${escapeHtml(item.type)}</small><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.detail)}</span></div></article>`).join('')}</div>`;
+  if (!objects.length) return `<div class="empty-object-state">${icon('🌱')}<span>No saved family objects yet. Create a playdate, save a food plan, or save a grocery event.</span></div>`;
+  return `<div class="home-object-grid ${compact ? 'compact' : ''}">${objects.map((item) => `<button class="home-object-card" type="button" data-home-tab="${escapeAttribute(item.tab || 'home')}"${item.focus ? ` data-home-focus="${escapeAttribute(item.focus)}"` : ''} aria-label="Open ${escapeAttribute(item.title)}"><span class="object-icon" aria-hidden="true">${item.icon}</span><span class="home-object-card-copy"><small>${escapeHtml(item.type)}</small><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.detail)}</span></span></button>`).join('')}</div>`;
 }
 
 export function renderHome(ctx) {
@@ -130,15 +151,10 @@ export function renderHome(ctx) {
   const childProfile = getChildProfile(state.user);
   const childName = childDisplayName(childProfile);
   const background = activeBackground(state);
-  const backgroundLabel = background.source === 'upload' ? 'Private local photo' : 'Default background';
-  const backgroundNote = background.source === 'upload'
-    ? 'This photo stays on this device for this browser session.'
-    : 'Choose from calm parenting scenes or add one local photo.';
-  const status = state.homeBackgroundStatus || backgroundNote;
   const picker = backgroundPickerMarkup(state, background);
   const objects = homeObjects(state);
 
-  ctx.layout(`<main class="home-layout"><section class="hero-card home-hero" style="--home-background-image: url('${escapeAttribute(background.src)}');"><div class="hero-copy"><div class="slide-meta">${icon('✨')}<span>${escapeHtml(backgroundLabel)}</span></div><h2>Good morning, ${escapeHtml(childName)}</h2><p>One quiet place for today’s play, meals, errands, and small memories.</p><div class="hero-actions"><button id="change-background" class="small-button background-button" type="button">Change background</button></div><p class="home-background-note">${escapeHtml(status)}</p></div>${objects.length ? `<aside class="hero-objects"><p class="eyebrow">Your family objects</p>${objectCards(objects, true)}</aside>` : ''}</section><section class="panel home-focus-panel"><p class="eyebrow">Your family objects</p><h2>Start with what matters next</h2>${objectCards(objects)}</section><section class="panel home-rhythm-note"><p class="eyebrow">Family rhythm</p><h3>Warm, soft, practical — a daily dashboard for busy parents.</h3><p>Keep the next playdate, saved meal plan, calendar moment, and family chat close at hand.</p></section></main>${picker}`);
+  ctx.layout(`<main class="home-layout"><section class="hero-card home-hero" style="--home-background-image: url('${escapeAttribute(background.src)}');"><button id="change-background" class="icon-button home-background-control" type="button" aria-label="Edit background" title="Edit background">✎</button><div class="hero-copy"><h2>Good morning, ${escapeHtml(childName)}</h2><p>One quiet place for today’s play, meals, errands, and small memories.</p></div>${objects.length ? `<aside class="hero-objects"><p class="eyebrow">Your family events</p>${objectCards(objects, true)}</aside>` : ''}</section></main>${picker}`);
 
   document.getElementById('change-background').addEventListener('click', () => {
     state.showHomeBackgroundPicker = true;
@@ -157,6 +173,9 @@ export function renderHome(ctx) {
   document.querySelectorAll('[data-background-key]').forEach((button) => button.addEventListener('click', () => chooseDefaultBackground(ctx, button.dataset.backgroundKey)));
   document.querySelectorAll('[data-home-tab]').forEach((button) => button.addEventListener('click', () => {
     state.tab = button.dataset.homeTab;
+    state.playdateFocus = button.dataset.homeFocus === 'playdates' ? button.dataset.homeFocus : '';
+    state.foodFocus = button.dataset.homeFocus === 'shopping-events' ? button.dataset.homeFocus : '';
+    state.playFocus = button.dataset.homeFocus === 'family-events' ? button.dataset.homeFocus : '';
     ctx.renderCurrent();
   }));
 }

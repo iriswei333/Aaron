@@ -1,6 +1,5 @@
 import {
   apiRequest,
-  downloadCalendar,
   escapeAttribute,
   escapeHtml,
   readFirstStoredValue,
@@ -55,6 +54,10 @@ const state = {
   amazonTasks: [],
   restockItems: {},
   logisticsItems: [],
+  logisticsEditItemId: '',
+  amazonReminder: null,
+  foodFocus: '',
+  familyObjects: [],
   newAmazonTask: '',
   outfitIdeas: [],
   albumLink: readFirstStoredValue(['sproutCueApplePhotosLink', 'aaronApplePhotosLink'], DEFAULT_ALBUM_LINK),
@@ -69,6 +72,8 @@ const state = {
   playDatePlaygroundKey: '',
   playDates: [],
   profilePlayDates: [],
+  playdateFocus: '',
+  playFocus: '',
   playDateStatus: 'Choose a playground to view public play dates.',
   playDateFormStatus: '',
   familyEvents: [],
@@ -98,7 +103,6 @@ const appContext = {
   renderCurrent: render,
 };
 
-globalThis.downloadCalendar = downloadCalendar;
 
 function consumeAuthRedirectStatus() {
   try {
@@ -170,7 +174,7 @@ function childSwitcherMarkup() {
 function layout(content) {
   ensureRoot();
   const tabs = [['home', '🏠', 'Home'], ['play', '🛝', 'Play'], ['food', '🥣', 'Food'], ['errands', '🛒', 'Errands'], ['social', '📷', 'Social']];
-  root.innerHTML = `<div class="app-shell"><header class="app-header"><div class="header-top"><div class="brand"><span class="brand-mark" aria-hidden="true">✦</span><div><p class="eyebrow">${escapeHtml(childHeaderSummary())}</p><h1>${APP_NAME}</h1></div></div><div class="sync-banner ${state.apiReady ? 'ready' : ''}"><div><strong>${escapeHtml(state.user.displayName)}</strong><small>${escapeHtml(state.user.email || 'Local family profile')}</small></div><span>${escapeHtml(state.apiMessage)}</span>${childSwitcherMarkup()}<div class="banner-actions"><button id="edit-profile" class="secondary-button">Edit profile</button><button id="logout-user" class="secondary-button">Sign out</button></div></div></div><nav class="tabs" aria-label="Planner sections">${tabs.map(([key, emoji, label]) => `<button class="${state.tab === key ? 'active' : ''}" data-tab="${key}" aria-current="${state.tab === key ? 'page' : 'false'}"><span>${emoji}</span>${label}</button>`).join('')}</nav></header>${content}</div>`;
+  root.innerHTML = `<div class="app-shell"><header class="app-header"><div class="header-top"><div class="brand"><span class="brand-mark" aria-hidden="true">✦</span><div><p class="eyebrow">${escapeHtml(childHeaderSummary())}</p><h1>${APP_NAME}</h1></div></div><div class="sync-banner ${state.apiReady ? 'ready' : ''}"><div><strong>${escapeHtml(state.user.displayName)}</strong><small>${escapeHtml(state.user.email || 'Local family profile')}</small></div><span>${escapeHtml(state.apiMessage)}</span>${childSwitcherMarkup()}<div class="banner-actions"><button id="edit-profile" class="secondary-button" type="button">Edit profile</button><button id="logout-user" class="secondary-button" type="button">Sign out</button></div></div></div><nav class="tabs" aria-label="Planner sections">${tabs.map(([key, emoji, label]) => `<button class="${state.tab === key ? 'active' : ''}" data-tab="${key}" aria-current="${state.tab === key ? 'page' : 'false'}"><span>${emoji}</span>${label}</button>`).join('')}</nav></header>${content}</div>`;
   document.querySelectorAll('[data-tab]').forEach((button) => button.addEventListener('click', () => {
     state.tab = button.dataset.tab;
     render();
@@ -456,6 +460,7 @@ async function ensureBackendUser() {
 
 function applyUserProfile(user) {
   state.user = user;
+  state.familyObjects = Array.isArray(user.familyObjects) ? user.familyObjects : [];
   const childProfile = getChildProfile(user);
   state.loginEmail = user.email || state.loginEmail;
   state.loginName = user.displayName || '';
@@ -565,12 +570,18 @@ async function saveUserSection(section, payload, options = {}) {
     }
     if (section === 'amazon-errands') {
       applyErrandsProfile(state, user);
-      state.amazonStatus = 'Amazon automation saved for this user.';
+      state.amazonStatus = '';
+    }
+    if (section === 'family-objects') {
+      state.familyObjects = Array.isArray(user.familyObjects) ? user.familyObjects : [];
     }
   } catch (error) {
     state.apiMessage = `Save failed: ${error.message}`;
     if (section === 'food-plan') {
       state.foodStatus = `Food plan save failed: ${error.message}`;
+    }
+    if (section === 'amazon-errands') {
+      state.amazonStatus = `Errands save failed: ${error.message}`;
     }
   }
   render();

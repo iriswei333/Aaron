@@ -24,15 +24,15 @@ async function loadChat(ctx, contactId = '') {
   if (state.tab === 'social') ctx.renderCurrent();
 }
 
-async function loadParentingResources(ctx) {
+async function loadParentingResources(ctx, forceRefresh = false) {
   const { state } = ctx;
   try {
     state.parentingResourcesStatus = 'Finding age-matched parenting tips…';
     if (state.tab === 'social') ctx.renderCurrent();
-    const data = await apiRequest('/parenting-resources');
+    const data = await apiRequest(`/parenting-resources${forceRefresh ? '?refresh=1' : ''}`);
     state.parentingResources = Array.isArray(data.resources) ? data.resources : [];
     state.parentingResourcesAgeFilter = data.ageFilter || '';
-    state.parentingResourcesStatus = `Five ParentMap articles for ${data.ageFilter === 'baby' ? 'baby' : data.ageFilter === 'elementary' ? 'elementary' : 'toddlers and preschoolers'}.`;
+    state.parentingResourcesStatus = `${data.cached ? 'Daily cache' : 'Updated'}: five ParentMap articles for ${data.ageFilter === 'baby' ? 'baby' : data.ageFilter === 'elementary' ? 'elementary' : 'toddlers and preschoolers'}.`;
   } catch (error) {
     state.parentingResources = [];
     state.parentingResourcesStatus = `Could not load parenting resources: ${error.message}`;
@@ -95,5 +95,5 @@ export function renderSocial(ctx) {
     loadChat(ctx, state.activeChatContactId);
   }));
   document.getElementById('chat-form')?.addEventListener('submit', (event) => sendChat(ctx, event));
-  document.getElementById('refresh-parenting-resources')?.addEventListener('click', () => loadParentingResources(ctx));
+  document.getElementById('refresh-parenting-resources')?.addEventListener('click', () => loadParentingResources(ctx, true));
 }

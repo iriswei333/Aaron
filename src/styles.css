@@ -119,7 +119,7 @@ small { color: #6d7b80; line-height: 1.5; }
 .header-top .sync-banner > span { margin-left: auto; }
 .header-top .sync-banner .banner-actions { margin-left: 0; }
 
-.sync-banner > div {
+.sync-banner > div:not(.banner-actions) {
   display: grid;
   gap: 2px;
 }
@@ -144,10 +144,12 @@ small { color: #6d7b80; line-height: 1.5; }
 
 .banner-actions {
   align-items: center;
-  display: flex;
+  display: flex !important;
   flex: 0 0 auto;
   gap: 8px;
+  flex-wrap: nowrap;
 }
+.banner-actions button { margin-top: 0; white-space: nowrap; }
 
 .active-child-control {
   align-items: center;
@@ -594,15 +596,19 @@ time { color: #e26f39; font-weight: 900; }
 .home-hero { background-image: linear-gradient(90deg, rgba(242,222,208,.96) 0%, rgba(242,222,208,.86) 52%, rgba(242,222,208,.52) 100%), var(--home-background-image); background-color: #f2ded0; background-position: center; background-size: cover; }
 .home-hero .hero-copy { max-width: 58%; }
 .background-button { font-size: .78rem; padding: 8px 11px; }
-.hero-objects { margin: auto 0 0 auto; max-width: 340px; position: relative; z-index: 2; }
+.home-background-control { margin-top: 0; position: absolute; right: 20px; top: 20px; z-index: 3; }
+.home-hero .hero-copy { padding-top: 34px; }
+.hero-objects { margin: auto 0 0; max-width: 760px; position: relative; z-index: 2; }
 .hero-objects .eyebrow { color: #243d44; }
 .home-object-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
-.home-object-grid.compact { grid-template-columns: 1fr; }
-.home-object-card { align-items: center; background: rgba(255,255,255,.84); border: 1px solid rgba(240,207,182,.86); border-radius: 18px; display: flex; gap: 10px; min-width: 0; padding: 13px; }
-.home-object-card > div { display: grid; gap: 2px; min-width: 0; }
-.home-object-card strong, .home-object-card > div > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-object-grid.compact { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.home-object-card { align-items: center; background: rgba(255,255,255,.72); backdrop-filter: blur(5px); border: 1px solid rgba(240,207,182,.86); border-radius: 18px; display: flex; gap: 10px; min-width: 0; padding: 13px; text-align: left; }
+.home-object-card:hover { border-color: #e9a477; box-shadow: 0 12px 30px rgba(120, 79, 38, 0.1); }
+.home-object-card-copy { display: grid; gap: 2px; min-width: 0; }
+.home-object-card-copy strong { color: #243d44; }
+.home-object-card strong, .home-object-card-copy > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .home-object-card small { color: #e26f39; font-size: .68rem; font-weight: 850; text-transform: uppercase; }
-.home-object-card > div > span { color: #66777d; font-size: .78rem; }
+.home-object-card-copy > span { color: #66777d; font-size: .78rem; }
 .object-icon { font-size: 1.35rem; }
 .empty-object-state { align-items: center; color: #708087; display: flex; gap: 10px; padding: 20px 0 4px; }
 .chat-layout { display: grid; gap: 16px; grid-template-columns: 230px 1fr; min-height: 330px; }
@@ -747,12 +753,26 @@ time { color: #e26f39; font-weight: 900; }
 }
 
 .family-context strong { color: #263b2b; }
+.modal-backdrop { align-items: center; background: rgba(29, 52, 60, .42); display: flex; inset: 0; justify-content: center; padding: 20px; position: fixed; z-index: 30; }
+.modal-dialog { background: #fffaf5; border: 1px solid #f0cfb6; border-radius: 24px; box-shadow: 0 30px 90px rgba(29, 52, 60, .24); max-width: 520px; padding: 24px; width: min(100%, 520px); }
+.modal-dialog .section-heading { margin-bottom: 12px; }
+.modal-dialog .section-heading h2 { margin-bottom: 0; }
 .logistics-card { align-items: center; justify-content: space-between; gap: 1rem; }
 .logistics-card > div { display: grid; gap: .25rem; }
 .logistics-card small { color: #657267; }
-.logistics-controls { align-items: end; display: flex !important; flex-wrap: wrap; gap: .5rem; }
-.logistics-controls label { display: grid; gap: .2rem; min-width: 92px; }
-.logistics-controls input { width: 92px; }
+.logistics-controls { align-items: center; display: flex !important; flex-wrap: nowrap; gap: .4rem; }
+.logistics-action { background: #f4f8f4; color: #35623e; }
+.logistics-action.edit { background: #fff4e8; color: #a0521f; }
+.logistics-action.bought { background: #edf8f1; color: #2e7c4d; }
+.logistics-action.add { background: #243d44; color: #fff; font-size: 1.25rem; }
+.logistics-add-form { align-items: center; display: grid; gap: 8px; grid-template-columns: minmax(0, 1.5fr) minmax(100px, .7fr) minmax(120px, .8fr) 34px; margin: 18px 0; }
+.logistics-add-form input, .logistics-add-form select { min-width: 0; padding: 10px 12px; }
+.logistics-reminder { align-items: center; background: #edf8f1; border: 1px solid #bee4c9; border-radius: 16px; display: flex; gap: 16px; justify-content: space-between; margin: 18px 0; padding: 14px 16px; }
+.logistics-reminder > div { display: grid; gap: 3px; }
+.logistics-reminder .eyebrow { margin-bottom: 0; }
+.logistics-reminder strong { color: #243d44; }
+.logistics-reminder span { color: #5d7469; font-size: .88rem; }
+.logistics-reminder.empty { color: #657267; display: block; }
 .kid-chip {
   display: inline-block;
   width: fit-content;
@@ -780,7 +800,7 @@ time { color: #e26f39; font-weight: 900; }
   .tabs button { flex: 1 1 95px; }
   .two-cols, .dashboard-row, .menu-grid, .auth-layout, .onboarding-layout, .playdate-layout, .form-grid { grid-template-columns: 1fr; }
   .sync-banner { align-items: flex-start; flex-direction: column; }
-  .banner-actions, .child-editor-bar { flex-wrap: wrap; }
+  .child-editor-bar { flex-wrap: wrap; }
   .active-child-control { width: 100%; }
   .sync-banner span { text-align: left; }
   .weather-grid { grid-template-columns: 1fr 1fr; }
@@ -1028,9 +1048,13 @@ time { color: #e26f39; font-weight: 900; }
       var(--home-background-image);
     min-height: 520px;
   }
+  .home-object-grid.compact { grid-template-columns: 1fr; }
   .outfit-card { grid-template-columns: 1fr; }
   .outfit-preview { max-height: 220px; }
   .background-picker-dialog { padding: 18px; }
+  .logistics-add-form { grid-template-columns: minmax(0, 1fr) 34px; }
+  .logistics-add-form input:first-child,
+  .logistics-add-form select { grid-column: 1 / -1; }
 }
 
 /* Figma: AaronDaily Planner — desktop shell alignment */

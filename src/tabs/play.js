@@ -351,6 +351,8 @@ export function resetPlayState(state) {
   state.playDatePlaygroundKey = '';
   state.playDates = [];
   state.profilePlayDates = [];
+  state.playdateFocus = '';
+  state.playFocus = '';
   state.playDateStatus = 'Choose a playground to view public play dates.';
   state.playDateFormStatus = '';
   state.familyEvents = [];
@@ -848,7 +850,7 @@ function renderPlayDateList(state, playground) {
   return state.playDates.map(renderPlayDateCard).join('');
 }
 
-function renderFamilyEventCard(event) {
+function renderFamilyEventCard(event, state) {
   const badgeParts = [
     event.theme || (event.resultType === 'search-link' ? 'Search source' : 'Family event'),
     event.free === true ? 'Free' : '',
@@ -862,7 +864,34 @@ function renderFamilyEventCard(event) {
   const actionLabel = event.resultType === 'search-link' ? 'Open source' : 'Open event';
   const cardClass = event.resultType === 'search-link' ? 'event-card search-link-card' : 'event-card';
   const image = event.imageUrl || 'https://images.unsplash.com/photo-1504150558240-0b4d9e5c0d87?auto=format&fit=crop&w=640&q=80';
-  return `<article class="${cardClass} event-card-with-thumb"><img class="resource-thumb" src="${escapeAttribute(image)}" alt="" loading="lazy" /><div><span>${escapeHtml(badgeParts.join(' • '))}</span><h3>${escapeHtml(event.title || 'Family event')}</h3><p>${escapeHtml(event.summary || 'Family-friendly weekend option.')}</p>${detailParts.length ? `<small>${escapeHtml(detailParts.join(' • '))}</small>` : ''}${event.url ? `<div class="play-card-actions"><a class="mini-link" href="${escapeAttribute(event.url)}" target="_blank" rel="noreferrer">${actionLabel}</a></div>` : ''}</div></article>`;
+  return `<article class="${cardClass} event-card-with-thumb"><img class="resource-thumb" src="${escapeAttribute(image)}" alt="" loading="lazy" /><div><span>${escapeHtml(badgeParts.join(' • '))}</span><h3>${escapeHtml(event.title || 'Family event')}</h3><p>${escapeHtml(event.summary || 'Family-friendly weekend option.')}</p>${detailParts.length ? `<small>${escapeHtml(detailParts.join(' • '))}</small>` : ''}${event.url ? `<div class="play-card-actions"><a class="mini-link" href="${escapeAttribute(event.url)}" target="_blank" rel="noreferrer">${actionLabel}</a><button type="button" class="secondary-button small-button" data-attend-family-event="${escapeAttribute(familyEventId(event))}">${isFamilyEventAttended(event, state) ? 'Attending' : 'Attend'}</button></div>` : `<div class="play-card-actions"><button type="button" class="secondary-button small-button" data-attend-family-event="${escapeAttribute(familyEventId(event))}">${isFamilyEventAttended(event, state) ? 'Attending' : 'Attend'}</button></div>`}</div></article>`;
+}
+
+function familyEventId(event) {
+  return [event.title, event.dateLabel, event.timeLabel, event.venue, event.url].filter(Boolean).join('|').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 180);
+}
+
+function isFamilyEventAttended(event, state) {
+  return Boolean(event.attended || state.familyObjects?.some((item) => item.id === familyEventId(event)));
+}
+
+async function attendFamilyEvent(ctx, event) {
+  const id = familyEventId(event);
+  if (!id || isFamilyEventAttended(event, ctx.state)) return;
+  const familyObject = {
+    id,
+    kind: 'weekend-event',
+    title: event.title || 'Family event',
+    summary: event.summary || 'Family-friendly weekend option.',
+    dateLabel: event.dateLabel || '',
+    timeLabel: event.timeLabel || '',
+    venue: event.venue || '',
+    url: event.url || '',
+    imageUrl: event.imageUrl || '',
+    savedAt: new Date().toISOString(),
+  };
+  ctx.state.familyObjects = [...(ctx.state.familyObjects || []), familyObject];
+  await ctx.saveUserSection('family-objects', ctx.state.familyObjects);
 }
 
 function renderFamilyEvents(state) {
@@ -872,7 +901,7 @@ function renderFamilyEvents(state) {
   if (!state.familyEvents?.length) {
     return '<p class="muted">Weekend event sources will appear after your home city or location is available.</p>';
   }
-  return state.familyEvents.map(renderFamilyEventCard).join('');
+  return state.familyEvents.map((event) => renderFamilyEventCard(event, state)).join('');
 }
 
 function playgroundRecommendationReason(option, state) {
@@ -929,7 +958,17 @@ export function renderPlay(ctx) {
   const holidayMarkup = upcomingHolidays.length
     ? `<p class="muted">Based on today, ${escapeHtml(upcomingHolidays[0].name)} is next.</p>${upcomingHolidays.map((holiday, index) => `<article class="mini-card">${icon(holiday.personalized ? '🎂' : '🎁')}<div><h3>${escapeHtml(holiday.name)}</h3><p><strong>${escapeHtml(holiday.dateLabel)} · ${escapeHtml(holiday.countdown)}</strong></p><p>${escapeHtml(holiday.reminder)}</p>${index === 0 ? `<small>${escapeHtml(holiday.timing)}</small>` : ''}</div></article>`).join('')}`
     : '<p class="muted">No upcoming holidays found.</p>';
-  ctx.layout(`<main class="stack"><section class="dashboard-row"><div class="panel weather-panel"><p class="eyebrow">🌤 Live play planning</p><h2>Find a nearby place for ${escapeHtml(childName)}</h2><p class="muted">Home base: ${escapeHtml(locationText)}</p><p>Pick a playground, create a private or public play date, or join a public play date already planned there.</p><div class="weather-grid"><strong>${escapeHtml(state.weather.label)}</strong><span>${escapeHtml(state.weather.temperature)}</span><span>Rain: ${escapeHtml(state.weather.precipitation)}</span><span>Wind: ${escapeHtml(state.weather.wind)}</span></div><small>Updated: ${escapeHtml(state.weather.updated)}. Weather still helps decide whether to choose an outdoor spot or an indoor backup.</small></div><div class="panel location-tool">${icon('📍')}<h3>Planning location</h3><p>${escapeHtml(locationStatus)}</p><form id="location-form"><label class="input-label" for="location-address">Address or place</label><input id="location-address" value="${escapeAttribute(location?.address || '')}" placeholder="Home address, city, or favorite play area" /><button type="submit">Save address</button></form><button id="use-current-location" class="secondary-button">Use current location</button></div></section><section class="grid playdate-layout"><div class="panel"><h2>Nearby play options</h2><p class="muted">${escapeHtml(state.nearbyStatus)}</p><div class="cards-list">${playOptionsMarkup}</div></div><div class="panel playdate-detail">${currentPlaygroundMarkup}</div></section><section class="panel"><div class="section-heading"><div><h2>Upcoming play dates</h2><p class="muted">${escapeHtml(state.playDateStatus)}</p></div><button id="refresh-playdates" type="button" class="secondary-button small-button" ${currentPlayground ? '' : 'disabled'}>Refresh</button></div><div class="cards-list">${renderPlayDateList(state, currentPlayground)}</div></section><section class="grid two-cols"><div class="panel"><div class="section-heading"><div><h2>Weekend family events</h2><p class="muted">${escapeHtml(state.familyEventsStatus || 'Checking weekend event sources...')}</p></div><button id="refresh-family-events" type="button" class="secondary-button small-button">Refresh</button></div>${renderFamilyEvents(state)}</div><div class="panel"><h2>Holiday planning</h2>${holidayMarkup}</div></section></main>`);
+  ctx.layout(`<main class="stack"><section class="dashboard-row"><div class="panel weather-panel"><p class="eyebrow">🌤 Live play planning</p><h2>Find a nearby place for ${escapeHtml(childName)}</h2><p class="muted">Home base: ${escapeHtml(locationText)}</p><p>Pick a playground, create a private or public play date, or join a public play date already planned there.</p><div class="weather-grid"><strong>${escapeHtml(state.weather.label)}</strong><span>${escapeHtml(state.weather.temperature)}</span><span>Rain: ${escapeHtml(state.weather.precipitation)}</span><span>Wind: ${escapeHtml(state.weather.wind)}</span></div><small>Updated: ${escapeHtml(state.weather.updated)}. Weather still helps decide whether to choose an outdoor spot or an indoor backup.</small></div><div class="panel location-tool">${icon('📍')}<h3>Planning location</h3><p>${escapeHtml(locationStatus)}</p><form id="location-form"><label class="input-label" for="location-address">Address or place</label><input id="location-address" value="${escapeAttribute(location?.address || '')}" placeholder="Home address, city, or favorite play area" /><button type="submit">Save address</button></form><button id="use-current-location" class="secondary-button">Use current location</button></div></section><section class="grid playdate-layout"><div class="panel"><h2>Nearby play options</h2><p class="muted">${escapeHtml(state.nearbyStatus)}</p><div class="cards-list">${playOptionsMarkup}</div></div><div class="panel playdate-detail">${currentPlaygroundMarkup}</div></section><section id="upcoming-playdates" class="panel"><div class="section-heading"><div><h2>Upcoming play dates</h2><p class="muted">${escapeHtml(state.playDateStatus)}</p></div><button id="refresh-playdates" type="button" class="secondary-button small-button" ${currentPlayground ? '' : 'disabled'}>Refresh</button></div><div class="cards-list">${renderPlayDateList(state, currentPlayground)}</div></section><section id="weekend-family-events" class="grid two-cols"><div class="panel"><div class="section-heading"><div><h2>Weekend family events</h2><p class="muted">${escapeHtml(state.familyEventsStatus || 'Checking weekend event sources...')}</p></div><button id="refresh-family-events" type="button" class="secondary-button small-button">Refresh</button></div>${renderFamilyEvents(state)}</div><div class="panel"><h2>Holiday planning</h2>${holidayMarkup}</div></section></main>`);
+
+  if (state.playFocus === 'family-events') {
+    state.playFocus = '';
+    globalThis.requestAnimationFrame?.(() => document.getElementById('weekend-family-events')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+
+  if (state.playdateFocus === 'playdates') {
+    state.playdateFocus = '';
+    globalThis.requestAnimationFrame?.(() => document.getElementById('upcoming-playdates')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
 
   document.getElementById('location-form').addEventListener('submit', (event) => saveManualLocation(ctx, event));
   document.getElementById('use-current-location').addEventListener('click', () => requestCurrentLocation(ctx));
@@ -950,4 +989,8 @@ export function renderPlay(ctx) {
   document.querySelectorAll('[data-join-playdate]').forEach((button) => {
     button.addEventListener('click', () => joinPlayDate(ctx, button.dataset.joinPlaydate, currentPlayground));
   });
+  document.querySelectorAll('[data-attend-family-event]').forEach((button) => button.addEventListener('click', () => {
+    const event = state.familyEvents.find((item) => familyEventId(item) === button.dataset.attendFamilyEvent);
+    if (event) attendFamilyEvent(ctx, event);
+  }));
 }
