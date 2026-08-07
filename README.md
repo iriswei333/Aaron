@@ -12,8 +12,7 @@ A small Next.js daily planner for parents of young kids. The app keeps separate 
 - Family logistics with add, edit, bought-today, delete, frequency, and next-reminder controls; reminders appear in Errands and Home
 - Social tab with private playdate chat, media sharing, and age-matched parenting resources cached for one day
 - Home background picker with local-session uploads and family event objects positioned over the hero background
-- Social post helper that selects photos or a video frame and drafts a caption
-- Optional OpenAI-powered image caption generation with a local fallback
+- Social post helper that drafts captions locally from the parent’s selected preferences
 
 ## Tech Stack
 
@@ -63,17 +62,6 @@ Create a `.env.local` file:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
 ```
-
-AI captions are optional. Without an API key, the app returns local fallback captions.
-
-Add these if you want AI image captions:
-
-```bash
-OPENAI_API_KEY=your_api_key_here
-OPENAI_CAPTION_MODEL=gpt-4.1-mini
-```
-
-`OPENAI_CAPTION_MODEL` is optional. If omitted, the backend uses `gpt-4.1-mini`.
 
 ## Data Storage
 
@@ -128,7 +116,7 @@ The app stores a few browser-local values such as the login email and selected H
 
 ## API Routes
 
-- `GET /api/health` checks backend availability and reports auth mode and AI caption status.
+- `GET /api/health` checks backend availability and reports auth mode.
 - `GET /api/profile` returns the current signed-in parent profile and children.
 - `PUT /api/profile` updates the current signed-in profile display name, children, and active child.
 - `PUT /api/social-links` updates saved social links.
@@ -141,9 +129,11 @@ The app stores a few browser-local values such as the login email and selected H
 - `PUT /api/food-plan` updates favorite foods and menu data.
 - `PUT /api/amazon-errands` updates errands and outfit ideas.
 - `GET /api/parenting-resources` returns age-matched articles from the daily database cache; `refresh=1` forces a refresh.
-- `POST /api/social-media/caption` generates or falls back to a caption and stores the post record.
+- `DELETE /api/account/delete` deletes the signed-in parent’s SproutCue profile data and associated app records.
 - `POST /api/auth/login` keeps the local JSON fallback working when Supabase is not configured.
 - `POST /api/auth/logout` clears the local fallback profile cookie.
+
+The sign-in page links to the in-app privacy policy at `/privacy`. Replace its placeholders before production launch.
 
 ## Project Structure
 
@@ -153,7 +143,7 @@ app/
   layout.jsx           Root layout and metadata
   page.jsx             Client entry mount
 lib/
-  backend.js           Local store helpers and caption generation
+  backend.js           Local store helpers and profile/play-date persistence
   family-events.js     Server-side family event fetching, parsing, fallback links, and cache keys
   profile-session.js   Session-aware profile helpers for Supabase/local modes
   supabase/            Supabase client and middleware helpers
@@ -171,4 +161,4 @@ data/
 - Parenting resources are fetched and parsed server-side by child age group, then cached in `parenting_resource_cache` for 24 hours. Social’s Refresh button bypasses that cache.
 - Grocery shopping events no longer generate `.ics` files. Users save events into the food plan, and saved events appear as Home family objects.
 - The legacy Amazon task list was removed. Care supplies are managed through Family logistics, with reminders saved in the existing `amazon_errands` JSON field.
-- Uploaded photos and videos are previewed locally in the browser and are not uploaded unless used for optional AI caption generation.
+- Photos and videos selected for local caption drafting are previewed locally in the browser. Media is uploaded only when the parent explicitly shares it in parent-to-parent chat.

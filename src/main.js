@@ -8,7 +8,7 @@ import {
 } from './shared.js';
 import { applyErrandsProfile, renderErrands, resetErrandsState } from './tabs/errands.js';
 import { applyFoodProfile, renderFood, resetFoodState } from './tabs/food.js';
-import { DEFAULT_ALBUM_LINK, DEFAULT_HOME_BACKGROUND_KEY, applyHomeProfile, renderHome, resetHomeState } from './tabs/home.js';
+import { DEFAULT_ALBUM_LINK, DEFAULT_HOME_BACKGROUND_KEY, applyHomeProfile, clearUploadedBackground, loadHomeBackground, renderHome, resetHomeState } from './tabs/home.js';
 import { getLocationCoords, refreshPlayPlanning, renderPlay, resetPlayState } from './tabs/play.js';
 import { renderSocial, resetSocialState } from './tabs/social.js';
 import { createSupabaseBrowserClient } from '../lib/supabase/client.js';
@@ -189,6 +189,31 @@ function layout(content) {
   document.getElementById('logout-user').addEventListener('click', logoutUser);
 }
 
+async function deleteParentData() {
+  const confirmation = globalThis.prompt('This permanently deletes your SproutCue profile, child profiles, plans, play dates, chat messages, and local account data. Type DELETE to continue.');
+  if (confirmation !== 'DELETE') return;
+  state.apiMessage = 'Deleting parent data…';
+  render();
+  try {
+    await apiRequest('/account/delete', { method: 'DELETE' });
+    if (usesSupabaseAuth()) await getSupabaseClient().auth.signOut();
+    state.user = null;
+    state.authStatus = 'Your SproutCue parent data was deleted.';
+    state.apiMessage = 'Parent data deleted.';
+    state.showProfileSetup = false;
+    state.profileDraft = null;
+    resetHomeState(state);
+    resetFoodState(state);
+    resetErrandsState(state);
+    resetSocialState(state);
+    resetPlayState(state);
+    render();
+  } catch (error) {
+    state.apiMessage = `Deletion failed: ${error.message}`;
+    render();
+  }
+}
+
 function renderLogin() {
   ensureRoot();
   const useSupabase = usesSupabaseAuth();
@@ -197,13 +222,29 @@ function renderLogin() {
   const intro = useSupabase
     ? 'Use an email magic link to open your private parent profile.'
     : 'Use an email to keep each local parent profile separate while you test.';
-  const backendNote = useSupabase
-    ? 'Supabase Auth owns the session. After sign-in, your child profiles personalize meals, play planning, errands, and captions.'
-    : 'Local development mode stores a profile cookie and JSON data until Supabase environment variables are configured.';
-  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><span class="brand-mark">🌱</span><div><p class="eyebrow">Parent profiles</p><h1>${APP_NAME}</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><p class="eyebrow">Sign in</p><h2>${heading}</h2><p>${intro}</p><form id="login-form"><label class="input-label" for="login-email">Parent email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required /><label class="input-label" for="login-name">Parent display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="Milo Family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>${buttonText}</button></form><p class="muted">${escapeHtml(state.authStatus || state.apiMessage)}</p></section><section class="panel auth-note"><h2>${useSupabase ? 'Children setup after sign-in' : 'Local profile mode'}</h2><p>${backendNote}</p><div class="profile-facts"><span>Children</span><span>Age</span><span>Home city</span><span>Food notes</span><span>Caption privacy</span></div></section></main></div>`;
+  const featureNote = 'Less mental load for little-kid days.';
+  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><span class="brand-mark">🌱</span><div><p class="eyebrow">Parent profiles</p><h1>${APP_NAME}</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><p class="eyebrow">Sign in</p><h2>${heading}</h2><p>${intro}</p><form id="login-form"><label class="input-label" for="login-email">Parent email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required /><label class="input-label" for="login-name">Parent display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="Milo Family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>${buttonText}</button></form><p class="muted">${escapeHtml(state.authStatus || state.apiMessage)}</p><p class="privacy-link"><a href="/privacy" target="_blank" rel="noreferrer">Read the Privacy Policy</a></p></section><section class="panel auth-note"><p class="eyebrow">Made for parents of little ones</p><h2>Your family day, sorted.</h2><p>${featureNote}</p><div id="auth-feature-carousel" class="auth-feature-carousel" aria-label="SproutCue features"><article class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/family-meals.png" alt="Parent and child enjoying a colorful meal together" /><strong>Meals that fit your child</strong><p>Personalized ideas built around favorites, stages, and foods to avoid.</p></article><article class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/playdates.png" alt="Parents meeting at a neighborhood playground for a playdate" /><strong>Playdates without the back-and-forth</strong><p>Find nearby places, check the weather, and make a plan in minutes.</p></article><article class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/family-logistics.png" alt="Parent organizing a family plan with a checklist and calendar" /><strong>One calm home for logistics</strong><p>Keep errands, reminders, events, and family plans together.</p></article></div><div class="auth-feature-dots" aria-label="Choose a feature"><button type="button" class="active" data-feature-dot="0" aria-label="Show meals feature" aria-current="true"></button><button type="button" data-feature-dot="1" aria-label="Show playdates feature" aria-current="false"></button><button type="button" data-feature-dot="2" aria-label="Show logistics feature" aria-current="false"></button></div></section></main></div>`;
   document.getElementById('login-form').addEventListener('submit', loginUser);
   document.getElementById('login-email').addEventListener('input', (event) => { state.loginEmail = event.target.value; });
   document.getElementById('login-name').addEventListener('input', (event) => { state.loginName = event.target.value; });
+  const featureCarousel = document.getElementById('auth-feature-carousel');
+  const featureDots = [...document.querySelectorAll('[data-feature-dot]')];
+  const updateFeatureDot = (index) => {
+    featureDots.forEach((dot, dotIndex) => {
+      const active = dotIndex === index;
+      dot.classList.toggle('active', active);
+      dot.setAttribute('aria-current', active ? 'true' : 'false');
+    });
+  };
+  featureDots.forEach((dot) => dot.addEventListener('click', () => {
+    const index = Number(dot.dataset.featureDot);
+    featureCarousel?.scrollTo({ left: index * (featureCarousel.clientWidth + 12), behavior: 'smooth' });
+    updateFeatureDot(index);
+  }));
+  featureCarousel?.addEventListener('scroll', () => {
+    const index = Math.round(featureCarousel.scrollLeft / (featureCarousel.clientWidth + 12));
+    updateFeatureDot(Math.max(0, Math.min(index, featureDots.length - 1)));
+  }, { passive: true });
 }
 
 function childDraftFromChild(child) {
@@ -360,8 +401,11 @@ function renderOnboarding() {
   const removeButton = draft.children.length > 1
     ? `<button id="remove-child" type="button" class="secondary-button danger-button">Remove this child</button>`
     : '';
+  const accountDeletion = isEditing
+    ? '<section class="account-danger"><h3>Delete parent data</h3><p> Permanently delete this parent profile, child profiles, plans, play dates, chat messages, and local account data.</p><button id="delete-parent-data" type="button" class="secondary-button danger-button">Delete parent data</button></section>'
+    : '';
 
-  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><span class="brand-mark">🌱</span><div><p class="eyebrow">${escapeHtml(state.user.email || 'Parent profile')}</p><h1>${APP_NAME}</h1></div></div></header><main class="onboarding-layout"><section class="panel onboarding-panel"><p class="eyebrow">${isEditing ? 'Edit profile' : 'Child setup'}</p><h2>${isEditing ? 'Manage children on this profile' : 'Tell us who this planner is for'}</h2><form id="profile-form" class="profile-form"><label class="input-label" for="parent-display-name">Parent display name</label><input id="parent-display-name" name="displayName" autocomplete="name" value="${escapeAttribute(draft.displayName)}" placeholder="Milo Family" /><div class="child-editor-bar"><div class="child-tabs" aria-label="Children on this profile">${childTabs}</div><button id="add-child" type="button" class="secondary-button">Add child</button></div><input name="childId" type="hidden" value="${escapeAttribute(activeChild.id)}" /><div class="form-grid two-field-grid"><label><span>Child nickname</span><input name="childName" value="${escapeAttribute(activeChild.name)}" placeholder="Milo" maxlength="60" required /></label><label><span>Birthday</span><input name="birthday" type="date" value="${escapeAttribute(activeChild.birthday)}" max="${new Date().toISOString().slice(0, 10)}" /></label><label><span>Age if no birthday</span><input name="ageLabel" value="${escapeAttribute(activeChild.ageLabel)}" placeholder="2y 4m" maxlength="32" /></label><label><span>Home city</span><input name="homeCity" value="${escapeAttribute(activeChild.homeCity)}" placeholder="Seattle" maxlength="80" required /></label><label><span>Observed diaper size</span><input name="diaperSize" type="number" min="1" max="8" value="${escapeAttribute(activeChild.diaperSize || '')}" placeholder="e.g. 4" /></label><label><span>Feeding stage override</span><input name="feedingStage" value="${escapeAttribute(activeChild.feedingStage || '')}" placeholder="Leave blank to derive" maxlength="80" /></label></div><label class="input-label" for="food-preferences">Food preferences</label><textarea id="food-preferences" name="foodPreferences" maxlength="320" placeholder="Favorite foods, textures, meals that usually work">${escapeHtml(activeChild.foodPreferences)}</textarea><label class="input-label" for="allergies">Allergies or foods to avoid</label><input id="allergies" name="allergies" value="${escapeAttribute(activeChild.allergies)}" placeholder="None, or e.g. peanuts, egg" maxlength="220" /><label class="input-label" for="daycare-days">Daycare days</label><input id="daycare-days" name="daycareDays" value="${escapeAttribute(activeChild.daycareDays || '')}" placeholder="mon, tue, thu" /><label class="input-label" for="favorite-activities">Favorite activities</label><input id="favorite-activities" name="favoriteActivities" value="${escapeAttribute(activeChild.favoriteActivities)}" placeholder="cars, climbing, story time" /><div class="form-actions"><button type="submit">${isEditing ? 'Save profile' : 'Save and open planner'}</button>${removeButton}${isEditing ? '<button id="cancel-profile-edit" type="button" class="secondary-button">Cancel</button>' : ''}</div></form><p class="muted">${escapeHtml(state.onboardingStatus || `${draft.children.length} child${draft.children.length === 1 ? '' : 'ren'} on this profile. The selected child becomes the active planner view.`)}</p></section><section class="panel auth-note"><h2>What changes</h2><div class="profile-facts"><span>Derived age + stage</span><span>Restock estimates</span><span>Food preferences</span><span>Allergy guardrails</span><span>Daycare logistics</span></div><p>Birthday stays the source of truth. SproutCue derives age-stage facts at plan time and uses observed diaper size when you provide it.</p></section></main></div>`;
+  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><span class="brand-mark">🌱</span><div><p class="eyebrow">${escapeHtml(state.user.email || 'Parent profile')}</p><h1>${APP_NAME}</h1></div></div></header><main class="onboarding-layout"><section class="panel onboarding-panel"><p class="eyebrow">${isEditing ? 'Edit profile' : 'Child setup'}</p><h2>${isEditing ? 'Manage children on this profile' : 'Tell us who this planner is for'}</h2><form id="profile-form" class="profile-form"><label class="input-label" for="parent-display-name">Parent display name</label><input id="parent-display-name" name="displayName" autocomplete="name" value="${escapeAttribute(draft.displayName)}" placeholder="Milo Family" /><div class="child-editor-bar"><div class="child-tabs" aria-label="Children on this profile">${childTabs}</div><button id="add-child" type="button" class="secondary-button">Add child</button></div><input name="childId" type="hidden" value="${escapeAttribute(activeChild.id)}" /><div class="form-grid two-field-grid"><label><span>Child nickname</span><input name="childName" value="${escapeAttribute(activeChild.name)}" placeholder="Milo" maxlength="60" required /></label><label><span>Birthday</span><input name="birthday" type="date" value="${escapeAttribute(activeChild.birthday)}" max="${new Date().toISOString().slice(0, 10)}" /></label><label><span>Age if no birthday</span><input name="ageLabel" value="${escapeAttribute(activeChild.ageLabel)}" placeholder="2y 4m" maxlength="32" /></label><label><span>Home city</span><input name="homeCity" value="${escapeAttribute(activeChild.homeCity)}" placeholder="Seattle" maxlength="80" required /></label><label><span>Observed diaper size</span><input name="diaperSize" type="number" min="1" max="8" value="${escapeAttribute(activeChild.diaperSize || '')}" placeholder="e.g. 4" /></label><label><span>Feeding stage override</span><input name="feedingStage" value="${escapeAttribute(activeChild.feedingStage || '')}" placeholder="Leave blank to derive" maxlength="80" /></label></div><label class="input-label" for="food-preferences">Food preferences</label><textarea id="food-preferences" name="foodPreferences" maxlength="320" placeholder="Favorite foods, textures, meals that usually work">${escapeHtml(activeChild.foodPreferences)}</textarea><label class="input-label" for="allergies">Allergies or foods to avoid</label><input id="allergies" name="allergies" value="${escapeAttribute(activeChild.allergies)}" placeholder="None, or e.g. peanuts, egg" maxlength="220" /><label class="input-label" for="daycare-days">Daycare days</label><input class="input-label" name="daycareDays" value="${escapeAttribute(activeChild.daycareDays || '')}" placeholder="mon, tue, thu" /><label class="input-label" for="favorite-activities">Favorite activities</label><input name="favoriteActivities" value="${escapeAttribute(activeChild.favoriteActivities)}" placeholder="cars, climbing, story time" /><div class="form-actions"><button type="submit">${isEditing ? 'Save profile' : 'Save and open planner'}</button>${removeButton}${isEditing ? '<button id="cancel-profile-edit" type="button" class="secondary-button">Cancel</button>' : ''}</div></form><p class="muted">${escapeHtml(state.onboardingStatus || `${draft.children.length} child${draft.children.length === 1 ? '' : 'ren'} on this profile. The selected child becomes the active planner view.`)}</p>${accountDeletion}</section><section class="panel auth-note"><h2>What changes</h2><div class="profile-facts"><span>Derived age + stage</span><span>Restock estimates</span><span>Food preferences</span><span>Allergy guardrails</span><span>Daycare logistics</span></div><p>Birthday stays the source of truth. SproutCue derives age-stage facts at plan time and uses observed diaper size when you provide it.</p></section></main></div>`;
 
   document.getElementById('profile-form').addEventListener('submit', saveProfileSetup);
   document.querySelectorAll('[data-edit-child]').forEach((button) => {
@@ -369,6 +413,7 @@ function renderOnboarding() {
   });
   document.getElementById('add-child')?.addEventListener('click', addDraftChild);
   document.getElementById('remove-child')?.addEventListener('click', () => removeDraftChild(activeChild.id));
+  document.getElementById('delete-parent-data')?.addEventListener('click', deleteParentData);
   document.getElementById('cancel-profile-edit')?.addEventListener('click', () => {
     state.showProfileSetup = false;
     state.profileDraft = null;
@@ -459,6 +504,7 @@ async function ensureBackendUser() {
 }
 
 function applyUserProfile(user) {
+  clearUploadedBackground(state);
   state.user = user;
   state.familyObjects = Array.isArray(user.familyObjects) ? user.familyObjects : [];
   const childProfile = getChildProfile(user);
@@ -466,6 +512,7 @@ function applyUserProfile(user) {
   state.loginName = user.displayName || '';
   state.magicLinkSent = false;
   applyHomeProfile(state, user);
+  loadHomeBackground(appContext);
   applyFoodProfile(state, user);
   applyErrandsProfile(state, user);
   resetSocialState(state);
