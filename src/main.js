@@ -594,7 +594,7 @@ async function logoutUser() {
 }
 
 async function saveUserSection(section, payload, options = {}) {
-  if (!state.user) return;
+  if (!state.user) return false;
   try {
     const { user } = await apiRequest(`/${section}`, {
       method: 'PUT',
@@ -622,6 +622,7 @@ async function saveUserSection(section, payload, options = {}) {
     if (section === 'family-objects') {
       state.familyObjects = Array.isArray(user.familyObjects) ? user.familyObjects : [];
     }
+    return true;
   } catch (error) {
     state.apiMessage = `Save failed: ${error.message}`;
     if (section === 'food-plan') {
@@ -632,6 +633,7 @@ async function saveUserSection(section, payload, options = {}) {
     }
   }
   render();
+  return false;
 }
 
 function renderError(error) {

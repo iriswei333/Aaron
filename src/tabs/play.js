@@ -864,7 +864,9 @@ function renderFamilyEventCard(event, state) {
   const actionLabel = event.resultType === 'search-link' ? 'Open source' : 'Open event';
   const cardClass = event.resultType === 'search-link' ? 'event-card search-link-card' : 'event-card';
   const image = event.imageUrl || 'https://images.unsplash.com/photo-1504150558240-0b4d9e5c0d87?auto=format&fit=crop&w=640&q=80';
-  return `<article class="${cardClass} event-card-with-thumb"><img class="resource-thumb" src="${escapeAttribute(image)}" alt="" loading="lazy" /><div><span>${escapeHtml(badgeParts.join(' • '))}</span><h3>${escapeHtml(event.title || 'Family event')}</h3><p>${escapeHtml(event.summary || 'Family-friendly weekend option.')}</p>${detailParts.length ? `<small>${escapeHtml(detailParts.join(' • '))}</small>` : ''}${event.url ? `<div class="play-card-actions"><a class="mini-link" href="${escapeAttribute(event.url)}" target="_blank" rel="noreferrer">${actionLabel}</a><button type="button" class="secondary-button small-button" data-attend-family-event="${escapeAttribute(familyEventId(event))}">${isFamilyEventAttended(event, state) ? 'Attending' : 'Attend'}</button></div>` : `<div class="play-card-actions"><button type="button" class="secondary-button small-button" data-attend-family-event="${escapeAttribute(familyEventId(event))}">${isFamilyEventAttended(event, state) ? 'Attending' : 'Attend'}</button></div>`}</div></article>`;
+  const attended = isFamilyEventAttended(event, state);
+  const attendanceButton = `<button type="button" class="secondary-button small-button" data-attend-family-event="${escapeAttribute(familyEventId(event))}" aria-pressed="${attended ? 'true' : 'false'}">${attended ? 'Attending' : 'Attend'}</button>`;
+  return `<article class="${cardClass} event-card-with-thumb"><img class="resource-thumb" src="${escapeAttribute(image)}" alt="" loading="lazy" /><div><span>${escapeHtml(badgeParts.join(' • '))}</span><h3>${escapeHtml(event.title || 'Family event')}</h3><p>${escapeHtml(event.summary || 'Family-friendly weekend option.')}</p>${detailParts.length ? `<small>${escapeHtml(detailParts.join(' • '))}</small>` : ''}${event.url ? `<div class="play-card-actions"><a class="mini-link" href="${escapeAttribute(event.url)}" target="_blank" rel="noreferrer">${actionLabel}</a>${attendanceButton}</div>` : `<div class="play-card-actions">${attendanceButton}</div>`}</div></article>`;
 }
 
 function familyEventId(event) {
@@ -875,9 +877,11 @@ function isFamilyEventAttended(event, state) {
   return Boolean(event.attended || state.familyObjects?.some((item) => item.id === familyEventId(event)));
 }
 
-async function attendFamilyEvent(ctx, event) {
+async function toggleFamilyEventAttendance(ctx, event) {
   const id = familyEventId(event);
-  if (!id || isFamilyEventAttended(event, ctx.state)) return;
+  if (!id) return;
+  const wasAttended = isFamilyEventAttended(event, ctx.state);
+  const previousFamilyObjects = ctx.state.familyObjects || [];
   const familyObject = {
     id,
     kind: 'weekend-event',
@@ -890,8 +894,17 @@ async function attendFamilyEvent(ctx, event) {
     imageUrl: event.imageUrl || '',
     savedAt: new Date().toISOString(),
   };
-  ctx.state.familyObjects = [...(ctx.state.familyObjects || []), familyObject];
-  await ctx.saveUserSection('family-objects', ctx.state.familyObjects);
+  ctx.state.familyObjects = wasAttended
+    ? previousFamilyObjects.filter((item) => !(item.kind === 'weekend-event' && item.id === id))
+    : [...previousFamilyObjects, familyObject];
+  ctx.state.apiMessage = wasAttended ? 'Removing event from your family plans…' : 'Saving event to your family plans…';
+  ctx.renderCurrent();
+  const saved = await ctx.saveUserSection('family-objects', ctx.state.familyObjects);
+  if (!saved) {
+    ctx.state.familyObjects = previousFamilyObjects;
+    ctx.state.apiMessage = 'Could not update event attendance.';
+    ctx.renderCurrent();
+  }
 }
 
 function renderFamilyEvents(state) {
@@ -991,6 +1004,6 @@ export function renderPlay(ctx) {
   });
   document.querySelectorAll('[data-attend-family-event]').forEach((button) => button.addEventListener('click', () => {
     const event = state.familyEvents.find((item) => familyEventId(item) === button.dataset.attendFamilyEvent);
-    if (event) attendFamilyEvent(ctx, event);
+    if (event) toggleFamilyEventAttendance(ctx, event);
   }));
 }
