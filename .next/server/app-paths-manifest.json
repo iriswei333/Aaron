@@ -2,10 +2,10 @@
   "/api/health/route": "app/api/health/route.js",
   "/api/profile/route": "app/api/profile/route.js",
   "/api/home-background/route": "app/api/home-background/route.js",
-  "/api/playgrounds/route": "app/api/playgrounds/route.js",
   "/api/playdates/route": "app/api/playdates/route.js",
   "/api/family-events/route": "app/api/family-events/route.js",
-  "/api/family-objects/route": "app/api/family-objects/route.js",
+  "/api/playgrounds/route": "app/api/playgrounds/route.js",
+  "/api/family-plans/route": "app/api/family-plans/route.js",
   "/api/chat/route": "app/api/chat/route.js",
   "/api/parenting-resources/route": "app/api/parenting-resources/route.js",
   "/page": "app/page.js"

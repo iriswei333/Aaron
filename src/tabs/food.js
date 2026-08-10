@@ -6,6 +6,7 @@ import {
   getChildProfile,
 } from '../../lib/profile-defaults.js';
 import { buildFamilyLogistics } from '../../lib/kid-logistics.js';
+import { removePlannedEvent, removeRecurringItem, savePlannedEvent, saveRecurringItem } from '../family-plans.js';
 
 export const defaultToddlerFoods = ['peas', 'broccoli', 'banana', 'strawberry', 'sweet corn', 'sweet potato', 'dumplings', 'baby waffle', 'baby smoothie', 'yogurt bites'];
 
@@ -312,6 +313,8 @@ function normalizeShoppingSchedule(value) {
     const time = /^\d{2}:\d{2}$/.test(item?.time || '') ? item.time : index === 0 ? '10:00' : '10:30';
     return {
       id: cleanText(item?.id, 40) || `shopping-${index + 1}`,
+      planId: cleanText(item?.planId, 80),
+      eventPlanId: cleanText(item?.eventPlanId, 80),
       weekday,
       time,
       durationMinutes: cleanNumber(item?.durationMinutes, DEFAULT_DURATION_MINUTES, 15, 180),
@@ -403,7 +406,9 @@ export function applyFoodProfile(state, user) {
   const seed = cleanNumber(childPlan.menuSeed, 0, 0, 1000000);
   state.shoppingList = favorites;
   state.weeklyMenu = resolveWeeklyMenu(childPlan, childProfile, favorites, seed);
-  state.shoppingSchedule = normalizeShoppingSchedule(childPlan.shoppingSchedule);
+  // Grocery schedules are owned by family_recurring_items now. Start with
+  // UI defaults until the normalized family-plan request finishes.
+  state.shoppingSchedule = defaultShoppingSchedule();
   state.foodPlanSeed = seed;
   state.foodPlanGeneratedAt = cleanText(childPlan.lastGeneratedAt, 40);
   state.lockedMealDays = normalizeStringList(childPlan.lockedMealDays);
@@ -434,7 +439,6 @@ function currentChildPlan(ctx, overrides = {}) {
     ...childPlan,
     favorites,
     weeklyMenu: normalizeWeeklyMenu(overrides.weeklyMenu ?? state.weeklyMenu),
-    shoppingSchedule: normalizeShoppingSchedule(overrides.shoppingSchedule ?? state.shoppingSchedule),
     lockedMealDays: normalizeStringList(overrides.lockedMealDays ?? state.lockedMealDays),
     checkedShoppingItems: normalizeStringList(overrides.checkedShoppingItems ?? state.checkedShoppingItems),
     customShoppingItems: normalizeStringList(overrides.customShoppingItems ?? state.customShoppingItems),
@@ -573,6 +577,21 @@ function removeShoppingBlock(ctx, index) {
     ctx.renderCurrent();
     return;
   }
+  const removed = schedule[index];
+  if (removed?.planId) {
+    removeRecurringItem(removed.planId).catch((error) => {
+      state.foodStatus = `Could not remove grocery event: ${error.message}`;
+      ctx.renderCurrent();
+    });
+    state.familyRecurringItems = (state.familyRecurringItems || []).filter((item) => item.id !== removed.planId);
+  }
+  if (removed?.eventPlanId) {
+    removePlannedEvent(removed.eventPlanId).catch((error) => {
+      state.foodStatus = `Could not remove grocery event occurrence: ${error.message}`;
+      ctx.renderCurrent();
+    });
+    state.familyPlanEvents = (state.familyPlanEvents || []).filter((item) => item.id !== removed.eventPlanId);
+  }
   state.shoppingSchedule = schedule.filter((_, itemIndex) => itemIndex !== index);
   state.foodStatus = 'Shopping block removed. Save the food plan to keep it.';
   ctx.renderCurrent();
@@ -593,11 +612,63 @@ function updateShoppingSchedule(ctx, index, field, value, shouldRender = false) 
   if (shouldRender) ctx.renderCurrent();
 }
 
-function saveShoppingEvent(ctx, index) {
+async function saveShoppingEvent(ctx, index) {
   const schedule = normalizeShoppingSchedule(ctx.state.shoppingSchedule);
   if (!schedule[index]) return;
+  const selected = schedule[index];
   ctx.state.shoppingSchedule = schedule.map((item, itemIndex) => itemIndex === index ? { ...item, saved: true } : item);
-  saveFoodPlan(ctx, `${schedule[index].title} saved as a family event.`);
+  try {
+    const response = await saveRecurringItem({
+      id: selected.planId,
+      childId: getChildProfile(ctx.state.user)?.id || null,
+      kind: 'grocery',
+      title: selected.title,
+      recurrenceRule: {
+        weekday: selected.weekday,
+        time: selected.time,
+        durationMinutes: selected.durationMinutes,
+      },
+      metadata: { legacyId: selected.id },
+      active: true,
+    });
+    const saved = response.item;
+    const start = nextDateForWeekday(selected.weekday, selected.time);
+    const end = new Date(start.getTime() + selected.durationMinutes * 60 * 1000);
+    const eventResponse = await savePlannedEvent({
+      id: selected.eventPlanId,
+      childId: getChildProfile(ctx.state.user)?.id || null,
+      kind: 'grocery',
+      title: selected.title,
+      summary: `Recurring grocery block on ${selected.weekday}.`,
+      startsAt: start.toISOString(),
+      endsAt: end.toISOString(),
+      status: 'planned',
+      source: 'food',
+      metadata: {
+        recurringId: saved.id,
+        weekday: selected.weekday,
+        time: selected.time,
+        durationMinutes: selected.durationMinutes,
+        legacyId: selected.id,
+      },
+    });
+    const savedEvent = eventResponse.item;
+    ctx.state.shoppingSchedule = ctx.state.shoppingSchedule.map((item, itemIndex) => itemIndex === index ? { ...item, planId: saved.id, saved: true } : item);
+    ctx.state.shoppingSchedule = ctx.state.shoppingSchedule.map((item, itemIndex) => itemIndex === index ? { ...item, eventPlanId: savedEvent.id } : item);
+    ctx.state.familyRecurringItems = [
+      ...(ctx.state.familyRecurringItems || []).filter((item) => item.id !== saved.id && item.metadata?.legacyId !== selected.id),
+      saved,
+    ];
+    ctx.state.familyPlanEvents = [
+      ...(ctx.state.familyPlanEvents || []).filter((item) => item.id !== savedEvent.id && item.metadata?.recurringId !== saved.id),
+      savedEvent,
+    ];
+    ctx.state.foodStatus = `${selected.title} saved as a family event.`;
+  } catch (error) {
+    ctx.state.shoppingSchedule = schedule;
+    ctx.state.foodStatus = `Could not save grocery event: ${error.message}`;
+  }
+  ctx.renderCurrent();
 }
 
 function weekdayOptions(selected) {
@@ -643,7 +714,7 @@ export function renderFood(ctx) {
     ? normalizeWeeklyMenu(state.weeklyMenu)
     : generateWeeklyMenu({ childProfile, favorites: shoppingList, seed: state.foodPlanSeed || 0 });
   const shoppingSchedule = normalizeShoppingSchedule(state.shoppingSchedule);
-  const logistics = buildFamilyLogistics(state.user);
+  const logistics = buildFamilyLogistics(state.user, { restockItems: state.restockItems, logisticsItems: state.logisticsItems });
   const logisticsFoodItems = logistics.foodItems.map((item) => item.text);
   const checklistItems = menuShoppingItems(weeklyMenu, [...state.customShoppingItems, ...logisticsFoodItems]);
   const checklist = checklistGroups(checklistItems);

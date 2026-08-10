@@ -74,7 +74,7 @@ When Supabase is configured, the backend stores signed-in user data in:
 - `public.family_event_cache`
 - `public.playground_cache`
 - `public.parenting_resource_cache`
-- `public.profiles` JSON fields including `amazon_errands` and `family_objects`
+- `public.profiles` JSON fields including `amazon_errands`
 
 Apply all migrations in `supabase/migrations/` in filename order. The current sequence includes:
 
@@ -89,7 +89,6 @@ supabase/migrations/202607290001_playground_cache.sql
 supabase/migrations/202607290002_playdate_chat_participants.sql
 supabase/migrations/202607290003_playdate_chat_profile_visibility.sql
 supabase/migrations/202608050001_remove_legacy_amazon_errands.sql
-supabase/migrations/202608050002_family_objects.sql
 supabase/migrations/202608050003_parenting_resource_cache.sql
 ```
 
@@ -122,7 +121,7 @@ The app stores a few browser-local values such as the login email and selected H
 - `PUT /api/social-links` updates saved social links.
 - `PUT /api/location` updates the saved location.
 - `GET /api/family-events` returns cached weekend family events for the profile city and current weekend; `refresh=1` forces a refresh. The server cache lasts 12 hours.
-- `PUT /api/family-objects` persists attended weekend events as Home family objects.
+- Family-owned events and recurring items persist through `/api/family-plans`.
 - `GET /api/playdates?playgroundKey=...` returns upcoming visible play dates for a selected playground.
 - `POST /api/playdates` creates a public or private play date at the selected playground.
 - `PUT /api/playdates` joins an existing public play date using `playDateId` from `public.play_dates`.

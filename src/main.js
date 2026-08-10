@@ -12,6 +12,7 @@ import { DEFAULT_ALBUM_LINK, DEFAULT_HOME_BACKGROUND_KEY, applyHomeProfile, clea
 import { getLocationCoords, refreshPlayPlanning, renderPlay, resetPlayState } from './tabs/play.js';
 import { renderSocial, resetSocialState } from './tabs/social.js';
 import { createSupabaseBrowserClient } from '../lib/supabase/client.js';
+import { loadFamilyPlans } from './family-plans.js';
 import {
   APP_NAME,
   createChildId,
@@ -57,7 +58,8 @@ const state = {
   logisticsEditItemId: '',
   amazonReminder: null,
   foodFocus: '',
-  familyObjects: [],
+  familyPlanEvents: [],
+  familyRecurringItems: [],
   newAmazonTask: '',
   outfitIdeas: [],
   albumLink: readFirstStoredValue(['sproutCueApplePhotosLink', 'aaronApplePhotosLink'], DEFAULT_ALBUM_LINK),
@@ -506,7 +508,6 @@ async function ensureBackendUser() {
 function applyUserProfile(user) {
   clearUploadedBackground(state);
   state.user = user;
-  state.familyObjects = Array.isArray(user.familyObjects) ? user.familyObjects : [];
   const childProfile = getChildProfile(user);
   state.loginEmail = user.email || state.loginEmail;
   state.loginName = user.displayName || '';
@@ -522,7 +523,54 @@ function applyUserProfile(user) {
       ? 'Using the child profile home city until a precise location is saved.'
       : 'No location saved yet. Share current location or enter one below.';
   refreshPlayPlanning(appContext);
+  loadFamilyPlanState(appContext);
   if (user.email) writeStoredValue('sproutCueLoginEmail', user.email);
+}
+
+function applyFamilyPlanState(state, payload = {}) {
+  state.familyPlanEvents = Array.isArray(payload.events) ? payload.events : [];
+  state.familyRecurringItems = Array.isArray(payload.recurringItems) ? payload.recurringItems : [];
+  const savedReminder = state.familyPlanEvents.find((item) => item.kind === 'logistics' && item.metadata?.reminder === true && item.status !== 'cancelled');
+  state.amazonReminder = savedReminder
+    ? { itemId: savedReminder.metadata?.legacyId || savedReminder.metadata?.recurringId || savedReminder.id, text: savedReminder.title, dueDate: savedReminder.dueDate, planId: savedReminder.id, savedAt: savedReminder.createdAt }
+    : null;
+  state.shoppingSchedule = state.familyRecurringItems
+    .filter((item) => item.kind === 'grocery' && item.active)
+    .map((item) => ({
+      id: item.metadata?.legacyId || item.id,
+      planId: item.id,
+      eventPlanId: state.familyPlanEvents.find((event) => event.kind === 'grocery' && event.metadata?.recurringId === item.id)?.id || '',
+      weekday: item.recurrenceRule?.weekday || 'Monday',
+      time: item.recurrenceRule?.time || '10:00',
+      durationMinutes: item.recurrenceRule?.durationMinutes || 60,
+      title: item.title,
+      saved: true,
+    }));
+  state.logisticsItems = state.familyRecurringItems
+    .filter((item) => item.kind === 'logistics' && item.active)
+    .map((item) => ({
+      id: item.metadata?.legacyId || item.id,
+      planId: item.id,
+      text: item.title,
+      kidId: item.childId || '',
+      kidName: item.metadata?.kidName || 'Family',
+      reason: item.metadata?.reason || 'custom',
+      frequencyDays: item.recurrenceRule?.frequencyDays || null,
+      lastRestocked: item.lastCompletedAt ? item.lastCompletedAt.slice(0, 10) : '',
+      nextRestockDate: item.nextDueDate || '',
+      active: true,
+    }));
+}
+
+async function loadFamilyPlanState(ctx) {
+  try {
+    const payload = await loadFamilyPlans();
+    applyFamilyPlanState(ctx.state, payload);
+    if (ctx.state.tab === 'home') ctx.renderCurrent();
+  } catch (error) {
+    ctx.state.apiMessage = `Family planning data unavailable: ${error.message}`;
+    if (ctx.state.tab === 'home') ctx.renderCurrent();
+  }
 }
 
 async function loginUser(event) {
@@ -618,9 +666,6 @@ async function saveUserSection(section, payload, options = {}) {
     if (section === 'amazon-errands') {
       applyErrandsProfile(state, user);
       state.amazonStatus = '';
-    }
-    if (section === 'family-objects') {
-      state.familyObjects = Array.isArray(user.familyObjects) ? user.familyObjects : [];
     }
     return true;
   } catch (error) {

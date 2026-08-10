@@ -162,14 +162,21 @@ function backgroundPickerMarkup(state, active) {
 
 function homeObjects(state) {
   const objects = [];
-  (state.profilePlayDates || []).slice(0, 3).forEach((item) => objects.push({
+  const now = new Date();
+  (state.profilePlayDates || [])
+    .filter((item) => {
+      const endsAt = new Date(item.endsAt || item.startsAt || 0);
+      return Number.isFinite(endsAt.getTime()) && endsAt >= now;
+    })
+    .slice(0, 3)
+    .forEach((item) => objects.push({
     icon: '🛝',
     type: item.isHost ? 'Hosted playdate' : 'Joined playdate',
     title: item.playgroundName,
     detail: new Date(item.startsAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }),
     tab: 'play',
     focus: 'playdates',
-  }));
+    }));
   const plan = state.user?.foodPlan;
   if (plan?.weeklyMenu?.length || plan?.byChild) objects.push({ icon: '🥣', type: 'Saved food plan', title: 'Weekly meals', detail: plan.lastGeneratedAt ? 'Recently updated' : 'Saved for your family', tab: 'food' });
   const logistics = buildFamilyLogistics(state.user, { restockItems: state.restockItems, logisticsItems: state.logisticsItems });
@@ -182,13 +189,45 @@ function homeObjects(state) {
     objects.push({ icon: '🧺', type: 'Next family reminder', title: nextDueItem?.text || reminder.text || 'Logistics item', detail: dueDate ? `Buy by ${new Date(`${dueDate}T00:00:00`).toLocaleDateString([], { month: 'short', day: 'numeric' })}` : 'Open errands to review', tab: 'errands' });
   }
   (state.shoppingSchedule || []).filter((event) => event.saved).slice(0, 3).forEach((event) => {
-    objects.push({ icon: '🛒', type: 'Saved grocery event', title: event.title, detail: `${event.weekday} at ${event.time}`, tab: 'food', focus: 'shopping-events' });
+    const nextOccurrence = nextShoppingOccurrence(event, now);
+    if (!nextOccurrence) return;
+    objects.push({ icon: '🛒', type: 'Saved grocery event', title: event.title, detail: nextOccurrence.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ` at ${event.time}`, tab: 'food', focus: 'shopping-events' });
   });
-  (state.familyObjects || []).filter((item) => item.kind === 'weekend-event').slice(0, 3).forEach((item) => {
+  (state.familyPlanEvents || [])
+    .filter((item) => item.kind === 'external_event' && item.status !== 'cancelled' && isFutureFamilyEvent(item, now))
+    .slice(0, 3)
+    .forEach((item) => {
     const detail = [item.dateLabel, item.timeLabel, item.venue].filter(Boolean).join(' • ') || 'Saved weekend event';
-    objects.push({ icon: '🎟️', type: 'Attending weekend event', title: item.title, detail, tab: 'play', focus: 'family-events' });
-  });
+    const eventDetail = [item.metadata?.dateLabel, item.metadata?.timeLabel, item.venue].filter(Boolean).join(' • ') || detail;
+    objects.push({ icon: '🎟️', type: 'Attending weekend event', title: item.title, detail: eventDetail, tab: 'play', focus: 'family-events' });
+    });
   return objects.slice(0, 6);
+}
+
+function isFutureFamilyEvent(item, now) {
+  const timestamp = item.endsAt || item.startsAt;
+  if (timestamp) {
+    const date = new Date(timestamp);
+    return Number.isFinite(date.getTime()) && date >= now;
+  }
+  if (item.metadata?.date) {
+    const date = new Date(`${item.metadata.date}T23:59:59`);
+    return Number.isFinite(date.getTime()) && date >= now;
+  }
+  return false;
+}
+
+function nextShoppingOccurrence(event, now = new Date()) {
+  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const targetDay = weekdays.indexOf(event.weekday);
+  if (targetDay < 0 || !/^\d{2}:\d{2}$/.test(event.time || '')) return null;
+  const [hour, minute] = event.time.split(':').map((value) => Number.parseInt(value, 10));
+  const occurrence = new Date(now);
+  occurrence.setHours(hour, minute, 0, 0);
+  let dayOffset = (targetDay - now.getDay() + 7) % 7;
+  if (dayOffset === 0 && occurrence < now) dayOffset = 7;
+  occurrence.setDate(now.getDate() + dayOffset);
+  return occurrence;
 }
 
 function objectCards(objects, compact = false) {

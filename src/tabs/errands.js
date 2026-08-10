@@ -1,6 +1,7 @@
 import { escapeAttribute, escapeHtml, icon } from '../shared.js';
 import { childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
 import { buildFamilyLogistics } from '../../lib/kid-logistics.js';
+import { removePlannedEvent, removeRecurringItem, savePlannedEvent, saveRecurringItem } from '../family-plans.js';
 
 export const defaultOutfitIdeas = [
   {
@@ -35,9 +36,9 @@ export function applyErrandsProfile(state, user) {
     ? user.amazonErrands.outfitIdeas.map((idea, index) => ({ ...defaultOutfitIdeas[index % defaultOutfitIdeas.length], ...idea }))
     : defaultOutfitIdeas.map((idea) => ({ ...idea }));
   state.amazonStatus = '';
-  state.restockItems = user.amazonErrands?.restockItems && typeof user.amazonErrands.restockItems === 'object' ? user.amazonErrands.restockItems : {};
-  state.logisticsItems = Array.isArray(user.amazonErrands?.logisticsItems) ? user.amazonErrands.logisticsItems : [];
-  state.amazonReminder = user.amazonErrands?.reminder && typeof user.amazonErrands.reminder === 'object' ? user.amazonErrands.reminder : null;
+  state.restockItems = {};
+  state.logisticsItems = [];
+  state.amazonReminder = null;
 }
 
 export function resetErrandsState(state) {
@@ -51,14 +52,43 @@ export function resetErrandsState(state) {
   state.amazonReminder = null;
 }
 
-function saveAmazonErrands(ctx, outfitIdeas = ctx.state.outfitIdeas) {
-  return ctx.saveUserSection('amazon-errands', {
-    tasks: [],
-    outfitIdeas,
-    restockItems: ctx.state.restockItems || {},
-    logisticsItems: ctx.state.logisticsItems || [],
-    reminder: ctx.state.amazonReminder || null,
-  });
+async function saveAmazonErrands(ctx) {
+  // Logistics rules now use the normalized family-plans API. The legacy
+  // amazon-errands endpoint is intentionally not part of this save path.
+  const current = ctx.state.logisticsItems || [];
+  try {
+    const existing = (ctx.state.familyRecurringItems || []).filter((item) => item.kind === 'logistics');
+    await Promise.all(existing
+      .filter((item) => !current.some((candidate) => candidate.planId === item.id && candidate.active !== false))
+      .map((item) => removeRecurringItem(item.id)));
+    const saved = await Promise.all(current
+      .filter((item) => item.active !== false)
+      .map((item) => saveRecurringItem({
+        id: item.planId,
+        childId: item.kidId || null,
+        kind: 'logistics',
+        title: item.text,
+        nextDueDate: item.nextRestockDate || null,
+        lastCompletedAt: item.lastRestocked ? `${item.lastRestocked}T00:00:00.000Z` : null,
+        active: true,
+        recurrenceRule: { frequencyDays: item.frequencyDays || null },
+        metadata: { legacyId: item.id, kidName: item.kidName || 'Family', reason: item.reason || 'custom' },
+      })));
+    saved.forEach((response) => {
+      const item = response?.item;
+      if (!item) return;
+      const target = current.find((candidate) => candidate.id === item.metadata?.legacyId);
+      if (target) target.planId = item.id;
+    });
+    ctx.state.familyRecurringItems = [
+      ...(ctx.state.familyRecurringItems || []).filter((item) => item.kind !== 'logistics'),
+      ...saved.map((response) => response.item).filter(Boolean),
+    ];
+    ctx.state.amazonStatus = 'Family logistics saved.';
+  } catch (error) {
+    ctx.state.amazonStatus = `Could not save family logistics: ${error.message}`;
+  }
+  ctx.renderCurrent();
 }
 
 function markRestockBought(ctx, itemId) {
@@ -77,8 +107,13 @@ function updateLogisticsFrequency(ctx, itemId, value) {
 
 function removeLogisticsItem(ctx, itemId) {
   const current = (ctx.state.logisticsItems || []).find((item) => item.id === itemId);
+  const reminder = (ctx.state.familyPlanEvents || []).find((event) => event.kind === 'logistics' && event.metadata?.reminder === true && event.metadata?.recurringId === (current?.planId || itemId));
   ctx.state.logisticsItems = (ctx.state.logisticsItems || []).map((item) => item.id === itemId ? { ...item, active: false } : item);
   if (ctx.state.amazonReminder?.itemId === itemId) ctx.state.amazonReminder = null;
+  if (reminder) {
+    removePlannedEvent(reminder.id).catch(() => {});
+    ctx.state.familyPlanEvents = (ctx.state.familyPlanEvents || []).filter((event) => event.id !== reminder.id);
+  }
   ctx.state.amazonStatus = `${current?.text || 'Logistics item'} removed. Save errands to keep it removed.`;
   saveAmazonErrands(ctx);
 }
@@ -162,7 +197,28 @@ function saveReminder(ctx, item) {
     savedAt: new Date().toISOString(),
   };
   ctx.state.amazonStatus = `${item.text} reminder saved for ${formatRestockDate(item.nextRestockDate)}.`;
-  saveAmazonErrands(ctx);
+  const previous = (ctx.state.familyPlanEvents || []).find((event) => event.kind === 'logistics' && event.metadata?.reminder === true);
+  Promise.resolve(previous ? removePlannedEvent(previous.id) : null)
+    .then(() => savePlannedEvent({
+      kind: 'logistics',
+      title: item.text,
+      summary: 'Family logistics reminder',
+      dueDate: item.nextRestockDate,
+      status: 'planned',
+      source: 'logistics',
+      metadata: { reminder: true, recurringId: item.planId || item.id, legacyId: item.id },
+    }))
+    .then((response) => {
+      ctx.state.familyPlanEvents = [
+        ...(ctx.state.familyPlanEvents || []).filter((event) => !(event.kind === 'logistics' && event.metadata?.reminder === true)),
+        response.item,
+      ];
+      ctx.renderCurrent();
+    })
+    .catch((error) => {
+      ctx.state.amazonStatus = `Reminder save failed: ${error.message}`;
+      ctx.renderCurrent();
+    });
 }
 
 export function renderErrands(ctx) {

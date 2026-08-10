@@ -1,5 +1,6 @@
 import { apiRequest, escapeAttribute, escapeHtml, fetchWithTimeout, icon } from '../shared.js';
 import { childAgeLabel, childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
+import { removePlannedEvent, savePlannedEvent } from '../family-plans.js';
 
 const nearbyPlaces = [
   ['Seattle Center Artists at Play', 'Outdoor playground', '0.6 mi', 'climbing, slides, car/streetcar watching nearby', 'dry or light drizzle'],
@@ -874,34 +875,45 @@ function familyEventId(event) {
 }
 
 function isFamilyEventAttended(event, state) {
-  return Boolean(event.attended || state.familyObjects?.some((item) => item.id === familyEventId(event)));
+  const id = familyEventId(event);
+  return Boolean(event.attended || state.familyPlanEvents?.some((item) => item.externalId === id && item.status !== 'cancelled'));
 }
 
 async function toggleFamilyEventAttendance(ctx, event) {
   const id = familyEventId(event);
   if (!id) return;
-  const wasAttended = isFamilyEventAttended(event, ctx.state);
-  const previousFamilyObjects = ctx.state.familyObjects || [];
-  const familyObject = {
-    id,
-    kind: 'weekend-event',
+  const existing = (ctx.state.familyPlanEvents || []).find((item) => item.externalId === id && item.status !== 'cancelled');
+  const previousPlanEvents = ctx.state.familyPlanEvents || [];
+  const familyEvent = {
+    kind: 'external_event',
     title: event.title || 'Family event',
     summary: event.summary || 'Family-friendly weekend option.',
-    dateLabel: event.dateLabel || '',
-    timeLabel: event.timeLabel || '',
+    status: 'attending',
+    source: event.source || 'parentmap',
+    externalId: id,
     venue: event.venue || '',
     url: event.url || '',
-    imageUrl: event.imageUrl || '',
-    savedAt: new Date().toISOString(),
+    metadata: {
+      dateLabel: event.dateLabel || '',
+      date: event.date || '',
+      timeLabel: event.timeLabel || '',
+      imageUrl: event.imageUrl || '',
+    },
   };
-  ctx.state.familyObjects = wasAttended
-    ? previousFamilyObjects.filter((item) => !(item.kind === 'weekend-event' && item.id === id))
-    : [...previousFamilyObjects, familyObject];
-  ctx.state.apiMessage = wasAttended ? 'Removing event from your family plans…' : 'Saving event to your family plans…';
+  ctx.state.apiMessage = existing ? 'Removing event from your family plans…' : 'Saving event to your family plans…';
+  ctx.state.familyPlanEvents = existing
+    ? previousPlanEvents.filter((item) => item.id !== existing.id)
+    : [...previousPlanEvents, { ...familyEvent, externalId: id }];
   ctx.renderCurrent();
-  const saved = await ctx.saveUserSection('family-objects', ctx.state.familyObjects);
-  if (!saved) {
-    ctx.state.familyObjects = previousFamilyObjects;
+  try {
+    if (existing) await removePlannedEvent(existing.id);
+    else {
+      const response = await savePlannedEvent(familyEvent);
+      const saved = response.item;
+      ctx.state.familyPlanEvents = ctx.state.familyPlanEvents.map((item) => item.externalId === id ? saved : item);
+    }
+  } catch (error) {
+    ctx.state.familyPlanEvents = previousPlanEvents;
     ctx.state.apiMessage = 'Could not update event attendance.';
     ctx.renderCurrent();
   }
