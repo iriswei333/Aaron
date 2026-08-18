@@ -3,11 +3,10 @@
 import React from 'react';
 
 export const TAB_ITEMS = [
-  { key: 'home', icon: '🏠', label: 'Home' },
-  { key: 'play', icon: '🛝', label: 'Play' },
-  { key: 'food', icon: '🥣', label: 'Food' },
-  { key: 'errands', icon: '🛒', label: 'Errands' },
-  { key: 'social', icon: '📷', label: 'Social' },
+  { key: 'home', codePoint: 0x1f3e0, fallback: '🏠', label: 'Home' },
+  { key: 'play', codePoint: 0x1f6dd, fallback: '🛝', label: 'Play' },
+  { key: 'chat', codePoint: 0x1f4ac, fallback: '💬', label: 'Chat' },
+  { key: 'profile', codePoint: 0x1f46a, fallback: '👪', label: 'Family' },
 ];
 
 export function TabNav({ activeTab = 'home', unreadCounts = {}, onChange }) {
@@ -26,7 +25,9 @@ export function TabNav({ activeTab = 'home', unreadCounts = {}, onChange }) {
             aria-label={unreadCount > 0 ? `${item.label}, ${unreadCount} unread` : item.label}
             onClick={() => onChange?.(item.key)}
           >
-            <span aria-hidden="true">{item.icon}</span>
+            <span className="tab-emoji" role="img" aria-label={item.label}>
+              {String.fromCodePoint(item.codePoint) || item.fallback}
+            </span>
             {item.label}
             {unreadCount > 0 && (
               <span className="tab-unread" aria-hidden="true">
@@ -39,4 +40,3 @@ export function TabNav({ activeTab = 'home', unreadCounts = {}, onChange }) {
     </nav>
   );
 }
-

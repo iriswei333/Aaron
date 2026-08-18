@@ -178,7 +178,7 @@ function homeObjects(state) {
     focus: 'playdates',
     }));
   const plan = state.user?.foodPlan;
-  if (plan?.weeklyMenu?.length || plan?.byChild) objects.push({ icon: '🥣', type: 'Saved food plan', title: 'Weekly meals', detail: plan.lastGeneratedAt ? 'Recently updated' : 'Saved for your family', tab: 'food' });
+  if (plan?.weeklyMenu?.length || plan?.byChild) objects.push({ icon: '🥣', type: 'Saved family plan', title: 'Weekly meals', detail: plan.lastGeneratedAt ? 'Recently updated' : 'Saved for your family', tab: 'profile' });
   const logistics = buildFamilyLogistics(state.user, { restockItems: state.restockItems, logisticsItems: state.logisticsItems });
   const nextDueItem = logistics.items
     .filter((item) => item.nextRestockDate)
@@ -186,12 +186,12 @@ function homeObjects(state) {
   const reminder = nextDueItem || state.amazonReminder;
   if (reminder) {
     const dueDate = nextDueItem?.nextRestockDate || reminder.dueDate;
-    objects.push({ icon: '🧺', type: 'Next family reminder', title: nextDueItem?.text || reminder.text || 'Logistics item', detail: dueDate ? `Buy by ${new Date(`${dueDate}T00:00:00`).toLocaleDateString([], { month: 'short', day: 'numeric' })}` : 'Open errands to review', tab: 'errands' });
+    objects.push({ icon: '🧺', type: 'Next family reminder', title: nextDueItem?.text || reminder.text || 'Logistics item', detail: dueDate ? `Buy by ${new Date(`${dueDate}T00:00:00`).toLocaleDateString([], { month: 'short', day: 'numeric' })}` : 'Open family profile to review', tab: 'profile' });
   }
   (state.shoppingSchedule || []).filter((event) => event.saved).slice(0, 3).forEach((event) => {
     const nextOccurrence = nextShoppingOccurrence(event, now);
     if (!nextOccurrence) return;
-    objects.push({ icon: '🛒', type: 'Saved grocery event', title: event.title, detail: nextOccurrence.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ` at ${event.time}`, tab: 'food', focus: 'shopping-events' });
+    objects.push({ icon: '🛒', type: 'Saved family event', title: event.title, detail: nextOccurrence.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ` at ${event.time}`, tab: 'profile' });
   });
   (state.familyPlanEvents || [])
     .filter((item) => item.kind === 'external_event' && item.status !== 'cancelled' && isFutureFamilyEvent(item, now))
@@ -243,7 +243,7 @@ export function renderHome(ctx) {
   const picker = backgroundPickerMarkup(state, background);
   const objects = homeObjects(state);
 
-  ctx.layout(`<main class="home-layout"><section class="hero-card home-hero" style="--home-background-image: url('${escapeAttribute(background.src)}');"><button id="change-background" class="icon-button home-background-control" type="button" aria-label="Edit background" title="Edit background">✎</button><div class="hero-copy"><h2>Good morning, ${escapeHtml(childName)}</h2><p>One quiet place for today’s play, meals, errands, and small memories.</p></div>${objects.length ? `<aside class="hero-objects"><p class="eyebrow">Your family events</p>${objectCards(objects, true)}</aside>` : ''}</section></main>${picker}`);
+  ctx.layout(`<main class="home-layout"><section class="hero-card home-hero" style="--home-background-image: url('${escapeAttribute(background.src)}');"><button id="change-background" class="icon-button home-background-control" type="button" aria-label="Edit background" title="Edit background">✎</button><div class="hero-copy"><p class="eyebrow">Your family day, made social</p><h2>Where should ${escapeHtml(childName)} play next?</h2><p>Find a nearby playground, see who is planning to be there, and make a playdate in a few taps.</p><div class="home-hero-actions"><button type="button" data-home-tab="play">Find nearby play <span>→</span></button><button type="button" class="secondary-button" data-home-tab="chat">Open family chat</button></div></div>${objects.length ? `<aside class="hero-objects"><p class="eyebrow">Your family events</p>${objectCards(objects, true)}</aside>` : ''}</section><section class="home-quick-grid"><button type="button" class="home-quick-card" data-home-tab="play"><span>✦</span><strong>Nearby play</strong><small>Playgrounds and public playdates around you</small></button><button type="button" class="home-quick-card" data-home-tab="chat"><span>◌</span><strong>Chat circle</strong><small>Keep the meetup conversation in one place</small></button><button type="button" class="home-quick-card" data-home-tab="profile"><span>◎</span><strong>Family profile</strong><small>Children, preferences, and your home base</small></button></section></main>${picker}`);
 
   document.getElementById('change-background').addEventListener('click', () => {
     state.showHomeBackgroundPicker = true;

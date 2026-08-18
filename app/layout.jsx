@@ -3,6 +3,11 @@ import '../src/styles.css';
 export const metadata = {
   title: 'SproutCue',
   description: 'Personalized daily planning for parents of young kids.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({ children }) {

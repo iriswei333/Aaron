@@ -125,6 +125,8 @@ The app stores a few browser-local values such as the login email and selected H
 - `GET /api/playdates?playgroundKey=...` returns upcoming visible play dates for a selected playground.
 - `POST /api/playdates` creates a public or private play date at the selected playground.
 - `PUT /api/playdates` joins an existing public play date using `playDateId` from `public.play_dates`.
+- `PATCH /api/playdates` edits a hosted public play date or records an attendee response (`joined` or `declined`).
+- `DELETE /api/playdates` cancels a hosted public play date without removing it from attendee history.
 - `PUT /api/food-plan` updates favorite foods and menu data.
 - `PUT /api/amazon-errands` updates errands and outfit ideas.
 - `GET /api/parenting-resources` returns age-matched articles from the daily database cache; `refresh=1` forces a refresh.

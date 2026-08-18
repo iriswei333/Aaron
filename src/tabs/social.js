@@ -21,14 +21,14 @@ async function loadChat(ctx, contactId = '') {
   } catch (error) {
     state.chatStatus = `Chat unavailable: ${error.message}`;
   }
-  if (state.tab === 'social') ctx.renderCurrent();
+  if (state.tab === 'chat') ctx.renderCurrent();
 }
 
 async function loadParentingResources(ctx, forceRefresh = false) {
   const { state } = ctx;
   try {
     state.parentingResourcesStatus = 'Finding age-matched parenting tips…';
-    if (state.tab === 'social') ctx.renderCurrent();
+    if (state.tab === 'chat') ctx.renderCurrent();
     const data = await apiRequest(`/parenting-resources${forceRefresh ? '?refresh=1' : ''}`);
     state.parentingResources = Array.isArray(data.resources) ? data.resources : [];
     state.parentingResourcesAgeFilter = data.ageFilter || '';
@@ -37,7 +37,7 @@ async function loadParentingResources(ctx, forceRefresh = false) {
     state.parentingResources = [];
     state.parentingResourcesStatus = `Could not load parenting resources: ${error.message}`;
   }
-  if (state.tab === 'social') ctx.renderCurrent();
+  if (state.tab === 'chat') ctx.renderCurrent();
 }
 
 async function sendChat(ctx, event) {
@@ -88,7 +88,7 @@ export function renderSocial(ctx) {
   if (!state.chatContacts.length) loadChat(ctx);
   if (!state.parentingResourcesStatus) loadParentingResources(ctx);
 
-  ctx.layout(`<main class="stack"><section class="panel chat-panel"><div class="section-heading"><div><p class="eyebrow">Private family circle</p><h2>Playdate chat</h2><p class="muted">Parents who share a playdate can message 1:1.</p></div></div>${renderChat(ctx)}${state.chatStatus ? `<p class="muted">${escapeHtml(state.chatStatus)}</p>` : ''}</section><section class="panel"><div class="section-heading"><div><p class="eyebrow">Parenting resources</p><h2>Tips for ${escapeHtml(childName)}</h2><p class="muted">${escapeHtml(state.parentingResourcesStatus || `Matching ParentMap articles to ${ageLabel}.`)}</p></div><button id="refresh-parenting-resources" type="button" class="secondary-button small-button">Refresh</button></div><div class="resource-grid">${state.parentingResources.length ? state.parentingResources.map(renderResourceCard).join('') : '<p class="muted">Age-matched articles will appear here.</p>'}</div></section></main>`);
+  ctx.layout(`<main class="stack"><section class="panel chat-panel"><div class="section-heading"><div><p class="eyebrow">Your playdate circle</p><h2>Chat</h2><p class="muted">Keep plans, hellos, and meetup details together with the families you connect with.</p></div></div>${renderChat(ctx)}${state.chatStatus ? `<p class="muted">${escapeHtml(state.chatStatus)}</p>` : ''}</section><section class="panel"><div class="section-heading"><div><p class="eyebrow">For your family</p><h2>Parenting resources</h2><p class="muted">${escapeHtml(state.parentingResourcesStatus || `Matching ParentMap articles to ${ageLabel}.`)}</p></div><button id="refresh-parenting-resources" type="button" class="secondary-button small-button">Refresh</button></div><div class="resource-grid">${state.parentingResources.length ? state.parentingResources.map(renderResourceCard).join('') : '<p class="muted">Age-matched articles will appear here.</p>'}</div></section></main>`);
 
   document.querySelectorAll('[data-chat-contact]').forEach((button) => button.addEventListener('click', () => {
     state.activeChatContactId = button.dataset.chatContact;

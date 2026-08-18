@@ -1,6 +1,12 @@
 import {
   createLocalPlayDate,
   createSupabasePlayDate,
+  updateLocalPublicPlayDate,
+  updateSupabasePublicPlayDate,
+  cancelLocalPublicPlayDate,
+  cancelSupabasePublicPlayDate,
+  respondLocalPublicPlayDate,
+  respondSupabasePublicPlayDate,
   joinLocalPlayDate,
   joinSupabasePlayDate,
   listLocalPlayDates,
@@ -65,6 +71,42 @@ export async function PUT(request) {
       ? await joinSupabasePlayDate(current.supabase, current.authUser, playDateId)
       : await joinLocalPlayDate(current.localUserId, playDateId);
 
+    return Response.json({ playDate, authMode: current.mode });
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request) {
+  try {
+    const body = await request.json();
+    const playDateId = String(body.playDateId || '').trim();
+    if (!playDateId) return Response.json({ error: 'Choose a play date.' }, { status: 400 });
+    const current = await getCurrentProfile(request);
+    if (!current.user) return profileErrorResponse(current);
+    const playDate = body.action === 'respond'
+      ? current.mode === 'supabase'
+        ? await respondSupabasePublicPlayDate(current.supabase, current.authUser, playDateId, body.response)
+        : await respondLocalPublicPlayDate(current.localUserId, playDateId, body.response)
+      : current.mode === 'supabase'
+        ? await updateSupabasePublicPlayDate(current.supabase, current.authUser, playDateId, body)
+        : await updateLocalPublicPlayDate(current.localUserId, playDateId, body);
+    return Response.json({ playDate, authMode: current.mode });
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const body = await request.json();
+    const playDateId = String(body.playDateId || '').trim();
+    if (!playDateId) return Response.json({ error: 'Choose a play date.' }, { status: 400 });
+    const current = await getCurrentProfile(request);
+    if (!current.user) return profileErrorResponse(current);
+    const playDate = current.mode === 'supabase'
+      ? await cancelSupabasePublicPlayDate(current.supabase, current.authUser, playDateId)
+      : await cancelLocalPublicPlayDate(current.localUserId, playDateId);
     return Response.json({ playDate, authMode: current.mode });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
