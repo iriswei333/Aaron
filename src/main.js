@@ -75,6 +75,7 @@ const state = {
   mapZoom: 1,
   nearbyStatus: 'Save a location to personalize nearby play options.',
   selectedPlaygroundKey: '',
+  playgroundDetailKey: '',
   playDatePlaygroundKey: '',
   playDates: [],
   profilePlayDates: [],
@@ -185,6 +186,13 @@ const TAB_EMOJIS = {
   profile: [0x1f46a, '👪'],
 };
 
+const TAB_ICONS = {
+  home: '<path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" />',
+  play: '<path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.6" />',
+  chat: '<path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-5 4z" />',
+  profile: '<circle cx="12" cy="8" r="3.5" /><path d="M5 20c1.3-3.4 3.9-5 7-5s5.7 1.6 7 5" />',
+};
+
 function tabEmoji(name) {
   const [codePoint, fallback] = TAB_EMOJIS[name] || [];
   try {
@@ -197,11 +205,18 @@ function tabEmoji(name) {
 function layout(content) {
   ensureRoot();
   const tabs = [['home', 'Home'], ['play', 'Play'], ['chat', 'Chat'], ['profile', 'Family']];
-  root.innerHTML = `<div class="app-shell"><header class="app-header"><div class="header-top"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">${escapeHtml(childHeaderSummary())}</p><h1>${APP_NAME}</h1></div></div><div class="sync-banner ${state.apiReady ? 'ready' : ''}"><div><strong>${escapeHtml(state.user.displayName)}</strong><small>${escapeHtml(state.user.email || 'Local family profile')}</small></div><span>${escapeHtml(state.apiMessage)}</span>${childSwitcherMarkup()}<div class="banner-actions"><button id="edit-profile" class="secondary-button" type="button">Edit profile</button><button id="logout-user" class="secondary-button" type="button">Sign out</button></div></div></div><nav class="tabs" aria-label="Planner sections">${tabs.map(([key, label]) => `<button class="${state.tab === key ? 'active' : ''}" data-tab="${key}" aria-current="${state.tab === key ? 'page' : 'false'}"><span class="tab-emoji" role="img" aria-label="${label}">${tabEmoji(key)}</span>${label}</button>`).join('')}</nav></header>${content}</div>`;
+  const locationLabel = state.user?.location?.address || state.user?.location?.label || getChildProfile(state.user)?.homeCity || 'Location not set';
+  const navMarkup = tabs.map(([key, label]) => `<button class="rail-nav-button ${state.tab === key ? 'active' : ''}" data-tab="${key}" aria-current="${state.tab === key ? 'page' : 'false'}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_ICONS[key]}</svg><span>${label}</span>${key === 'chat' && state.chatContacts?.length ? `<span class="rail-count">${state.chatContacts.length}</span>` : ''}</button>`).join('');
+  root.innerHTML = `<div class="app-shell"><div class="app-frame"><aside class="app-rail"><div class="rail-brand"><img src="/favicon.svg" alt="" aria-hidden="true" /><span>${APP_NAME}</span></div><nav class="rail-nav" aria-label="Planner sections">${navMarkup}</nav><button id="new-playdate" class="rail-create" type="button"><span aria-hidden="true">＋</span> New playdate</button><div class="rail-spacer"></div><div class="rail-account"><div class="rail-account-avatar">${escapeHtml((state.user?.displayName || 'F').slice(0, 1).toUpperCase())}</div><div class="rail-account-copy"><strong>${escapeHtml(state.user?.displayName || 'Family')}</strong><small>${escapeHtml(locationLabel)}</small></div></div><div class="rail-account-actions"><button id="edit-profile" type="button">Edit profile</button><button id="logout-user" type="button">Sign out</button></div>${childSwitcherMarkup()}</aside><section class="app-content"><div class="app-status ${state.apiReady ? 'ready' : ''}"><span>${escapeHtml(state.apiMessage)}</span>${state.user?.email ? `<small>${escapeHtml(state.user.email)}</small>` : ''}</div>${content}</section></div></div>`;
   document.querySelectorAll('[data-tab]').forEach((button) => button.addEventListener('click', () => {
     state.tab = button.dataset.tab;
     render();
   }));
+  document.getElementById('new-playdate').addEventListener('click', () => {
+    state.tab = 'play';
+    state.playdateFocus = '';
+    render();
+  });
   document.getElementById('active-child-select')?.addEventListener('change', (event) => switchActiveChild(event.target.value));
   document.getElementById('edit-profile').addEventListener('click', () => {
     state.showProfileSetup = true;

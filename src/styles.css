@@ -7,6 +7,191 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* Reference shell: desktop sidebar navigation */
+.app-shell {
+  max-width: 1440px;
+  width: min(1440px, calc(100% - 48px));
+}
+
+.app-frame {
+  background: #fbf7ef;
+  border: 1px solid #e7e0d2;
+  border-radius: 18px;
+  display: flex;
+  min-height: min(820px, calc(100vh - 56px));
+  overflow: hidden;
+}
+
+.app-rail {
+  background: #fffdf8;
+  border-right: 1px solid #e7e0d2;
+  display: flex;
+  flex: 0 0 228px;
+  flex-direction: column;
+  padding: 22px 14px 18px;
+}
+
+.rail-brand {
+  align-items: center;
+  color: #1f4a36;
+  display: flex;
+  font-family: "Trebuchet MS", ui-rounded, sans-serif;
+  font-size: 23px;
+  font-weight: 700;
+  gap: 10px;
+  padding: 0 12px 24px;
+}
+
+.rail-brand img { height: 30px; width: 30px; }
+.rail-nav { display: grid; gap: 2px; }
+.rail-nav-button { align-items: center; background: transparent; border: 0; border-radius: 12px; color: #5c6b60; display: flex; font-size: 14px; font-weight: 800; gap: 12px; justify-content: flex-start; margin: 0; min-height: 44px; padding: 10px 12px; text-align: left; width: 100%; }
+.rail-nav-button:hover { background: #fbf7ef; }
+.rail-nav-button.active { background: #e4efe6; color: #1f4a36; }
+.rail-nav-button svg { fill: none; height: 21px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.9; width: 21px; }
+.rail-count { align-items: center; background: #e2643b; border-radius: 999px; color: #fff; display: inline-flex; font-size: 11px; height: 20px; justify-content: center; margin-left: auto; min-width: 20px; padding: 0 6px; }
+.rail-create { background: #f6b73c; border: 0; border-radius: 13px; box-shadow: 0 4px 12px rgba(140, 95, 10, .18); color: #7a5410; font-family: "Trebuchet MS", ui-rounded, sans-serif; font-size: 15px; font-weight: 700; gap: 5px; justify-content: center; margin: 16px 0 0; padding: 13px; width: 100%; }
+.rail-create span { font-size: 20px; line-height: .7; }
+.rail-spacer { flex: 1; min-height: 28px; }
+.rail-account { align-items: center; border-top: 1px solid #e7e0d2; display: flex; gap: 10px; padding: 16px 8px 10px; }
+.rail-account-avatar { align-items: center; background: #e2643b; border: 2px solid #fff; border-radius: 50%; color: #fff; display: flex; flex: 0 0 34px; font-size: 13px; font-weight: 800; height: 34px; justify-content: center; width: 34px; }
+.rail-account-copy { display: grid; min-width: 0; }
+.rail-account-copy strong { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rail-account-copy small { color: #8c988f; font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rail-account-actions { display: flex; gap: 6px; padding: 0 8px 10px; }
+.rail-account-actions button { background: transparent; border: 0; color: #5c6b60; font-size: 11px; margin: 0; padding: 3px 0; }
+.rail-account-actions button + button::before { color: #e7e0d2; content: "·"; margin-right: 6px; }
+.app-rail .active-child-control { border-top: 1px dashed #e7e0d2; margin-top: 4px; padding: 12px 8px 0; }
+.app-content { flex: 1; min-width: 0; position: relative; }
+.app-status { align-items: center; color: #8c988f; display: flex; font-size: 11px; gap: 8px; justify-content: flex-end; min-height: 28px; padding: 8px 30px 0; }
+.app-status.ready { color: #2f6b4e; }
+.app-status small { color: #8c988f; }
+.app-content > .stack, .app-content > .home-layout { padding: 0 30px 38px; }
+.app-content > .stack, .app-content > .home-layout { max-width: 1180px; }
+
+@media (max-width: 860px) {
+  .app-shell { width: min(100% - 24px, 680px); }
+  .app-frame { border-radius: 16px; display: block; min-height: 0; }
+  .app-rail { border-bottom: 1px solid #e7e0d2; border-right: 0; padding: 14px 14px 12px; }
+  .rail-brand { padding: 0 8px 12px; }
+  .rail-nav { display: flex; overflow-x: auto; }
+  .rail-nav-button { flex: 1 0 auto; justify-content: center; min-width: 88px; width: auto; }
+  .rail-nav-button svg { display: none; }
+  .rail-create { margin: 10px 0 0; }
+  .rail-spacer, .rail-account, .rail-account-actions, .app-rail .active-child-control { display: none; }
+  .app-status { justify-content: flex-start; padding: 8px 18px 0; }
+  .app-content > .stack, .app-content > .home-layout { padding-left: 18px; padding-right: 18px; }
+}
+
+/* Play tab: list + map workspace */
+.app-content > .playdates-workspace {
+  display: grid;
+  grid-template-columns: minmax(340px, 392px) minmax(0, 1fr);
+  max-width: none;
+  min-height: calc(100vh - 112px);
+  padding: 0;
+}
+
+.playdates-list-pane {
+  background: #fbf7ef;
+  border-right: 1px solid #e7e0d2;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 24px 20px 34px;
+}
+
+.playdates-list-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  margin: 0 2px 16px;
+}
+
+.playdates-list-heading h2 { margin-bottom: 4px; }
+.playdates-list-heading p { margin-bottom: 0; }
+.compact-weather { flex: 0 0 auto; min-width: 74px; padding: 9px 8px; }
+.compact-weather strong { font-size: 1.15rem; }
+.compact-weather span { font-size: .68rem; }
+
+.play-list-section {
+  border-top: 1px solid #e7e0d2;
+  padding: 18px 2px 2px;
+}
+
+.play-list-section + .play-list-section { margin-top: 16px; }
+.play-list-section h3 { color: #263229; font-size: 1.08rem; margin-bottom: 5px; }
+.play-list-section .section-heading { gap: 8px; }
+.playdate-section-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; }
+.playdate-section-actions button { margin-top: 0; }
+.playdate-section-actions .playdate-create-button { padding: 8px 12px; width: auto; }
+.play-list-section .section-heading p { margin-bottom: 0; }
+.play-list-section .mini-card { margin-top: 8px; padding: 12px; }
+.play-list-section .play-card .resource-thumb { flex-basis: 58px; height: 58px; width: 58px; }
+.play-list-section .play-card-actions { gap: 7px; }
+.play-list-section .event-card { margin-top: 8px; padding: 12px; }
+.holiday-list-section .mini-card { align-items: flex-start; }
+.playdates-list-pane .playdate-detail { display: block; }
+.playdates-list-pane .playdate-detail .playground-hero-thumb { max-height: 130px; }
+.playdates-list-pane .playdate-detail .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.playground-summary-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.playground-summary-actions button { margin: 0; }
+.playground-summary-actions .secondary-button { margin: 0; }
+.create-playdate-dialog { max-width: 680px; }
+.playground-detail-dialog { max-width: 620px; }
+.create-playdate-dialog .form-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+.create-playdate-dialog .form-actions button { margin-top: 0; }
+.modal-backdrop[hidden] { display: none !important; }
+
+.playdates-map-pane {
+  background: #f3efe3;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.playdates-map-pane .map-panel {
+  background: #fffdf8;
+  min-height: calc(100vh - 250px);
+}
+
+.playdates-map-pane .neighborhood-map,
+.playdates-map-pane .google-play-map {
+  border-radius: 18px;
+  height: clamp(480px, calc(100vh - 300px), 690px);
+}
+
+.playdates-map-pane .location-tool { margin-top: 16px; }
+.playdates-map-pane .location-tool .section-heading { align-items: center; }
+.playdates-map-pane .location-tool .weather-grid { margin: 0; min-width: 260px; }
+.playdates-map-pane .location-tool form { grid-template-columns: 1fr auto; }
+.playdates-map-pane .location-tool .input-label { grid-column: 1 / -1; }
+.playdates-map-pane .location-tool form button { align-self: end; margin: 0 0 0 10px; }
+.map-location-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; }
+.map-location-actions button { margin-top: 0; }
+.location-tool-dialog { max-width: 620px; }
+.location-tool-dialog form { gap: 10px; }
+.location-tool-dialog form button { margin-top: 4px; }
+
+@media (max-width: 860px) {
+  .app-content > .playdates-workspace { display: block; min-height: 0; }
+  .playdates-list-pane { border-bottom: 1px solid #e7e0d2; border-right: 0; max-height: none; overflow: visible; }
+  .playdates-map-pane { padding: 14px 18px 28px; }
+  .playdates-map-pane .map-panel { min-height: 0; }
+  .playdates-map-pane .neighborhood-map,
+  .playdates-map-pane .google-play-map { height: 360px; }
+  .playdates-map-pane .location-tool .section-heading { align-items: flex-start; flex-direction: column; }
+  .playdates-map-pane .location-tool .weather-grid { min-width: 0; width: 100%; }
+}
+
+@media (max-width: 520px) {
+  .playdates-list-heading { display: grid; }
+  .playdates-list-heading .compact-weather { justify-self: start; }
+  .playdates-list-pane .playdate-detail .form-grid { grid-template-columns: 1fr; }
+  .playdates-map-pane .location-tool form { grid-template-columns: 1fr; }
+  .playdates-map-pane .location-tool .input-label { grid-column: auto; }
+  .playdates-map-pane .location-tool form button { margin: 10px 0 0; }
+}
+
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; min-height: 100vh; }
 button, input, select, textarea { font: inherit; }

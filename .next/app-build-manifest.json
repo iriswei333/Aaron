@@ -26,25 +26,30 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/home-background/route.js"
     ],
-    "/api/playgrounds/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/playgrounds/route.js"
-    ],
     "/api/playdates/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/playdates/route.js"
+    ],
+    "/api/family-events/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/family-events/route.js"
+    ],
+    "/api/playgrounds/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/playgrounds/route.js"
     ],
     "/api/family-plans/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/family-plans/route.js"
     ],
-    "/api/family-events/route": [
+    "/api/location/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/family-events/route.js"
+      "static/chunks/app/api/location/route.js"
     ]
   }
 }
