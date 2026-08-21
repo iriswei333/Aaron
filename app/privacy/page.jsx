@@ -17,10 +17,10 @@ export default function PrivacyPage() {
         <p>SproutCue is a planning service for parents and caregivers. Only adults may create and manage accounts. Children may not create accounts, submit information, use chat, or create play dates.</p>
 
         <h2>Information we collect</h2>
-        <p>We collect parent account information, child-profile information entered by a parent, family planning information, saved locations, play-date details, parent-to-parent messages and media, and browser-local settings needed to provide the service.</p>
+        <p>We collect parent account information, child-profile information entered by a parent, saved locations, saved weekend-event decisions, play-date details, parent-to-parent messages and media, and browser-local settings needed to provide the service.</p>
 
         <h2>How we use information</h2>
-        <p>We use information to authenticate parent accounts, personalize meals and activities, provide family planning tools, find nearby places and events, manage play dates, enable parent-to-parent chat, and maintain and secure SproutCue. We do not use children’s information for behavioral advertising or sell it.</p>
+        <p>We use information to authenticate parent accounts, personalize play activities, find nearby places and events, manage play dates, enable parent-to-parent chat, and maintain and secure SproutCue. We do not use children’s information for behavioral advertising or sell it.</p>
 
         <h2>Sharing</h2>
         <p>We use service providers for authentication, hosting, storage, maps, weather, events, and resources. Public play dates may show the selected play-date details to authenticated users who can view them. Chat messages and media are available to the intended participants.</p>

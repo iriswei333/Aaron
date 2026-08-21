@@ -1,15 +1,13 @@
 # SproutCue
 
-A small Next.js daily planner for parents of young kids. The app keeps separate parent profiles, captures each child's setup details, and helps organize play, meals, family logistics, saved events, social resources, and private family chat.
+A small Next.js daily planner for parents of young kids. The app keeps separate parent profiles, captures each child's setup details, and helps organize play, saved weekend events, social resources, and private family chat.
 
 ## Features
 
 - Parent profile login backed by Supabase Auth when configured, with a local JSON fallback for development
-- Multi-child onboarding for nickname, age or birthday, home city, food notes, favorite activities, caption preferences, and caption privacy
+- Multi-child onboarding for nickname, age or birthday, home city, favorite activities, caption preferences, and caption privacy
 - Playground discovery with saved location, Open-Meteo weather, weekend family events, public/private play dates, and public play-date joining
 - Attend buttons for weekend events; attended events persist as Home family objects and link back to the Play weekend-events section
-- Weekly menu planning, editable favorites, grocery shopping events for every day of the week, and saved grocery events as Home family objects
-- Family logistics with add, edit, bought-today, delete, frequency, and next-reminder controls; reminders appear in Errands and Home
 - Social tab with private playdate chat, media sharing, and age-matched parenting resources cached for one day
 - Home background picker with local-session uploads and family event objects positioned over the hero background
 - Social post helper that drafts captions locally from the parent’s selected preferences
@@ -74,7 +72,7 @@ When Supabase is configured, the backend stores signed-in user data in:
 - `public.family_event_cache`
 - `public.playground_cache`
 - `public.parenting_resource_cache`
-- `public.profiles` JSON fields including `amazon_errands`
+- `public.family_events` stores saved external weekend-event decisions only
 
 Apply all migrations in `supabase/migrations/` in filename order. The current sequence includes:
 
@@ -90,9 +88,10 @@ supabase/migrations/202607290002_playdate_chat_participants.sql
 supabase/migrations/202607290003_playdate_chat_profile_visibility.sql
 supabase/migrations/202608050001_remove_legacy_amazon_errands.sql
 supabase/migrations/202608050003_parenting_resource_cache.sql
+supabase/migrations/202608190001_deprecate_legacy_family_planning.sql
 ```
 
-When Supabase is not configured, the backend writes profile data, generated post history, play dates, family objects, and local cache entries to:
+When Supabase is not configured, the backend writes profile data, generated post history, saved weekend-event decisions, play dates, and local cache entries to:
 
 ```text
 data/app-state.json
@@ -121,14 +120,12 @@ The app stores a few browser-local values such as the login email and selected H
 - `PUT /api/social-links` updates saved social links.
 - `PUT /api/location` updates the saved location.
 - `GET /api/family-events` returns cached weekend family events for the profile city and current weekend; `refresh=1` forces a refresh. The server cache lasts 12 hours.
-- Family-owned events and recurring items persist through `/api/family-plans`.
+- Saved weekend-event decisions persist through `/api/family-plans`.
 - `GET /api/playdates?playgroundKey=...` returns upcoming visible play dates for a selected playground.
 - `POST /api/playdates` creates a public or private play date at the selected playground.
 - `PUT /api/playdates` joins an existing public play date using `playDateId` from `public.play_dates`.
 - `PATCH /api/playdates` edits a hosted public play date or records an attendee response (`joined` or `declined`).
 - `DELETE /api/playdates` cancels a hosted public play date without removing it from attendee history.
-- `PUT /api/food-plan` updates favorite foods and menu data.
-- `PUT /api/amazon-errands` updates errands and outfit ideas.
 - `GET /api/parenting-resources` returns age-matched articles from the daily database cache; `refresh=1` forces a refresh.
 - `DELETE /api/account/delete` deletes the signed-in parent’s SproutCue profile data and associated app records.
 - `POST /api/auth/login` keeps the local JSON fallback working when Supabase is not configured.
@@ -160,6 +157,5 @@ data/
 - Weather uses Open-Meteo from the browser after a profile has saved latitude and longitude.
 - Weekend family events are fetched server-side only. The API uses the saved profile city or location city, parses ParentMap calendar pages for supported Puget Sound cities, caches results for 12 hours, and falls back to clearly labeled search links when no parsed event cards are available.
 - Parenting resources are fetched and parsed server-side by child age group, then cached in `parenting_resource_cache` for 24 hours. Social’s Refresh button bypasses that cache.
-- Grocery shopping events no longer generate `.ics` files. Users save events into the food plan, and saved events appear as Home family objects.
-- The legacy Amazon task list was removed. Care supplies are managed through Family logistics, with reminders saved in the existing `amazon_errands` JSON field.
+- Meal planning, grocery shopping events, and recurring family-logistics events were retired in the 202608190001 cutoff migration. The migration removes their stored profile/table data and narrows saved family events to external weekend events.
 - Photos and videos selected for local caption drafting are previewed locally in the browser. Media is uploaded only when the parent explicitly shares it in parent-to-parent chat.

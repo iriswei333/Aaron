@@ -2,6 +2,8 @@ let mapsApiPromise;
 let activeMapElement;
 let activeMap;
 let activeMarkers = [];
+let activeMapRadiusMeters = 0;
+let activeRadiusCircle;
 
 const browserMapsKey = String(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '').trim();
 
@@ -51,7 +53,7 @@ function clearMarkers() {
   activeMarkers = [];
 }
 
-export async function renderGooglePlayMap({ element, center, playgrounds = [], playdates = [], selectedPlaygroundKey = '', onPlaygroundSelect, onPlaydateSelect }) {
+export async function renderGooglePlayMap({ element, center, radiusMeters = 4828, playgrounds = [], playdates = [], selectedPlaygroundKey = '', onPlaygroundSelect, onPlaydateSelect }) {
   if (!element || !hasGoogleMapsKey() || !center) return false;
   try {
     const maps = await loadGoogleMaps();
@@ -59,7 +61,10 @@ export async function renderGooglePlayMap({ element, center, playgrounds = [], p
       maps.importLibrary('maps'),
       maps.importLibrary('marker'),
     ]);
-    if (activeMapElement !== element) {
+    const isNewMap = activeMapElement !== element;
+    if (isNewMap) {
+      activeRadiusCircle?.setMap(null);
+      activeRadiusCircle = null;
       activeMap = new Map(element, {
         center,
         zoom: 13,
@@ -70,9 +75,30 @@ export async function renderGooglePlayMap({ element, center, playgrounds = [], p
         zoomControl: true,
       });
       activeMapElement = element;
+    }
+    const radiusChanged = activeMapRadiusMeters !== radiusMeters;
+    if (!activeRadiusCircle) {
+      activeRadiusCircle = new maps.Circle({
+        map: activeMap,
+        center,
+        radius: radiusMeters,
+        strokeColor: '#3b82f6',
+        strokeOpacity: 0.72,
+        strokeWeight: 2,
+        fillColor: '#3b82f6',
+        fillOpacity: 0.12,
+      });
+    } else {
+      activeRadiusCircle.setCenter(center);
+      activeRadiusCircle.setRadius(radiusMeters);
+    }
+    if (radiusChanged || isNewMap) {
+      const bounds = activeRadiusCircle.getBounds();
+      if (bounds) activeMap.fitBounds(bounds, 24);
     } else {
       activeMap.setCenter(center);
     }
+    activeMapRadiusMeters = radiusMeters;
     clearMarkers();
     const userMarker = new AdvancedMarkerElement({
       map: activeMap,

@@ -5,6 +5,7 @@ import {
   writeSupabasePlaygroundCache,
 } from '../../../lib/backend.js';
 import { fetchNearbyPlaygrounds, playgroundCacheKey } from '../../../lib/playgrounds.js';
+import { normalizePlayPreferences } from '../../../lib/profile-defaults.js';
 import { getCurrentProfile, profileErrorResponse } from '../../../lib/profile-session.js';
 
 export const runtime = 'nodejs';
@@ -40,7 +41,9 @@ export async function GET(request) {
       return Response.json({ error: 'Valid latitude and longitude are required.' }, { status: 400 });
     }
 
-    const cacheKey = playgroundCacheKey({ latitude, longitude });
+    const searchRadiusMiles = normalizePlayPreferences({ searchRadiusMiles: url.searchParams.get('radiusMiles') }).searchRadiusMiles;
+    const radiusMeters = searchRadiusMiles * 1609.344;
+    const cacheKey = playgroundCacheKey({ latitude, longitude, radiusMeters });
     const cached = current.mode === 'supabase'
       ? await readSupabasePlaygroundCache(current.supabase, cacheKey)
       : await readLocalPlaygroundCache(cacheKey);
@@ -51,7 +54,7 @@ export async function GET(request) {
       cacheKey,
       latitude,
       longitude,
-      playgrounds: await fetchNearbyPlaygrounds({ latitude, longitude }),
+      playgrounds: await fetchNearbyPlaygrounds({ latitude, longitude, radiusMeters }),
       fetchedAt,
     });
     let saved = entry;

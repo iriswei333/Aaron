@@ -6,10 +6,8 @@ import {
   removeStoredValue,
   writeStoredValue,
 } from './shared.js';
-import { applyErrandsProfile, renderErrands, resetErrandsState } from './tabs/errands.js';
-import { applyFoodProfile, renderFood, resetFoodState } from './tabs/food.js';
 import { DEFAULT_ALBUM_LINK, DEFAULT_HOME_BACKGROUND_KEY, applyHomeProfile, clearUploadedBackground, loadHomeBackground, renderHome, resetHomeState } from './tabs/home.js';
-import { getLocationCoords, refreshPlayPlanning, renderPlay, resetPlayState } from './tabs/play.js';
+import { getLocationCoords, refreshPlayPlanning, renderPlay, renderSharedPlayDate, resetPlayState } from './tabs/play.js';
 import { renderSocial, resetSocialState } from './tabs/social.js';
 import { renderFamilyProfile } from './tabs/profile.js';
 import { createSupabaseBrowserClient } from '../lib/supabase/client.js';
@@ -28,8 +26,35 @@ import {
 
 let root = document.getElementById('root');
 
+// Keep tab navigation addressable so each section can be bookmarked, refreshed,
+// and reached directly from a link.
+const TAB_PATHS = {
+  home: '/home',
+  play: '/play',
+  chat: '/chat',
+  profile: '/family',
+};
+
+const PATH_TABS = Object.fromEntries(Object.entries(TAB_PATHS).map(([tab, path]) => [path, tab]));
+
+function tabFromLocation() {
+  const pathname = globalThis.location?.pathname?.replace(/\/$/, '') || '';
+  return PATH_TABS[pathname] || 'home';
+}
+
+function navigateToTab(tab, { replace = false } = {}) {
+  const path = TAB_PATHS[tab] || TAB_PATHS.home;
+  const currentPath = globalThis.location?.pathname?.replace(/\/$/, '') || '';
+  if (currentPath !== path) {
+    const method = replace ? 'replaceState' : 'pushState';
+    globalThis.history[method]({}, '', path);
+  }
+  state.tab = tab;
+  render();
+}
+
 const state = {
-  tab: 'home',
+  tab: tabFromLocation(),
   user: null,
   apiReady: false,
   authMode: 'local',
@@ -42,27 +67,7 @@ const state = {
   showProfileSetup: false,
   profileDraft: null,
   locationStatus: '',
-  foodStatus: '',
-  shoppingList: [],
-  weeklyMenu: [],
-  shoppingSchedule: [],
-  foodPlanSeed: 0,
-  foodPlanGeneratedAt: '',
-  lockedMealDays: [],
-  checkedShoppingItems: [],
-  customShoppingItems: [],
-  newFood: '',
-  amazonStatus: '',
-  amazonTasks: [],
-  restockItems: {},
-  logisticsItems: [],
-  logisticsEditItemId: '',
-  amazonReminder: null,
-  foodFocus: '',
-  familyPlanEvents: [],
-  familyRecurringItems: [],
-  newAmazonTask: '',
-  outfitIdeas: [],
+  savedFamilyEvents: [],
   albumLink: readFirstStoredValue(['sproutCueApplePhotosLink', 'aaronApplePhotosLink'], DEFAULT_ALBUM_LINK),
   homeBackgroundKey: readFirstStoredValue(['sproutCueHomeBackgroundKey'], DEFAULT_HOME_BACKGROUND_KEY),
   homeUploadedPhoto: null,
@@ -80,6 +85,9 @@ const state = {
   playDates: [],
   profilePlayDates: [],
   playdateFocus: '',
+  sharedPlayDateId: new URLSearchParams(globalThis.location?.search || '').get('playdate') || '',
+  sharedPlayDate: null,
+  sharedPlayDateStatus: '',
   playFocus: '',
   playDateStatus: 'Choose a playground to view public play dates.',
   playDateFormStatus: '',
@@ -209,13 +217,11 @@ function layout(content) {
   const navMarkup = tabs.map(([key, label]) => `<button class="rail-nav-button ${state.tab === key ? 'active' : ''}" data-tab="${key}" aria-current="${state.tab === key ? 'page' : 'false'}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_ICONS[key]}</svg><span>${label}</span>${key === 'chat' && state.chatContacts?.length ? `<span class="rail-count">${state.chatContacts.length}</span>` : ''}</button>`).join('');
   root.innerHTML = `<div class="app-shell"><div class="app-frame"><aside class="app-rail"><div class="rail-brand"><img src="/favicon.svg" alt="" aria-hidden="true" /><span>${APP_NAME}</span></div><nav class="rail-nav" aria-label="Planner sections">${navMarkup}</nav><button id="new-playdate" class="rail-create" type="button"><span aria-hidden="true">＋</span> New playdate</button><div class="rail-spacer"></div><div class="rail-account"><div class="rail-account-avatar">${escapeHtml((state.user?.displayName || 'F').slice(0, 1).toUpperCase())}</div><div class="rail-account-copy"><strong>${escapeHtml(state.user?.displayName || 'Family')}</strong><small>${escapeHtml(locationLabel)}</small></div></div><div class="rail-account-actions"><button id="edit-profile" type="button">Edit profile</button><button id="logout-user" type="button">Sign out</button></div>${childSwitcherMarkup()}</aside><section class="app-content"><div class="app-status ${state.apiReady ? 'ready' : ''}"><span>${escapeHtml(state.apiMessage)}</span>${state.user?.email ? `<small>${escapeHtml(state.user.email)}</small>` : ''}</div>${content}</section></div></div>`;
   document.querySelectorAll('[data-tab]').forEach((button) => button.addEventListener('click', () => {
-    state.tab = button.dataset.tab;
-    render();
+    navigateToTab(button.dataset.tab);
   }));
   document.getElementById('new-playdate').addEventListener('click', () => {
-    state.tab = 'play';
     state.playdateFocus = '';
-    render();
+    navigateToTab('play');
   });
   document.getElementById('active-child-select')?.addEventListener('change', (event) => switchActiveChild(event.target.value));
   document.getElementById('edit-profile').addEventListener('click', () => {
@@ -240,9 +246,8 @@ async function deleteParentData() {
     state.apiMessage = 'Parent data deleted.';
     state.showProfileSetup = false;
     state.profileDraft = null;
+    state.savedFamilyEvents = [];
     resetHomeState(state);
-    resetFoodState(state);
-    resetErrandsState(state);
     resetSocialState(state);
     resetPlayState(state);
     render();
@@ -261,28 +266,10 @@ function renderLogin() {
     ? 'Use an email magic link to open your private parent profile.'
     : 'Use an email to keep each local parent profile separate while you test.';
   const featureNote = 'Less mental load for little-kid days.';
-  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">Parent profiles</p><h1>${APP_NAME}</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><p class="eyebrow">Sign in</p><h2>${heading}</h2><p>${intro}</p><form id="login-form"><label class="input-label" for="login-email">Parent email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required /><label class="input-label" for="login-name">Parent display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="Milo Family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>${buttonText}</button></form><p class="muted">${escapeHtml(state.authStatus || state.apiMessage)}</p><p class="privacy-link"><a href="/privacy" target="_blank" rel="noreferrer">Read the Privacy Policy</a></p></section><section class="panel auth-note"><p class="eyebrow">Made for parents of little ones</p><h2>Your family day, sorted.</h2><p>${featureNote}</p><div id="auth-feature-carousel" class="auth-feature-carousel" aria-label="SproutCue features"><article class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/family-meals.png" alt="Parent and child enjoying a colorful meal together" /><strong>Meals that fit your child</strong><p>Personalized ideas built around favorites, stages, and foods to avoid.</p></article><article class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/playdates.png" alt="Parents meeting at a neighborhood playground for a playdate" /><strong>Playdates without the back-and-forth</strong><p>Find nearby places, check the weather, and make a plan in minutes.</p></article><article class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/family-logistics.png" alt="Parent organizing a family plan with a checklist and calendar" /><strong>One calm home for logistics</strong><p>Keep errands, reminders, events, and family plans together.</p></article></div><div class="auth-feature-dots" aria-label="Choose a feature"><button type="button" class="active" data-feature-dot="0" aria-label="Show meals feature" aria-current="true"></button><button type="button" data-feature-dot="1" aria-label="Show playdates feature" aria-current="false"></button><button type="button" data-feature-dot="2" aria-label="Show logistics feature" aria-current="false"></button></div></section></main></div>`;
+  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">Parent profiles</p><h1>${APP_NAME}</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><p class="eyebrow">Sign in</p><h2>${heading}</h2><p>${intro}</p><form id="login-form"><label class="input-label" for="login-email">Parent email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required /><label class="input-label" for="login-name">Parent display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="Milo Family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>${buttonText}</button></form><p class="muted">${escapeHtml(state.authStatus || state.apiMessage)}</p><p class="privacy-link"><a href="/privacy" target="_blank" rel="noreferrer">Read the Privacy Policy</a></p></section><section class="panel auth-note"><p class="eyebrow">Made for parents of little ones</p><h2>Your family day, sorted.</h2><p>${featureNote}</p><div class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/playdates.png" alt="Parents meeting at a neighborhood playground for a playdate" /><strong>Playdates without the back-and-forth</strong><p>Find nearby places, check the weather, see weekend events, and make a plan in minutes.</p></div></section></main></div>`;
   document.getElementById('login-form').addEventListener('submit', loginUser);
   document.getElementById('login-email').addEventListener('input', (event) => { state.loginEmail = event.target.value; });
   document.getElementById('login-name').addEventListener('input', (event) => { state.loginName = event.target.value; });
-  const featureCarousel = document.getElementById('auth-feature-carousel');
-  const featureDots = [...document.querySelectorAll('[data-feature-dot]')];
-  const updateFeatureDot = (index) => {
-    featureDots.forEach((dot, dotIndex) => {
-      const active = dotIndex === index;
-      dot.classList.toggle('active', active);
-      dot.setAttribute('aria-current', active ? 'true' : 'false');
-    });
-  };
-  featureDots.forEach((dot) => dot.addEventListener('click', () => {
-    const index = Number(dot.dataset.featureDot);
-    featureCarousel?.scrollTo({ left: index * (featureCarousel.clientWidth + 12), behavior: 'smooth' });
-    updateFeatureDot(index);
-  }));
-  featureCarousel?.addEventListener('scroll', () => {
-    const index = Math.round(featureCarousel.scrollLeft / (featureCarousel.clientWidth + 12));
-    updateFeatureDot(Math.max(0, Math.min(index, featureDots.length - 1)));
-  }, { passive: true });
 }
 
 function childDraftFromChild(child) {
@@ -327,10 +314,7 @@ function updateDraftFromActiveForm(form) {
     birthday: formData.get('birthday'),
     ageLabel: formData.get('ageLabel'),
     homeCity: formData.get('homeCity'),
-    foodPreferences: formData.get('foodPreferences'),
-    allergies: formData.get('allergies'),
     diaperSize: formData.get('diaperSize'),
-    feedingStage: formData.get('feedingStage'),
     daycareDays: formData.get('daycareDays'),
     favoriteActivities: formData.get('favoriteActivities'),
   }, activeDraftChild(draft)));
@@ -397,7 +381,6 @@ async function switchActiveChild(childId) {
   });
   const activeChild = getChildProfile({ childProfile });
   state.user = { ...state.user, childProfile };
-  applyFoodProfile(state, state.user);
   state.parentingResources = [];
   state.parentingResourcesStatus = '';
   state.parentingResourcesAgeFilter = '';
@@ -443,7 +426,7 @@ function renderOnboarding() {
     ? '<section class="account-danger"><h3>Delete parent data</h3><p> Permanently delete this parent profile, child profiles, plans, play dates, chat messages, and local account data.</p><button id="delete-parent-data" type="button" class="secondary-button danger-button">Delete parent data</button></section>'
     : '';
 
-  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">${escapeHtml(state.user.email || 'Parent profile')}</p><h1>${APP_NAME}</h1></div></div></header><main class="onboarding-layout"><section class="panel onboarding-panel"><p class="eyebrow">${isEditing ? 'Edit profile' : 'Child setup'}</p><h2>${isEditing ? 'Manage children on this profile' : 'Tell us who this planner is for'}</h2><form id="profile-form" class="profile-form"><label class="input-label" for="parent-display-name">Parent display name</label><input id="parent-display-name" name="displayName" autocomplete="name" value="${escapeAttribute(draft.displayName)}" placeholder="Milo Family" /><div class="child-editor-bar"><div class="child-tabs" aria-label="Children on this profile">${childTabs}</div><button id="add-child" type="button" class="secondary-button">Add child</button></div><input name="childId" type="hidden" value="${escapeAttribute(activeChild.id)}" /><div class="form-grid two-field-grid"><label><span>Child nickname</span><input name="childName" value="${escapeAttribute(activeChild.name)}" placeholder="Milo" maxlength="60" required /></label><label><span>Birthday</span><input name="birthday" type="date" value="${escapeAttribute(activeChild.birthday)}" max="${new Date().toISOString().slice(0, 10)}" /></label><label><span>Age if no birthday</span><input name="ageLabel" value="${escapeAttribute(activeChild.ageLabel)}" placeholder="2y 4m" maxlength="32" /></label><label><span>Home city</span><input name="homeCity" value="${escapeAttribute(activeChild.homeCity)}" placeholder="Seattle" maxlength="80" required /></label><label><span>Observed diaper size</span><input name="diaperSize" type="number" min="1" max="8" value="${escapeAttribute(activeChild.diaperSize || '')}" placeholder="e.g. 4" /></label><label><span>Feeding stage override</span><input name="feedingStage" value="${escapeAttribute(activeChild.feedingStage)}" placeholder="Leave blank to derive" maxlength="80" /></label></div><label class="input-label" for="food-preferences">Food preferences</label><textarea id="food-preferences" name="foodPreferences" maxlength="320" placeholder="Favorite foods, textures, meals that usually work">${escapeHtml(activeChild.foodPreferences)}</textarea><label class="input-label" for="allergies">Allergies or foods to avoid</label><input id="allergies" name="allergies" value="${escapeAttribute(activeChild.allergies)}" placeholder="None, or e.g. peanuts, egg" maxlength="220" /><label class="input-label" for="daycare-days">Daycare days</label><input class="input-label" name="daycareDays" value="${escapeAttribute(activeChild.daycareDays || '')}" placeholder="mon, tue, thu" /><label class="input-label" for="favorite-activities">Favorite activities</label><input name="favoriteActivities" value="${escapeAttribute(activeChild.favoriteActivities)}" placeholder="cars, climbing, story time" /><div class="form-actions"><button type="submit">${isEditing ? 'Save profile' : 'Save and open planner'}</button>${removeButton}${isEditing ? '<button id="cancel-profile-edit" type="button" class="secondary-button">Cancel</button>' : ''}</div></form><p class="muted">${escapeHtml(state.onboardingStatus || `${draft.children.length} child${draft.children.length === 1 ? '' : 'ren'} on this profile. The selected child becomes the active planner view.`)}</p>${accountDeletion}</section><section class="panel auth-note"><h2>What changes</h2><div class="profile-facts"><span>Derived age + stage</span><span>Restock estimates</span><span>Food preferences</span><span>Allergy guardrails</span><span>Daycare logistics</span></div><p>Birthday stays the source of truth. SproutCue derives age-stage facts at plan time and uses observed diaper size when you provide it.</p></section></main></div>`;
+  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">${escapeHtml(state.user.email || 'Parent profile')}</p><h1>${APP_NAME}</h1></div></div></header><main class="onboarding-layout"><section class="panel onboarding-panel"><p class="eyebrow">${isEditing ? 'Edit profile' : 'Child setup'}</p><h2>${isEditing ? 'Manage children on this profile' : 'Tell us who this planner is for'}</h2><form id="profile-form" class="profile-form"><label class="input-label" for="parent-display-name">Parent display name</label><input id="parent-display-name" name="displayName" autocomplete="name" value="${escapeAttribute(draft.displayName)}" placeholder="Milo Family" /><div class="child-editor-bar"><div class="child-tabs" aria-label="Children on this profile">${childTabs}</div><button id="add-child" type="button" class="secondary-button">Add child</button></div><input name="childId" type="hidden" value="${escapeAttribute(activeChild.id)}" /><div class="form-grid two-field-grid"><label><span>Child nickname</span><input name="childName" value="${escapeAttribute(activeChild.name)}" placeholder="Milo" maxlength="60" required /></label><label><span>Birthday</span><input name="birthday" type="date" value="${escapeAttribute(activeChild.birthday)}" max="${new Date().toISOString().slice(0, 10)}" /></label><label><span>Age if no birthday</span><input name="ageLabel" value="${escapeAttribute(activeChild.ageLabel)}" placeholder="2y 4m" maxlength="32" /></label><label><span>Home city</span><input name="homeCity" value="${escapeAttribute(activeChild.homeCity)}" placeholder="Seattle" maxlength="80" required /></label><label><span>Observed diaper size</span><input name="diaperSize" type="number" min="1" max="8" value="${escapeAttribute(activeChild.diaperSize || '')}" placeholder="e.g. 4" /></label></div><label class="input-label" for="daycare-days">Daycare days</label><input class="input-label" name="daycareDays" value="${escapeAttribute(activeChild.daycareDays || '')}" placeholder="mon, tue, thu" /><label class="input-label" for="favorite-activities">Favorite activities</label><input name="favoriteActivities" value="${escapeAttribute(activeChild.favoriteActivities)}" placeholder="cars, climbing, story time" /><div class="form-actions"><button type="submit">${isEditing ? 'Save profile' : 'Save and open planner'}</button>${removeButton}${isEditing ? '<button id="cancel-profile-edit" type="button" class="secondary-button">Cancel</button>' : ''}</div></form><p class="muted">${escapeHtml(state.onboardingStatus || `${draft.children.length} child${draft.children.length === 1 ? '' : 'ren'} on this profile. The selected child becomes the active planner view.`)}</p>${accountDeletion}</section><section class="panel auth-note"><h2>What changes</h2><div class="profile-facts"><span>Derived age + stage</span><span>Nearby playgrounds</span><span>Weekend events</span><span>Playdate planning</span></div><p>Birthday stays the source of truth. SproutCue uses the selected child and home city to personalize playdate discovery.</p></section></main></div>`;
 
   document.getElementById('profile-form').addEventListener('submit', saveProfileSetup);
   document.querySelectorAll('[data-edit-child]').forEach((button) => {
@@ -550,8 +533,6 @@ function applyUserProfile(user) {
   state.magicLinkSent = false;
   applyHomeProfile(state, user);
   loadHomeBackground(appContext);
-  applyFoodProfile(state, user);
-  applyErrandsProfile(state, user);
   resetSocialState(state);
   state.locationStatus = user.location
     ? ''
@@ -564,38 +545,9 @@ function applyUserProfile(user) {
 }
 
 function applyFamilyPlanState(state, payload = {}) {
-  state.familyPlanEvents = Array.isArray(payload.events) ? payload.events : [];
-  state.familyRecurringItems = Array.isArray(payload.recurringItems) ? payload.recurringItems : [];
-  const savedReminder = state.familyPlanEvents.find((item) => item.kind === 'logistics' && item.metadata?.reminder === true && item.status !== 'cancelled');
-  state.amazonReminder = savedReminder
-    ? { itemId: savedReminder.metadata?.legacyId || savedReminder.metadata?.recurringId || savedReminder.id, text: savedReminder.title, dueDate: savedReminder.dueDate, planId: savedReminder.id, savedAt: savedReminder.createdAt }
-    : null;
-  state.shoppingSchedule = state.familyRecurringItems
-    .filter((item) => item.kind === 'grocery' && item.active)
-    .map((item) => ({
-      id: item.metadata?.legacyId || item.id,
-      planId: item.id,
-      eventPlanId: state.familyPlanEvents.find((event) => event.kind === 'grocery' && event.metadata?.recurringId === item.id)?.id || '',
-      weekday: item.recurrenceRule?.weekday || 'Monday',
-      time: item.recurrenceRule?.time || '10:00',
-      durationMinutes: item.recurrenceRule?.durationMinutes || 60,
-      title: item.title,
-      saved: true,
-    }));
-  state.logisticsItems = state.familyRecurringItems
-    .filter((item) => item.kind === 'logistics' && item.active)
-    .map((item) => ({
-      id: item.metadata?.legacyId || item.id,
-      planId: item.id,
-      text: item.title,
-      kidId: item.childId || '',
-      kidName: item.metadata?.kidName || 'Family',
-      reason: item.metadata?.reason || 'custom',
-      frequencyDays: item.recurrenceRule?.frequencyDays || null,
-      lastRestocked: item.lastCompletedAt ? item.lastCompletedAt.slice(0, 10) : '',
-      nextRestockDate: item.nextDueDate || '',
-      active: true,
-    }));
+  state.savedFamilyEvents = Array.isArray(payload.events)
+    ? payload.events.filter((item) => item.kind === 'external_event')
+    : [];
 }
 
 async function loadFamilyPlanState(ctx) {
@@ -660,14 +612,13 @@ async function logoutUser() {
   await apiRequest('/auth/logout', { method: 'POST' }).catch(() => {});
   state.user = null;
   resetHomeState(state);
-  resetFoodState(state);
-  resetErrandsState(state);
   resetSocialState(state);
   resetPlayState(state);
   state.authStatus = 'Signed out. Choose another family profile.';
   state.onboardingStatus = '';
   state.showProfileSetup = false;
   state.profileDraft = null;
+  state.savedFamilyEvents = [];
   state.magicLinkSent = false;
   removeStoredValue('sproutCueUserId');
   removeStoredValue('sproutCueApplePhotosLink');
@@ -677,7 +628,7 @@ async function logoutUser() {
   render();
 }
 
-async function saveUserSection(section, payload, options = {}) {
+async function saveUserSection(section, payload) {
   if (!state.user) return false;
   try {
     const { user } = await apiRequest(`/${section}`, {
@@ -689,29 +640,18 @@ async function saveUserSection(section, payload, options = {}) {
     if (section === 'social-links') {
       applyHomeProfile(state, user);
     }
-    if (section === 'location') {
+  if (section === 'location') {
       state.locationStatus = getLocationCoords(user.location)
         ? 'Location saved. Updating forecast and nearby play options.'
         : 'Address saved, but forecast needs a recognized place or current location.';
       refreshPlayPlanning(appContext);
     }
-    if (section === 'food-plan') {
-      applyFoodProfile(state, user);
-      state.foodStatus = options.successMessage || 'Food plan saved for this user.';
-    }
-    if (section === 'amazon-errands') {
-      applyErrandsProfile(state, user);
-      state.amazonStatus = '';
+    if (section === 'play-preferences') {
+      refreshPlayPlanning(appContext);
     }
     return true;
   } catch (error) {
     state.apiMessage = `Save failed: ${error.message}`;
-    if (section === 'food-plan') {
-      state.foodStatus = `Food plan save failed: ${error.message}`;
-    }
-    if (section === 'amazon-errands') {
-      state.amazonStatus = `Errands save failed: ${error.message}`;
-    }
   }
   render();
   return false;
@@ -731,6 +671,11 @@ function render() {
     renderOnboarding();
     return;
   }
+  if (state.sharedPlayDateId) {
+    state.tab = 'play';
+    renderSharedPlayDate(appContext);
+    return;
+  }
   const renderTab = tabRenderers[state.tab] || renderHome;
   renderTab(appContext);
 }
@@ -738,6 +683,10 @@ function render() {
 function startApp() {
   try {
     consumeAuthRedirectStatus();
+    globalThis.addEventListener('popstate', () => {
+      state.tab = tabFromLocation();
+      render();
+    });
     render();
     ensureBackendUser();
   } catch (error) {
