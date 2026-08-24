@@ -7,6 +7,24 @@ let activeRadiusCircle;
 
 const browserMapsKey = String(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '').trim();
 
+const sproutMapStyles = [
+  { elementType: 'geometry', stylers: [{ color: '#f7f1e8' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#5c6b60' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#fffdf8' }] },
+  { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#e7e0d2' }] },
+  { featureType: 'landscape.natural', elementType: 'geometry.fill', stylers: [{ color: '#e4efe6' }] },
+  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#edf3e9' }] },
+  { featureType: 'poi.park', elementType: 'geometry.fill', stylers: [{ color: '#d9eadb' }] },
+  { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#2f6b4e' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#fffdf8' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e7e0d2' }] },
+  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#fdf3dc' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#f6d58b' }] },
+  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#e8dfcf' }] },
+  { featureType: 'water', elementType: 'geometry.fill', stylers: [{ color: '#cfe5ec' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#4a8fa8' }] },
+];
+
 export function hasGoogleMapsKey() {
   return Boolean(browserMapsKey);
 }
@@ -53,6 +71,17 @@ function clearMarkers() {
   activeMarkers = [];
 }
 
+function groupPlaydatesByPlayground(playdates) {
+  const groups = new Map();
+  playdates.forEach((playdate) => {
+    const coordinateKey = `${playdate.playgroundLatitude || ''}|${playdate.playgroundLongitude || ''}`;
+    const key = playdate.playgroundKey || coordinateKey || playdate.playgroundName || playdate.id;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(playdate);
+  });
+  return [...groups.values()];
+}
+
 export async function renderGooglePlayMap({ element, center, radiusMeters = 4828, playgrounds = [], playdates = [], selectedPlaygroundKey = '', onPlaygroundSelect, onPlaydateSelect }) {
   if (!element || !hasGoogleMapsKey() || !center) return false;
   try {
@@ -67,37 +96,32 @@ export async function renderGooglePlayMap({ element, center, radiusMeters = 4828
       activeRadiusCircle = null;
       activeMap = new Map(element, {
         center,
-        zoom: 13,
+        zoom: 16,
         mapId: 'DEMO_MAP_ID',
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: true,
         zoomControl: true,
+        styles: sproutMapStyles,
       });
       activeMapElement = element;
     }
-    const radiusChanged = activeMapRadiusMeters !== radiusMeters;
     if (!activeRadiusCircle) {
       activeRadiusCircle = new maps.Circle({
         map: activeMap,
         center,
         radius: radiusMeters,
-        strokeColor: '#3b82f6',
-        strokeOpacity: 0.72,
+        strokeColor: '#2f6b4e',
+        strokeOpacity: 0.62,
         strokeWeight: 2,
-        fillColor: '#3b82f6',
-        fillOpacity: 0.12,
+        fillColor: '#cfe5ec',
+        fillOpacity: 0.22,
       });
     } else {
       activeRadiusCircle.setCenter(center);
       activeRadiusCircle.setRadius(radiusMeters);
     }
-    if (radiusChanged || isNewMap) {
-      const bounds = activeRadiusCircle.getBounds();
-      if (bounds) activeMap.fitBounds(bounds, 24);
-    } else {
-      activeMap.setCenter(center);
-    }
+    activeMap.setCenter(center);
     activeMapRadiusMeters = radiusMeters;
     clearMarkers();
     const userMarker = new AdvancedMarkerElement({
@@ -114,22 +138,29 @@ export async function renderGooglePlayMap({ element, center, radiusMeters = 4828
         map: activeMap,
         position,
         title: playground.name,
-        content: markerContent(`google-map-playground-pin${playground.key === selectedPlaygroundKey ? ' selected' : ''}`, String(index + 1)),
+        content: markerContent(`google-map-playground-pin${playground.preference === 'indoor' ? ' indoor-backup-pin' : ''}${playground.key === selectedPlaygroundKey ? ' selected' : ''}`, String(index + 1)),
       });
       marker.addListener('click', () => onPlaygroundSelect?.(playground.key));
       activeMarkers.push(marker);
     });
-    playdates.slice(0, 20).forEach((playdate) => {
+    groupPlaydatesByPlayground(playdates).slice(0, 20).forEach((playdateGroup) => {
+      const playdate = playdateGroup[0];
       const position = coordinates({ latitude: playdate.playgroundLatitude, longitude: playdate.playgroundLongitude });
       if (!position) return;
-      const count = Number(playdate.participantCount) || 0;
-      const startsAt = new Date(playdate.startsAt);
-      const time = Number.isNaN(startsAt.getTime()) ? 'Time set' : startsAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      const playdateCount = playdateGroup.length;
+      const label = playdateCount > 1
+        ? `${playdateCount} playdates`
+        : (() => {
+          const count = Number(playdate.participantCount) || 0;
+          const startsAt = new Date(playdate.startsAt);
+          const time = Number.isNaN(startsAt.getTime()) ? 'Time set' : startsAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+          return `${time} · ${count} ${count === 1 ? 'family' : 'families'}`;
+        })();
       const marker = new AdvancedMarkerElement({
         map: activeMap,
         position,
-        title: `${playdate.playgroundName || 'Playdate'} · ${time}`,
-        content: markerContent('google-map-playdate-pill', `${time} · ${count} ${count === 1 ? 'family' : 'families'}`),
+        title: `${playdate.playgroundName || 'Playdate'} · ${label}`,
+        content: markerContent(`google-map-playdate-pill${playdateCount > 1 ? ' clustered' : ''}`, label),
       });
       marker.addListener('click', () => onPlaydateSelect?.(playdate));
       activeMarkers.push(marker);

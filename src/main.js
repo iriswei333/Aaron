@@ -8,7 +8,7 @@ import {
 } from './shared.js';
 import { DEFAULT_ALBUM_LINK, DEFAULT_HOME_BACKGROUND_KEY, applyHomeProfile, clearUploadedBackground, loadHomeBackground, renderHome, resetHomeState } from './tabs/home.js';
 import { getLocationCoords, refreshPlayPlanning, renderPlay, renderSharedPlayDate, resetPlayState } from './tabs/play.js';
-import { renderSocial, resetSocialState } from './tabs/social.js';
+import { renderSocial, resetSocialState, resizeAvatarFile } from './tabs/social.js';
 import { renderFamilyProfile } from './tabs/profile.js';
 import { createSupabaseBrowserClient } from '../lib/supabase/client.js';
 import { loadFamilyPlans } from './family-plans.js';
@@ -80,6 +80,7 @@ const state = {
   nearbyPlayOptions: [],
   nearbyPlayDates: [],
   nearbyPlayDatesRequestKey: '',
+  nearbyPlayDateFilter: 'all',
   mapZoom: 1,
   nearbyStatus: 'Save a location to personalize nearby play options.',
   selectedPlaygroundKey: '',
@@ -157,6 +158,14 @@ function getSupabaseClient() {
 
 function usesSupabaseAuth() {
   return state.authMode === 'supabase' && Boolean(getSupabaseClient());
+}
+
+function authCallbackUrl(origin) {
+  if (!origin) return '';
+  const nextPath = state.sharedPlayDateId
+    ? `/?playdate=${encodeURIComponent(state.sharedPlayDateId)}&auth=confirmed`
+    : '/?auth=confirmed';
+  return `${origin}/auth/confirm?next=${encodeURIComponent(nextPath)}`;
 }
 
 function ensureRoot() {
@@ -270,16 +279,58 @@ function renderLogin() {
     ? 'Use an email magic link to open your private parent profile.'
     : 'Use an email to keep each local parent profile separate while you test.';
   const featureNote = 'Less mental load for little-kid days.';
-  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">Parent profiles</p><h1>${APP_NAME}</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><p class="eyebrow">Sign in</p><h2>${heading}</h2><p>${intro}</p>${useSupabase ? '<div class="social-login-options"><button id="google-login" type="button" class="google-login-button">Continue with Google</button><button id="facebook-login" type="button" class="facebook-login-button">Continue with Facebook</button></div><div class="auth-divider"><span>or use email</span></div>' : ''}<form id="login-form"><label class="input-label" for="login-email">Parent email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required />${useSupabase ? '<label class="input-label" for="login-password">Password</label><input id="login-password" type="password" autocomplete="current-password" placeholder="Your password" minlength="6" />' : ''}<label class="input-label" for="login-name">Parent display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="Milo Family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>${buttonText}</button>${useSupabase ? '<button id="password-login" type="button" class="password-login-button" disabled>Sign in with password</button>' : ''}</form><p class="muted">${escapeHtml(state.authStatus || state.apiMessage)}</p><p class="privacy-link"><a href="/privacy" target="_blank" rel="noreferrer">Read the Privacy Policy</a></p></section><section class="panel auth-note"><p class="eyebrow">Made for parents of little ones</p><h2>Your family day, sorted.</h2><p>${featureNote}</p><div class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/playdates.png" alt="Parents meeting at a neighborhood playground for a playdate" /><strong>Playdates without the back-and-forth</strong><p>Find nearby places, check the weather, see weekend events, and make a plan in minutes.</p></div></section></main></div>`;
-  document.getElementById('login-form').addEventListener('submit', loginUser);
+  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">Parent profiles</p><h1>${APP_NAME}</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><p class="eyebrow">Sign in</p><h2>${heading}</h2><p>${intro}</p>${useSupabase ? '<div class="social-login-options"><button id="google-login" type="button" class="google-login-button"><svg class="social-logo google-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.79-.07-1.55-.2-2.27H12v4.3h5.38a4.6 4.6 0 0 1-1.99 3.02v2.5h3.22c1.88-1.73 2.99-4.28 2.99-7.55Z"/><path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.45l-3.22-2.5c-.9.6-2.04.95-3.4.95-2.61 0-4.82-1.76-5.61-4.13H3.06v2.58A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.39 13.87A6 6 0 0 1 6.08 12c0-.65.11-1.28.31-1.87V7.55H3.06A10 10 0 0 0 2 12c0 1.61.39 3.14 1.06 4.45l3.33-2.58Z"/><path fill="#EA4335" d="M12 6c1.47 0 2.79.51 3.83 1.51l2.87-2.87C16.96 2.91 14.7 2 12 2a10 10 0 0 0-8.94 5.55l3.33 2.58C7.18 7.76 9.39 6 12 6Z"/></svg>Continue with Google</button><button id="facebook-login" type="button" class="facebook-login-button"><svg class="social-logo facebook-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 8h3V4.5c-.52-.07-1.72-.17-3.27-.17-3.24 0-5.46 1.98-5.46 5.62V13H5v3.91h3.27V24h4.01v-7.09h3.34l.53-3.91h-3.87V10.3c0-1.13.31-2.3 1.72-2.3Z"/></svg>Continue with Facebook</button></div><div class="auth-divider"><span>or use email</span></div>' : ''}<form id="login-form"><label class="input-label" for="login-email">Parent email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required />${useSupabase ? '<label class="input-label" for="login-password">Password</label><input id="login-password" type="password" autocomplete="current-password" placeholder="Your password" minlength="6" />' : ''}<label class="input-label" for="login-name">Parent display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="Milo Family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>${buttonText}</button>${useSupabase ? '<button id="password-login" type="button" class="password-login-button" disabled>Sign in with password</button>' : ''}</form><p class="muted">${escapeHtml(state.authStatus || state.apiMessage)}</p><p class="privacy-link"><a href="/privacy" target="_blank" rel="noreferrer">Read the Privacy Policy</a></p></section><section class="panel auth-note"><p class="eyebrow">Made for parents of little ones</p><h2>Your family day, sorted.</h2><p>${featureNote}</p><div class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/playdates.png" alt="Parents meeting at a neighborhood playground for a playdate" /><strong>Playdates without the back-and-forth</strong><p>Find nearby places, check the weather, see weekend events, and make a plan in minutes.</p></div></section></main></div>`;
+  document.getElementById('login-form').addEventListener('submit', useSupabase ? revealAuthMethods : loginUser);
   document.getElementById('google-login')?.addEventListener('click', signInWithGoogle);
   document.getElementById('facebook-login')?.addEventListener('click', signInWithFacebook);
   const passwordInput = document.getElementById('login-password');
   const passwordButton = document.getElementById('password-login');
+  if (useSupabase) setupAuthMethodMenu();
   passwordInput?.addEventListener('input', () => { passwordButton.disabled = !passwordInput.value || !state.loginEmail.trim(); });
   passwordButton?.addEventListener('click', signInWithPassword);
   document.getElementById('login-email').addEventListener('input', (event) => { state.loginEmail = event.target.value; });
   document.getElementById('login-name').addEventListener('input', (event) => { state.loginName = event.target.value; });
+}
+
+function revealAuthMethods(event) {
+  event.preventDefault();
+  const email = document.getElementById('login-email');
+  if (!email?.checkValidity()) {
+    email?.reportValidity();
+    return;
+  }
+  const menu = document.getElementById('auth-method-menu');
+  if (menu) menu.hidden = false;
+}
+
+function setupAuthMethodMenu() {
+  const form = document.getElementById('login-form');
+  const emailInput = document.getElementById('login-email');
+  const passwordLabel = document.querySelector('label[for="login-password"]');
+  const passwordInput = document.getElementById('login-password');
+  const nameLabel = document.querySelector('label[for="login-name"]');
+  const nameInput = document.getElementById('login-name');
+  const submitButton = form?.querySelector('button[type="submit"]');
+  const passwordButton = document.getElementById('password-login');
+  if (!form || !emailInput || !passwordLabel || !passwordInput || !nameLabel || !nameInput || !submitButton || !passwordButton) return;
+
+  const menu = document.createElement('div');
+  menu.id = 'auth-method-menu';
+  menu.className = 'auth-method-menu';
+  menu.hidden = true;
+  menu.innerHTML = '<p class="auth-method-title">How would you like to continue?</p>';
+  form.insertBefore(menu, passwordLabel);
+  [passwordLabel, passwordInput, nameLabel, nameInput, submitButton, passwordButton].forEach((element) => menu.appendChild(element));
+  submitButton.type = 'button';
+  submitButton.addEventListener('click', loginUser);
+
+  const continueButton = document.createElement('button');
+  continueButton.type = 'button';
+  continueButton.className = 'email-continue-button';
+  continueButton.textContent = 'Continue with email';
+  form.insertBefore(continueButton, menu);
+  continueButton.addEventListener('click', revealAuthMethods);
+  emailInput.addEventListener('input', () => { menu.hidden = true; });
 }
 
 async function signInWithPassword() {
@@ -318,7 +369,7 @@ async function signInWithGoogle() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        ...(origin ? { redirectTo: `${origin}/auth/confirm?next=/?auth=confirmed` } : {}),
+        ...(origin ? { redirectTo: authCallbackUrl(origin) } : {}),
       },
     });
     if (error) throw error;
@@ -337,7 +388,7 @@ async function signInWithFacebook() {
     const { error } = await getSupabaseClient().auth.signInWithOAuth({
       provider: 'facebook',
       options: {
-        ...(origin ? { redirectTo: `${origin}/auth/confirm?next=/?auth=confirmed` } : {}),
+        ...(origin ? { redirectTo: authCallbackUrl(origin) } : {}),
       },
     });
     if (error) throw error;
@@ -500,10 +551,12 @@ function renderOnboarding() {
   const accountDeletion = isEditing
     ? '<section class="account-danger"><h3>Delete parent data</h3><p> Permanently delete this parent profile, child profiles, plans, play dates, chat messages, and local account data.</p><button id="delete-parent-data" type="button" class="secondary-button danger-button">Delete parent data</button></section>'
     : '';
+  const profileAvatarUrl = state.user?.socialLinks?.avatarUrl || '/avatars/sproutcue-default-avatar.png';
 
-  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">${escapeHtml(state.user.email || 'Parent profile')}</p><h1>${APP_NAME}</h1></div></div></header><main class="onboarding-layout"><section class="panel onboarding-panel"><p class="eyebrow">${isEditing ? 'Edit profile' : 'Child setup'}</p><h2>${isEditing ? 'Manage children on this profile' : 'Tell us who this planner is for'}</h2><form id="profile-form" class="profile-form"><label class="input-label" for="parent-display-name">Parent display name</label><input id="parent-display-name" name="displayName" autocomplete="name" value="${escapeAttribute(draft.displayName)}" placeholder="Milo Family" /><div class="child-editor-bar"><div class="child-tabs" aria-label="Children on this profile">${childTabs}</div><button id="add-child" type="button" class="secondary-button">Add child</button></div><input name="childId" type="hidden" value="${escapeAttribute(activeChild.id)}" /><div class="form-grid two-field-grid"><label><span>Child nickname</span><input name="childName" value="${escapeAttribute(activeChild.name)}" placeholder="Milo" maxlength="60" required /></label><label><span>Birthday</span><input name="birthday" type="date" value="${escapeAttribute(activeChild.birthday)}" max="${new Date().toISOString().slice(0, 10)}" /></label><label><span>Age if no birthday</span><input name="ageLabel" value="${escapeAttribute(activeChild.ageLabel)}" placeholder="2y 4m" maxlength="32" /></label><label><span>Home city</span><input name="homeCity" value="${escapeAttribute(activeChild.homeCity)}" placeholder="Seattle" maxlength="80" required /></label><label><span>Observed diaper size</span><input name="diaperSize" type="number" min="1" max="8" value="${escapeAttribute(activeChild.diaperSize || '')}" placeholder="e.g. 4" /></label></div><label class="input-label" for="daycare-days">Daycare days</label><input class="input-label" name="daycareDays" value="${escapeAttribute(activeChild.daycareDays || '')}" placeholder="mon, tue, thu" /><label class="input-label" for="favorite-activities">Favorite activities</label><input name="favoriteActivities" value="${escapeAttribute(activeChild.favoriteActivities)}" placeholder="cars, climbing, story time" /><div class="form-actions"><button type="submit">${isEditing ? 'Save profile' : 'Save and open planner'}</button>${removeButton}${isEditing ? '<button id="cancel-profile-edit" type="button" class="secondary-button">Cancel</button>' : ''}</div></form><p class="muted">${escapeHtml(state.onboardingStatus || `${draft.children.length} child${draft.children.length === 1 ? '' : 'ren'} on this profile. The selected child becomes the active planner view.`)}</p>${accountDeletion}</section><section class="panel auth-note"><h2>What changes</h2><div class="profile-facts"><span>Derived age + stage</span><span>Nearby playgrounds</span><span>Weekend events</span><span>Playdate planning</span></div><p>Birthday stays the source of truth. SproutCue uses the selected child and home city to personalize playdate discovery.</p></section></main></div>`;
+  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">${escapeHtml(state.user.email || 'Parent profile')}</p><h1>${APP_NAME}</h1></div></div></header><main class="onboarding-layout"><section class="panel onboarding-panel"><p class="eyebrow">${isEditing ? 'Edit profile' : 'Child setup'}</p><h2>${isEditing ? 'Manage children on this profile' : 'Tell us who this planner is for'}</h2><form id="profile-form" class="profile-form"><label class="input-label" for="parent-display-name">Parent display name</label><input id="parent-display-name" name="displayName" autocomplete="name" value="${escapeAttribute(draft.displayName)}" placeholder="Milo Family" /><div class="profile-avatar-editor"><img class="profile-avatar-image" src="${escapeAttribute(profileAvatarUrl)}" alt="Your profile avatar" /><div><strong>Your avatar</strong><small>Use a photo or keep the SproutCue default.</small><label class="profile-avatar-upload">Upload avatar<input id="profile-avatar-input" type="file" accept="image/*" /></label></div></div><div class="child-editor-bar"><div class="child-tabs" aria-label="Children on this profile">${childTabs}</div><button id="add-child" type="button" class="secondary-button">Add child</button></div><input name="childId" type="hidden" value="${escapeAttribute(activeChild.id)}" /><div class="form-grid two-field-grid"><label><span>Child nickname</span><input name="childName" value="${escapeAttribute(activeChild.name)}" placeholder="Milo" maxlength="60" required /></label><label><span>Birthday</span><input name="birthday" type="date" value="${escapeAttribute(activeChild.birthday)}" max="${new Date().toISOString().slice(0, 10)}" /></label><label><span>Age if no birthday</span><input name="ageLabel" value="${escapeAttribute(activeChild.ageLabel)}" placeholder="2y 4m" maxlength="32" /></label><label><span>Home city</span><input name="homeCity" value="${escapeAttribute(activeChild.homeCity)}" placeholder="Seattle" maxlength="80" required /></label><label><span>Observed diaper size</span><input name="diaperSize" type="number" min="1" max="8" value="${escapeAttribute(activeChild.diaperSize || '')}" placeholder="e.g. 4" /></label></div><label class="input-label" for="daycare-days">Daycare days</label><input class="input-label" name="daycareDays" value="${escapeAttribute(activeChild.daycareDays || '')}" placeholder="mon, tue, thu" /><label class="input-label" for="favorite-activities">Favorite activities</label><input name="favoriteActivities" value="${escapeAttribute(activeChild.favoriteActivities)}" placeholder="cars, climbing, story time" /><div class="form-actions"><button type="submit">${isEditing ? 'Save profile' : 'Save and open planner'}</button>${removeButton}${isEditing ? '<button id="cancel-profile-edit" type="button" class="secondary-button">Cancel</button>' : ''}</div></form><p class="muted">${escapeHtml(state.onboardingStatus || `${draft.children.length} child${draft.children.length === 1 ? '' : 'ren'} on this profile. The selected child becomes the active planner view.`)}</p>${accountDeletion}</section><section class="panel auth-note"><h2>What changes</h2><div class="profile-facts"><span>Derived age + stage</span><span>Nearby playgrounds</span><span>Weekend events</span><span>Playdate planning</span></div><p>Birthday stays the source of truth. SproutCue uses the selected child and home city to personalize playdate discovery.</p></section></main></div>`;
 
   document.getElementById('profile-form').addEventListener('submit', saveProfileSetup);
+  document.getElementById('profile-avatar-input')?.addEventListener('change', handleProfileAvatarChange);
   document.querySelectorAll('[data-edit-child]').forEach((button) => {
     button.addEventListener('click', () => setActiveDraftChild(button.dataset.editChild));
   });
@@ -516,6 +569,34 @@ function renderOnboarding() {
     state.onboardingStatus = '';
     render();
   });
+}
+
+async function handleProfileAvatarChange(event) {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    state.onboardingStatus = 'Choose an image for your avatar.';
+    renderOnboarding();
+    return;
+  }
+  if (file.size > 6 * 1024 * 1024) {
+    state.onboardingStatus = 'Choose an avatar image smaller than 6 MB.';
+    renderOnboarding();
+    return;
+  }
+  const form = document.getElementById('profile-form');
+  if (form) updateDraftFromActiveForm(form);
+  state.onboardingStatus = 'Saving avatar…';
+  renderOnboarding();
+  try {
+    const avatarUrl = await resizeAvatarFile(file);
+    const saved = await saveUserSection('social-links', { avatarUrl });
+    state.onboardingStatus = saved ? 'Avatar updated.' : 'Could not save your avatar.';
+  } catch (error) {
+    state.onboardingStatus = error.message || 'Could not use that image.';
+  }
+  renderOnboarding();
 }
 
 function draftFromPayload(payload) {
@@ -652,7 +733,7 @@ async function loginUser(event) {
         email,
         options: {
           shouldCreateUser: true,
-          ...(origin ? { emailRedirectTo: `${origin}/auth/confirm` } : {}),
+          ...(origin ? { emailRedirectTo: authCallbackUrl(origin) } : {}),
           data: { display_name: displayName },
         },
       });
