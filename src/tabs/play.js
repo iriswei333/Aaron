@@ -467,12 +467,12 @@ async function loadWeather(ctx) {
   const coords = getLocationCoords(getUserLocation(state));
   if (!coords) {
     state.weather = { label: 'Location needed for weather', temperature: '--', precipitation: '--', wind: '--', updated: 'Use current location to enable weather' };
-    if (state.tab === 'play') ctx.renderCurrent();
+    if (state.tab === 'play' || state.tab === 'home') ctx.renderCurrent();
     return;
   }
 
   state.weather = { label: 'Updating forecast...', temperature: '--', precipitation: '--', wind: '--', updated: `Checking ${shortLocation(getUserLocation(state))}` };
-  if (state.tab === 'play') ctx.renderCurrent();
+  if (state.tab === 'play' || state.tab === 'home') ctx.renderCurrent();
 
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.latitude}&longitude=${coords.longitude}&current=temperature_2m,precipitation,wind_speed_10m,weather_code&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`;
@@ -494,7 +494,7 @@ async function loadWeather(ctx) {
     if (requestId !== weatherRequestId) return;
     state.weather = { label: 'Weather unavailable — use indoor backup', temperature: '--', precipitation: '--', wind: '--', updated: 'Could not reach Open-Meteo' };
   }
-  if (state.tab === 'play') ctx.renderCurrent();
+  if (state.tab === 'play' || state.tab === 'home') ctx.renderCurrent();
 }
 
 async function loadNearbyPlayOptions(ctx) {
@@ -508,18 +508,18 @@ async function loadNearbyPlayOptions(ctx) {
 
   if (!location) {
     state.nearbyStatus = 'Using starter ideas until a home city or location is saved.';
-    if (state.tab === 'play') ctx.renderCurrent();
+    if (state.tab === 'play' || state.tab === 'home') ctx.renderCurrent();
     return;
   }
 
   if (!coords) {
     state.nearbyStatus = `Showing map searches for ${shortLocation(location)}. Use current location or a recognized place for live nearby results.`;
-    if (state.tab === 'play') ctx.renderCurrent();
+    if (state.tab === 'play' || state.tab === 'home') ctx.renderCurrent();
     return;
   }
 
   state.nearbyStatus = `Finding indoor and outdoor options near ${shortLocation(location)}...`;
-  if (state.tab === 'play') ctx.renderCurrent();
+  if (state.tab === 'play' || state.tab === 'home') ctx.renderCurrent();
 
   try {
     const { searchRadiusMiles } = normalizePlayPreferences(state.user?.playPreferences);
@@ -540,7 +540,7 @@ async function loadNearbyPlayOptions(ctx) {
     state.nearbyStatus = `Could not load nearby playgrounds: ${error.message}. Showing map searches for ${shortLocation(location)} instead.`;
   }
 
-  if (state.tab === 'play') ctx.renderCurrent();
+  if (state.tab === 'play' || state.tab === 'home') ctx.renderCurrent();
 }
 
 function familyEventRequestKey(state) {
@@ -1096,8 +1096,11 @@ function renderPlayDateCard(playDate, state) {
       : playDate.canJoin
         ? `<button type="button" class="small-button" data-join-playdate="${escapeAttribute(playDate.id)}">Join</button>`
         : '<button type="button" class="secondary-button small-button" disabled>Full</button>';
+  const openChat = !cancelled && playDate.isJoined && playDate.participantCount > 1
+    ? `<button type="button" class="play-card-chat-button" data-open-chat-playdate="${escapeAttribute(playDate.id)}"><span aria-hidden="true">◌</span> Open chat</button>`
+    : '';
 
-  return `<article class="event-card playdate-card ${escapeAttribute(playDate.visibility)} ${cancelled ? 'cancelled' : ''}"><span>${escapeHtml(cancelled ? 'Cancelled' : visibility)} • ${escapeHtml(playDateCapacity(playDate))}</span><h3>${escapeHtml(formatPlayDateWindow(playDate))}</h3><p>${escapeHtml(playDate.ageRange || 'Family-friendly play')}</p>${playDate.notes ? `<small>${escapeHtml(playDate.notes)}</small>` : ''}${cancelled ? `<p class="playdate-update">${escapeHtml(playDate.lastChangeSummary || 'This play date was cancelled by the host.')}</p>` : update}<div class="playdate-card-footer"><small>Host: ${escapeHtml(playDate.hostLabel || 'Another family')}</small><div class="play-card-actions">${action}</div></div></article>`;
+  return `<article class="event-card playdate-card ${escapeAttribute(playDate.visibility)} ${cancelled ? 'cancelled' : ''}"><span>${escapeHtml(cancelled ? 'Cancelled' : visibility)} • ${escapeHtml(playDateCapacity(playDate))}</span><h3>${escapeHtml(formatPlayDateWindow(playDate))}</h3><p>${escapeHtml(playDate.ageRange || 'Family-friendly play')}</p>${playDate.notes ? `<small>${escapeHtml(playDate.notes)}</small>` : ''}${cancelled ? `<p class="playdate-update">${escapeHtml(playDate.lastChangeSummary || 'This play date was cancelled by the host.')}</p>` : update}<div class="playdate-card-footer"><small>Host: ${escapeHtml(playDate.hostLabel || 'Another family')}</small><div class="play-card-actions">${openChat}${action}</div></div></article>`;
 }
 
 function renderPlayDateList(state, playground) {
@@ -1384,6 +1387,15 @@ export function renderPlay(ctx) {
   document.getElementById('refresh-family-events')?.addEventListener('click', () => loadFamilyEvents(ctx, { force: true }));
   document.querySelectorAll('[data-join-playdate]').forEach((button) => {
     button.addEventListener('click', () => joinPlayDate(ctx, button.dataset.joinPlaydate, currentPlayground));
+  });
+  document.querySelectorAll('[data-open-chat-playdate]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.pendingChatPlayDateId = button.dataset.openChatPlaydate;
+      state.activeChatContactId = '';
+      state.chatLoaded = false;
+      state.tab = 'chat';
+      ctx.renderCurrent();
+    });
   });
   document.querySelectorAll('[data-edit-playdate]').forEach((button) => {
     button.addEventListener('click', () => beginEditPlayDate(ctx, button.dataset.editPlaydate));

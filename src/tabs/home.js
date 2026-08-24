@@ -175,6 +175,8 @@ function homeObjects(state) {
     detail: new Date(item.startsAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }),
     tab: 'play',
     focus: 'playdates',
+    playDateId: item.id,
+    participantCount: item.participantCount,
     }));
   (state.savedFamilyEvents || [])
     .filter((item) => item.kind === 'external_event' && item.status !== 'cancelled' && isFutureFamilyEvent(item, now))
@@ -202,7 +204,30 @@ function isFutureFamilyEvent(item, now) {
 
 function objectCards(objects, compact = false) {
   if (!objects.length) return `<div class="empty-object-state">${icon('🌱')}<span>No upcoming playdates or weekend events yet.</span></div>`;
-  return `<div class="home-object-grid ${compact ? 'compact' : ''}">${objects.map((item) => `<button class="home-object-card" type="button" data-home-tab="${escapeAttribute(item.tab || 'home')}"${item.focus ? ` data-home-focus="${escapeAttribute(item.focus)}"` : ''} aria-label="Open ${escapeAttribute(item.title)}"><span class="object-icon" aria-hidden="true">${item.icon}</span><span class="home-object-card-copy"><small>${escapeHtml(item.type)}</small><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.detail)}</span></span></button>`).join('')}</div>`;
+  return `<div class="home-object-grid ${compact ? 'compact' : ''}">${objects.map((item) => `<article class="home-object-card"><button class="home-object-card-main" type="button" data-home-tab="${escapeAttribute(item.tab || 'home')}"${item.focus ? ` data-home-focus="${escapeAttribute(item.focus)}"` : ''} aria-label="Open ${escapeAttribute(item.title)}"><span class="object-icon" aria-hidden="true">${item.icon}</span><span class="home-object-card-copy"><small>${escapeHtml(item.type)}</small><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.detail)}</span></span></button>${item.playDateId && item.participantCount > 1 ? `<button class="home-object-card-chat" type="button" data-open-chat-playdate="${escapeAttribute(item.playDateId)}"><span aria-hidden="true">◌</span> Open chat</button>` : ''}</article>`).join('')}</div>`;
+}
+
+function firstName(value, fallback = 'there') {
+  return String(value || '').trim().split(/\s+/)[0] || fallback;
+}
+
+function formatHomePlayDate(playDate) {
+  const startsAt = new Date(playDate.startsAt);
+  if (Number.isNaN(startsAt.getTime())) return { date: 'Upcoming playdate', time: 'Time pending' };
+  return {
+    date: startsAt.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' }),
+    time: startsAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+  };
+}
+
+function renderHomeEventCards(state) {
+  const events = (state.familyEvents || []).filter((event) => event.resultType !== 'search-link').slice(0, 3);
+  if (!events.length) return `<div class="home-empty-card"><span aria-hidden="true">🎟️</span><div><strong>No weekend events loaded yet</strong><small>Open Play to find family-friendly events near your home base.</small></div></div>`;
+  return `<div class="home-weekend-list">${events.map((event) => {
+    const date = event.date ? new Date(`${event.date}T12:00:00`) : null;
+    const dateLabel = date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : event.dateLabel || 'This weekend';
+    return `<button type="button" class="home-weekend-card" data-home-tab="play" data-home-focus="family-events"><span class="home-weekend-icon" aria-hidden="true">🎟️</span><span><small>${escapeHtml(dateLabel)} · ${escapeHtml(event.timeLabel || 'Time TBD')}</small><strong>${escapeHtml(event.title || 'Family event')}</strong><span>${escapeHtml(event.venue || event.summary || 'Family-friendly event nearby')}</span></span><b aria-hidden="true">→</b></button>`;
+  }).join('')}</div>`;
 }
 
 export function renderHome(ctx) {
@@ -212,10 +237,14 @@ export function renderHome(ctx) {
   const background = activeBackground(state);
   const picker = backgroundPickerMarkup(state, background);
   const objects = homeObjects(state);
+  const parent = firstName(state.user?.displayName, 'there');
+  const nextPlayDate = (state.profilePlayDates || []).filter((item) => new Date(item.endsAt || item.startsAt).getTime() >= Date.now()).sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))[0];
+  const homeDate = nextPlayDate ? formatHomePlayDate(nextPlayDate) : null;
+  const weather = state.weather || {};
+  const participantCount = Math.max(1, Number(nextPlayDate?.participantCount) || 1);
+  ctx.layout(`<main class="home-layout home-dashboard"><header class="home-welcome"><div><p class="eyebrow">Your family day, made social</p><h2>Good morning, ${escapeHtml(parent)}</h2><p>${escapeHtml(weather.label || 'A good day for family plans')} ${weather.temperature && weather.temperature !== '--' ? `· ${escapeHtml(weather.temperature)}` : ''}</p></div><div class="home-welcome-actions"><div class="home-weather"><span aria-hidden="true">${weather.label?.toLowerCase().includes('rain') ? '☔' : '☀️'}</span><strong>${escapeHtml(weather.temperature || '--')}</strong><small>${escapeHtml(weather.label || 'Weather loading')}</small></div><button id="change-background" class="icon-button" type="button" aria-label="Edit home background" title="Edit home background">✎</button></div></header><div class="home-dashboard-grid"><section class="home-primary-column"><div class="home-section-heading"><div><p class="eyebrow">Up next</p><h3>${nextPlayDate ? 'Your next playdate' : 'Make a plan for today'}</h3></div><button type="button" class="text-button" data-home-tab="play">See all playdates →</button></div>${nextPlayDate ? `<article class="home-next-playdate"><div class="home-next-playdate-glow"></div><span class="home-today-badge">${homeDate.date}</span><h3>${escapeHtml(nextPlayDate.playgroundName || 'Neighborhood playdate')}</h3><p>${escapeHtml(homeDate.time)} · ${escapeHtml(nextPlayDate.playgroundAddress || 'Nearby playground')}</p><small>${escapeHtml(nextPlayDate.isHost ? 'Hosted by your family' : 'You are going')} · ${participantCount} ${participantCount === 1 ? 'family' : 'families'} joining</small><div class="home-next-footer"><div class="home-participant-stack" aria-label="Families joining"><span>M</span><span>T</span><span>${participantCount > 2 ? `+${participantCount - 2}` : '✓'}</span></div><button type="button" data-open-chat-playdate="${escapeAttribute(nextPlayDate.id)}">Open chat <span>→</span></button></div></article>` : `<div class="home-empty-card home-empty-primary"><span aria-hidden="true">🛝</span><div><strong>Find a nearby playground</strong><small>See places, weather, and playdates around your family.</small></div><button type="button" data-home-tab="play">Find play →</button></div>`}<div class="home-section-heading home-invites-heading"><div><p class="eyebrow">Coming up</p><h3>Weekend events</h3></div><button type="button" class="text-button" data-home-tab="play" data-home-focus="family-events">Browse events →</button></div>${renderHomeEventCards(state)}</section><aside class="home-secondary-column"><div class="home-utility-card"><p class="eyebrow">Planning for</p><strong>${escapeHtml(childName)}</strong><span>${escapeHtml(state.user?.location?.address || state.user?.location?.label || 'Set a home base for nearby ideas')}</span><button type="button" class="secondary-button" data-home-tab="profile">Open family profile</button></div><div class="home-utility-card home-utility-soft"><p class="eyebrow">A little help nearby</p><strong>Keep the day moving</strong><span>Find weather-friendly places and family events matched to your home base.</span><button type="button" class="secondary-button" data-home-tab="play">Explore nearby →</button></div></aside></div></main>${picker}`);
 
-  ctx.layout(`<main class="home-layout"><section class="hero-card home-hero" style="--home-background-image: url('${escapeAttribute(background.src)}');"><button id="change-background" class="icon-button home-background-control" type="button" aria-label="Edit background" title="Edit background">✎</button><div class="hero-copy"><p class="eyebrow">Your family day, made social</p><h2>Where should ${escapeHtml(childName)} play next?</h2><p>Find a nearby playground, see who is planning to be there, and make a playdate in a few taps.</p><div class="home-hero-actions"><button type="button" data-home-tab="play">Find nearby play <span>→</span></button><button type="button" class="secondary-button" data-home-tab="chat">Open family chat</button></div></div>${objects.length ? `<aside class="hero-objects"><p class="eyebrow">Your family events</p>${objectCards(objects, true)}</aside>` : ''}</section></main>${picker}`);
-
-  document.getElementById('change-background').addEventListener('click', () => {
+  document.getElementById('change-background')?.addEventListener('click', () => {
     state.showHomeBackgroundPicker = true;
     ctx.renderCurrent();
   });
@@ -234,6 +263,13 @@ export function renderHome(ctx) {
     state.tab = button.dataset.homeTab;
     state.playdateFocus = button.dataset.homeFocus === 'playdates' ? button.dataset.homeFocus : '';
     state.playFocus = button.dataset.homeFocus === 'family-events' ? button.dataset.homeFocus : '';
+    ctx.renderCurrent();
+  }));
+  document.querySelectorAll('[data-open-chat-playdate]').forEach((button) => button.addEventListener('click', () => {
+    state.pendingChatPlayDateId = button.dataset.openChatPlaydate;
+    state.activeChatContactId = '';
+    state.chatLoaded = false;
+    state.tab = 'chat';
     ctx.renderCurrent();
   }));
 }

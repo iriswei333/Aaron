@@ -5,6 +5,7 @@ export function resetSocialState(state) {
   state.chatContacts = [];
   state.chatMessages = [];
   state.activeChatContactId = '';
+  state.chatLoaded = false;
   state.chatStatus = '';
   state.parentingResources = [];
   state.parentingResourcesStatus = '';
@@ -15,15 +16,25 @@ async function loadChat(ctx, contactId = '') {
   const { state } = ctx;
   try {
     const data = await apiRequest(`/chat${contactId ? `?threadId=${encodeURIComponent(contactId)}` : ''}`);
-    state.chatContacts = data.threads || [];
+    state.chatContacts = sortChatThreads(data.threads || []);
     state.chatMessages = data.messages || [];
-    if (!state.activeChatContactId && state.chatContacts[0]) state.activeChatContactId = state.chatContacts[0].id;
+    if (state.pendingChatPlayDateId) {
+      const pendingThread = state.chatContacts.find((thread) => thread.type === 'playdate' && thread.playDateId === state.pendingChatPlayDateId);
+      state.activeChatContactId = pendingThread?.id || '';
+      state.pendingChatPlayDateId = '';
+    }
+    if (!state.chatContacts.some((thread) => thread.id === state.activeChatContactId)) state.activeChatContactId = state.chatContacts[0]?.id || '';
     if (!contactId && state.chatContacts[0]) {
       const selectedId = state.chatContacts.find((thread) => thread.id === state.activeChatContactId)?.id || state.chatContacts[0].id;
       if (!data.messages?.length) {
         const selected = await apiRequest(`/chat?threadId=${encodeURIComponent(selectedId)}`);
         state.chatMessages = selected.messages || [];
       }
+    }
+    const selectedThreadId = state.activeChatContactId;
+    if (selectedThreadId && state.chatContacts.some((thread) => thread.id === selectedThreadId)) {
+      await apiRequest('/chat', { method: 'PATCH', body: JSON.stringify({ action: 'markRead', threadId: selectedThreadId }) });
+      state.chatContacts = state.chatContacts.map((thread) => thread.id === selectedThreadId ? { ...thread, unreadCount: 0 } : thread);
     }
   } catch (error) {
     state.chatStatus = `Chat unavailable: ${error.message}`;
@@ -70,17 +81,46 @@ async function sendChat(ctx, event) {
   await loadChat(ctx, state.activeChatContactId);
 }
 
+function chatThreadSchedule(thread) {
+  if (thread?.type !== 'playdate' || !thread.startsAt) return '';
+  const startsAt = new Date(thread.startsAt);
+  const endsAt = thread.endsAt ? new Date(thread.endsAt) : null;
+  if (Number.isNaN(startsAt.getTime())) return '';
+  const date = startsAt.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+  const start = startsAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const end = endsAt && !Number.isNaN(endsAt.getTime())
+    ? endsAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+    : '';
+  return `${date} · ${start}${end ? `–${end}` : ''}`;
+}
+
+function sortChatThreads(threads = []) {
+  return [...threads].sort((first, second) => new Date(second.lastMessageAt || 0) - new Date(first.lastMessageAt || 0));
+}
+
+function chatThreadEmoji(thread, index = 0) {
+  const title = String(thread?.title || '').toLowerCase();
+  if (thread?.type === 'playdate') {
+    if (/book|story|library|read/.test(title)) return '📚';
+    if (/beach|island|water|lake|pool/.test(title)) return '🏝️';
+    if (/bike|cycle|ride|trail/.test(title)) return '🚲';
+    if (/park|playground|sandbox|garden/.test(title)) return '🛝';
+    return ['🛝', '📚', '🏝️', '🚲', '🎨'][index % 5];
+  }
+  return ['💬', '🌼', '🧺', '🌈'][index % 4];
+}
+
 function renderChat(ctx) {
   const { state } = ctx;
-  const contacts = state.chatContacts || [];
+  const contacts = sortChatThreads(state.chatContacts || []);
   const active = contacts.find((contact) => contact.id === state.activeChatContactId) || contacts[0];
   const contactList = contacts.length
-    ? contacts.map((contact) => `<button type="button" class="chat-contact ${active?.id === contact.id ? 'selected' : ''}" data-chat-contact="${escapeAttribute(contact.id)}"><span class="avatar">${contact.type === 'playdate' ? '👥' : escapeHtml((contact.title || 'P').slice(0, 1).toUpperCase())}</span><span>${escapeHtml(contact.title || 'Chat')}<small>${contact.type === 'playdate' ? `${contact.participantIds?.length || 0} families` : 'Direct chat'}</small></span></button>`).join('')
+    ? contacts.map((contact, index) => `<button type="button" class="chat-contact ${active?.id === contact.id ? 'selected' : ''}" data-chat-contact="${escapeAttribute(contact.id)}"><span class="avatar chat-thread-emoji" role="img" aria-label="Chat topic">${chatThreadEmoji(contact, index)}</span><span>${escapeHtml(contact.title || 'Chat')}<small>${contact.type === 'playdate' ? `${contact.participantIds?.length || 0} families` : 'Direct chat'}</small></span>${contact.unreadCount > 0 ? '<i class="chat-unread-dot" aria-label="Unread messages"></i>' : ''}</button>`).join('')
     : '<p class="muted">Join a playdate to open its family thread, or start a direct chat from a connected family.</p>';
   const messages = active
     ? (state.chatMessages || []).map((message) => `<article class="chat-message ${message.senderId === state.user?.id ? 'mine' : ''}">${message.mediaUrl ? (message.mediaType === 'video' ? `<video src="${escapeAttribute(message.mediaUrl)}" controls></video>` : `<img src="${escapeAttribute(message.mediaUrl)}" alt="Shared photo" />`) : ''}${message.text ? `<p>${escapeHtml(message.text)}</p>` : ''}<small>${new Date(message.createdAt).toLocaleString([], { hour: 'numeric', minute: '2-digit' })}</small></article>`).join('')
     : '';
-  return `<div class="chat-layout"><aside class="chat-contacts">${contactList}</aside><section class="chat-thread">${active ? `<div class="chat-thread-heading"><strong>${escapeHtml(active.title || 'Chat')}</strong><small>${active.type === 'playdate' ? 'Everyone in this playdate is included' : 'Private 1:1 conversation'}</small></div><div class="chat-messages">${messages || '<p class="muted">Say hello and make the meetup easy.</p>'}</div><form id="chat-form" class="chat-compose"><input name="chat-text" placeholder="Message, emoji, or meetup note…" maxlength="2000" /><label class="chat-attach" title="Attach photo or short video">＋<input name="chat-media" type="file" accept="image/*,video/*" /></label><button type="submit">Send</button></form>` : '<div class="chat-empty"><span>💬</span><p>Your playdate family threads will appear here.</p></div>'}</section></div>`;
+  return `<div class="chat-layout"><aside class="chat-contacts">${contactList}</aside><section class="chat-thread">${active ? `<div class="chat-thread-heading"><strong>${escapeHtml(active.title || 'Chat')}</strong>${chatThreadSchedule(active) ? `<small>${escapeHtml(chatThreadSchedule(active))}</small>` : ''}<small>${active.type === 'playdate' ? 'Everyone in this playdate is included' : 'Private 1:1 conversation'}</small></div><div class="chat-messages">${messages || '<p class="muted">Say hello and make the meetup easy.</p>'}</div><form id="chat-form" class="chat-compose"><input name="chat-text" placeholder="Message, emoji, or meetup note…" maxlength="2000" /><label class="chat-attach" title="Attach photo or short video">＋<input name="chat-media" type="file" accept="image/*,video/*" /></label><button type="submit">Send</button></form>` : '<div class="chat-empty"><span>💬</span><p>Your playdate family threads will appear here.</p></div>'}</section></div>`;
 }
 
 function renderResourceCard(resource) {
@@ -93,7 +133,10 @@ export function renderSocial(ctx) {
   const childProfile = getChildProfile(state.user);
   const childName = childDisplayName(childProfile, 'your child');
   const ageLabel = childAgeLabel(childProfile) || 'your child’s age range';
-  if (!state.chatContacts.length) loadChat(ctx);
+  if (!state.chatLoaded) {
+    state.chatLoaded = true;
+    loadChat(ctx);
+  }
   if (!state.parentingResourcesStatus) loadParentingResources(ctx);
 
   ctx.layout(`<main class="stack"><section class="panel chat-panel"><div class="section-heading"><div><p class="eyebrow">Your playdate circle</p><h2>Chat</h2><p class="muted">Keep plans, hellos, and meetup details together with the families you connect with.</p></div></div>${renderChat(ctx)}${state.chatStatus ? `<p class="muted">${escapeHtml(state.chatStatus)}</p>` : ''}</section><section class="panel"><div class="section-heading"><div><p class="eyebrow">For your family</p><h2>Parenting resources</h2><p class="muted">${escapeHtml(state.parentingResourcesStatus || `Matching ParentMap articles to ${ageLabel}.`)}</p></div><button id="refresh-parenting-resources" type="button" class="secondary-button small-button">Refresh</button></div><div class="resource-grid">${state.parentingResources.length ? state.parentingResources.map(renderResourceCard).join('') : '<p class="muted">Age-matched articles will appear here.</p>'}</div></section></main>`);
