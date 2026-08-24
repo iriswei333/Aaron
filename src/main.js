@@ -270,10 +270,81 @@ function renderLogin() {
     ? 'Use an email magic link to open your private parent profile.'
     : 'Use an email to keep each local parent profile separate while you test.';
   const featureNote = 'Less mental load for little-kid days.';
-  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">Parent profiles</p><h1>${APP_NAME}</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><p class="eyebrow">Sign in</p><h2>${heading}</h2><p>${intro}</p><form id="login-form"><label class="input-label" for="login-email">Parent email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required /><label class="input-label" for="login-name">Parent display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="Milo Family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>${buttonText}</button></form><p class="muted">${escapeHtml(state.authStatus || state.apiMessage)}</p><p class="privacy-link"><a href="/privacy" target="_blank" rel="noreferrer">Read the Privacy Policy</a></p></section><section class="panel auth-note"><p class="eyebrow">Made for parents of little ones</p><h2>Your family day, sorted.</h2><p>${featureNote}</p><div class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/playdates.png" alt="Parents meeting at a neighborhood playground for a playdate" /><strong>Playdates without the back-and-forth</strong><p>Find nearby places, check the weather, see weekend events, and make a plan in minutes.</p></div></section></main></div>`;
+  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">Parent profiles</p><h1>${APP_NAME}</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><p class="eyebrow">Sign in</p><h2>${heading}</h2><p>${intro}</p>${useSupabase ? '<div class="social-login-options"><button id="google-login" type="button" class="google-login-button">Continue with Google</button><button id="facebook-login" type="button" class="facebook-login-button">Continue with Facebook</button></div><div class="auth-divider"><span>or use email</span></div>' : ''}<form id="login-form"><label class="input-label" for="login-email">Parent email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required />${useSupabase ? '<label class="input-label" for="login-password">Password</label><input id="login-password" type="password" autocomplete="current-password" placeholder="Your password" minlength="6" />' : ''}<label class="input-label" for="login-name">Parent display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="Milo Family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>${buttonText}</button>${useSupabase ? '<button id="password-login" type="button" class="password-login-button" disabled>Sign in with password</button>' : ''}</form><p class="muted">${escapeHtml(state.authStatus || state.apiMessage)}</p><p class="privacy-link"><a href="/privacy" target="_blank" rel="noreferrer">Read the Privacy Policy</a></p></section><section class="panel auth-note"><p class="eyebrow">Made for parents of little ones</p><h2>Your family day, sorted.</h2><p>${featureNote}</p><div class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/playdates.png" alt="Parents meeting at a neighborhood playground for a playdate" /><strong>Playdates without the back-and-forth</strong><p>Find nearby places, check the weather, see weekend events, and make a plan in minutes.</p></div></section></main></div>`;
   document.getElementById('login-form').addEventListener('submit', loginUser);
+  document.getElementById('google-login')?.addEventListener('click', signInWithGoogle);
+  document.getElementById('facebook-login')?.addEventListener('click', signInWithFacebook);
+  const passwordInput = document.getElementById('login-password');
+  const passwordButton = document.getElementById('password-login');
+  passwordInput?.addEventListener('input', () => { passwordButton.disabled = !passwordInput.value || !state.loginEmail.trim(); });
+  passwordButton?.addEventListener('click', signInWithPassword);
   document.getElementById('login-email').addEventListener('input', (event) => { state.loginEmail = event.target.value; });
   document.getElementById('login-name').addEventListener('input', (event) => { state.loginName = event.target.value; });
+}
+
+async function signInWithPassword() {
+  if (!usesSupabaseAuth()) return;
+  const email = state.loginEmail.trim();
+  const password = document.getElementById('login-password')?.value || '';
+  if (!email || !password) {
+    state.authStatus = 'Enter your email and password.';
+    renderLogin();
+    return;
+  }
+  state.authStatus = 'Signing in…';
+  renderLogin();
+  try {
+    const { error } = await getSupabaseClient().auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    const { user } = await apiRequest('/profile');
+    state.apiReady = true;
+    state.authStatus = '';
+    applyUserProfile(user);
+    state.apiMessage = 'Family profile synced with Supabase.';
+    render();
+  } catch (error) {
+    state.authStatus = error.message || 'Password sign-in failed.';
+    renderLogin();
+  }
+}
+
+async function signInWithGoogle() {
+  if (!usesSupabaseAuth()) return;
+  state.authStatus = 'Redirecting to Google…';
+  renderLogin();
+  try {
+    const origin = globalThis.location?.origin;
+    const supabase = getSupabaseClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        ...(origin ? { redirectTo: `${origin}/auth/confirm?next=/?auth=confirmed` } : {}),
+      },
+    });
+    if (error) throw error;
+  } catch (error) {
+    state.authStatus = error.message || 'Google sign-in could not be started.';
+    renderLogin();
+  }
+}
+
+async function signInWithFacebook() {
+  if (!usesSupabaseAuth()) return;
+  state.authStatus = 'Redirecting to Facebook…';
+  renderLogin();
+  try {
+    const origin = globalThis.location?.origin;
+    const { error } = await getSupabaseClient().auth.signInWithOAuth({
+      provider: 'facebook',
+      options: {
+        ...(origin ? { redirectTo: `${origin}/auth/confirm?next=/?auth=confirmed` } : {}),
+      },
+    });
+    if (error) throw error;
+  } catch (error) {
+    state.authStatus = error.message || 'Facebook sign-in could not be started.';
+    renderLogin();
+  }
 }
 
 function childDraftFromChild(child) {

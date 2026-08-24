@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         <p>We use service providers for authentication, hosting, storage, maps, weather, events, and resources. Public play dates may show the selected play-date details to authenticated users who can view them. Chat messages and media are available to the intended participants.</p>
 
         <h2>Parent choices</h2>
-        <p>Parents may review, correct, delete, or request that we stop using information about their children by using the account deletion control or contacting [privacy email]. Public play dates, chat, and location features are optional.</p>
+        <p>Parents may review, correct, delete, or request that we stop using information about their children by using the account deletion control or following the <Link href="/data-deletion">data deletion instructions</Link>. Public play dates, chat, and location features are optional.</p>
 
         <h2>Retention and security</h2>
         <p>We retain information only as long as reasonably necessary for the purpose collected, legal obligations, security, or dispute resolution. We use reasonable safeguards appropriate to the sensitivity of the information and securely delete data when the retention period ends.</p>
