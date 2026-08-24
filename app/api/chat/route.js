@@ -1,4 +1,4 @@
-import { createLocalChatMessage, createSupabaseChatMessage, listLocalChatContacts, listLocalChatMessages, listSupabaseChatContacts, listSupabaseChatMessages } from '../../../lib/backend.js';
+import { createLocalChatMessage, createSupabaseChatMessage, listLocalChatThreads, listLocalChatMessages, listSupabaseChatThreads, listSupabaseChatMessages } from '../../../lib/backend.js';
 import { getCurrentProfile, profileErrorResponse } from '../../../lib/profile-session.js';
 
 export const runtime = 'nodejs';
@@ -7,9 +7,10 @@ export async function GET(request) {
   try {
     const current = await getCurrentProfile(request);
     if (!current.user) return profileErrorResponse(current);
-    const contactId = new URL(request.url).searchParams.get('contactId');
-    if (current.mode === 'supabase') return Response.json({ contacts: await listSupabaseChatContacts(current.supabase, current.authUser), messages: contactId ? await listSupabaseChatMessages(current.supabase, current.authUser, contactId) : [], authMode: current.mode });
-    return Response.json({ contacts: await listLocalChatContacts(current.localUserId), messages: contactId ? await listLocalChatMessages(current.localUserId, contactId) : [], authMode: current.mode });
+    const params = new URL(request.url).searchParams;
+    const threadId = params.get('threadId') || params.get('contactId');
+    if (current.mode === 'supabase') return Response.json({ threads: await listSupabaseChatThreads(current.supabase, current.authUser), messages: threadId ? await listSupabaseChatMessages(current.supabase, current.authUser, threadId) : [], authMode: current.mode });
+    return Response.json({ threads: await listLocalChatThreads(current.localUserId), messages: threadId ? await listLocalChatMessages(current.localUserId, threadId) : [], authMode: current.mode });
   } catch (error) { return Response.json({ error: error.message }, { status: 500 }); }
 }
 

@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{\"app/[...slug]/page.jsx -> ../../src/main.js\":{\"id\":\"app/[...slug]/page.jsx -> ../../src/main.js\",\"files\":[\"static/chunks/_app-pages-browser_src_main_js.js\"]},\"app/page.jsx -> ../src/main.js\":{\"id\":\"app/page.jsx -> ../src/main.js\",\"files\":[\"static/chunks/_app-pages-browser_src_main_js.js\"]}}"
+self.__REACT_LOADABLE_MANIFEST="{\"app/[...slug]/page.jsx -> ../../src/main.js\":{\"id\":\"app/[...slug]/page.jsx -> ../../src/main.js\",\"files\":[\"static/chunks/_app-pages-browser_src_main_js.js\"]}}"

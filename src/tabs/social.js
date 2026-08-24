@@ -14,10 +14,17 @@ export function resetSocialState(state) {
 async function loadChat(ctx, contactId = '') {
   const { state } = ctx;
   try {
-    const data = await apiRequest(`/chat${contactId ? `?contactId=${encodeURIComponent(contactId)}` : ''}`);
-    state.chatContacts = data.contacts || [];
+    const data = await apiRequest(`/chat${contactId ? `?threadId=${encodeURIComponent(contactId)}` : ''}`);
+    state.chatContacts = data.threads || [];
     state.chatMessages = data.messages || [];
     if (!state.activeChatContactId && state.chatContacts[0]) state.activeChatContactId = state.chatContacts[0].id;
+    if (!contactId && state.chatContacts[0]) {
+      const selectedId = state.chatContacts.find((thread) => thread.id === state.activeChatContactId)?.id || state.chatContacts[0].id;
+      if (!data.messages?.length) {
+        const selected = await apiRequest(`/chat?threadId=${encodeURIComponent(selectedId)}`);
+        state.chatMessages = selected.messages || [];
+      }
+    }
   } catch (error) {
     state.chatStatus = `Chat unavailable: ${error.message}`;
   }
@@ -58,7 +65,8 @@ async function sendChat(ctx, event) {
     });
     mediaType = file.type.startsWith('video/') ? 'video' : 'photo';
   }
-  await apiRequest('/chat', { method: 'POST', body: JSON.stringify({ recipientId: state.activeChatContactId, text, mediaType, mediaUrl }) });
+  const active = (state.chatContacts || []).find((thread) => thread.id === state.activeChatContactId);
+  await apiRequest('/chat', { method: 'POST', body: JSON.stringify({ threadId: active?.id, recipientId: active?.type === 'direct' ? active.contactId || active.participantIds?.find((id) => id !== state.user?.id) : '', playDateId: active?.playDateId, text, mediaType, mediaUrl }) });
   await loadChat(ctx, state.activeChatContactId);
 }
 
@@ -67,12 +75,12 @@ function renderChat(ctx) {
   const contacts = state.chatContacts || [];
   const active = contacts.find((contact) => contact.id === state.activeChatContactId) || contacts[0];
   const contactList = contacts.length
-    ? contacts.map((contact) => `<button type="button" class="chat-contact ${active?.id === contact.id ? 'selected' : ''}" data-chat-contact="${escapeAttribute(contact.id)}"><span class="avatar">${escapeHtml((contact.displayName || 'P').slice(0, 1).toUpperCase())}</span><span>${escapeHtml(contact.displayName)}</span></button>`).join('')
-    : '<p class="muted">Create or join a playdate with another family to open a private chat.</p>';
+    ? contacts.map((contact) => `<button type="button" class="chat-contact ${active?.id === contact.id ? 'selected' : ''}" data-chat-contact="${escapeAttribute(contact.id)}"><span class="avatar">${contact.type === 'playdate' ? '👥' : escapeHtml((contact.title || 'P').slice(0, 1).toUpperCase())}</span><span>${escapeHtml(contact.title || 'Chat')}<small>${contact.type === 'playdate' ? `${contact.participantIds?.length || 0} families` : 'Direct chat'}</small></span></button>`).join('')
+    : '<p class="muted">Join a playdate to open its family thread, or start a direct chat from a connected family.</p>';
   const messages = active
     ? (state.chatMessages || []).map((message) => `<article class="chat-message ${message.senderId === state.user?.id ? 'mine' : ''}">${message.mediaUrl ? (message.mediaType === 'video' ? `<video src="${escapeAttribute(message.mediaUrl)}" controls></video>` : `<img src="${escapeAttribute(message.mediaUrl)}" alt="Shared photo" />`) : ''}${message.text ? `<p>${escapeHtml(message.text)}</p>` : ''}<small>${new Date(message.createdAt).toLocaleString([], { hour: 'numeric', minute: '2-digit' })}</small></article>`).join('')
     : '';
-  return `<div class="chat-layout"><aside class="chat-contacts">${contactList}</aside><section class="chat-thread">${active ? `<div class="chat-thread-heading"><strong>${escapeHtml(active.displayName)}</strong><small>Connected through a playdate</small></div><div class="chat-messages">${messages || '<p class="muted">Say hello and make the meetup easy.</p>'}</div><form id="chat-form" class="chat-compose"><input name="chat-text" placeholder="Message, emoji, or meetup note…" maxlength="2000" /><label class="chat-attach" title="Attach photo or short video">＋<input name="chat-media" type="file" accept="image/*,video/*" /></label><button type="submit">Send</button></form>` : '<div class="chat-empty"><span>💬</span><p>Your playdate circle will appear here.</p></div>'}</section></div>`;
+  return `<div class="chat-layout"><aside class="chat-contacts">${contactList}</aside><section class="chat-thread">${active ? `<div class="chat-thread-heading"><strong>${escapeHtml(active.title || 'Chat')}</strong><small>${active.type === 'playdate' ? 'Everyone in this playdate is included' : 'Private 1:1 conversation'}</small></div><div class="chat-messages">${messages || '<p class="muted">Say hello and make the meetup easy.</p>'}</div><form id="chat-form" class="chat-compose"><input name="chat-text" placeholder="Message, emoji, or meetup note…" maxlength="2000" /><label class="chat-attach" title="Attach photo or short video">＋<input name="chat-media" type="file" accept="image/*,video/*" /></label><button type="submit">Send</button></form>` : '<div class="chat-empty"><span>💬</span><p>Your playdate family threads will appear here.</p></div>'}</section></div>`;
 }
 
 function renderResourceCard(resource) {
