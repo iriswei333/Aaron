@@ -567,7 +567,7 @@ async function loadFamilyEvents(ctx, options = {}) {
     state.familyEventsLoading = false;
     state.familyEventsRequestKey = '';
     state.familyEventsStatus = 'Save a home city or location to find weekend events.';
-    if (state.tab === 'play') ctx.renderCurrent();
+    if (state.tab === 'play' || state.tab === 'home') ctx.renderCurrent();
     return;
   }
 
@@ -580,7 +580,7 @@ async function loadFamilyEvents(ctx, options = {}) {
   state.familyEventsRequestKey = requestKey;
   state.familyEventsLoading = true;
   state.familyEventsStatus = `Checking weekend events around ${shortLocation(location)}...`;
-  if (state.tab === 'play') ctx.renderCurrent();
+  if (state.tab === 'play' || state.tab === 'home') ctx.renderCurrent();
 
   try {
     const refreshQuery = options.force ? `?refresh=1&request=${Date.now()}` : '';
@@ -608,7 +608,7 @@ async function loadFamilyEvents(ctx, options = {}) {
     state.familyEventsStatus = `Could not load weekend events: ${error.message}`;
   }
 
-  if (state.tab === 'play') ctx.renderCurrent();
+  if (state.tab === 'play' || state.tab === 'home') ctx.renderCurrent();
 }
 
 export function refreshFamilyEvents(ctx) {
@@ -1262,7 +1262,7 @@ function renderFamilyEvents(state) {
   if (!state.familyEvents?.length) {
     return '<p class="muted">Weekend event sources will appear after your home city or location is available.</p>';
   }
-  return state.familyEvents.slice(0, 2).map((event) => renderFamilyEventCard(event, state)).join('');
+  return state.familyEvents.slice(0, 5).map((event) => renderFamilyEventCard(event, state)).join('');
 }
 
 function playgroundRecommendationReason(option, state) {

@@ -221,7 +221,7 @@ function formatHomePlayDate(playDate) {
 }
 
 function renderHomeEventCards(state) {
-  const events = (state.familyEvents || []).filter((event) => event.resultType !== 'search-link').slice(0, 3);
+  const events = (state.familyEvents || []).slice(0, 5);
   if (!events.length) return `<div class="home-empty-card"><span aria-hidden="true">🎟️</span><div><strong>No weekend events loaded yet</strong><small>Open Play to find family-friendly events near your home base.</small></div></div>`;
   return `<div class="home-weekend-list">${events.map((event) => {
     const date = event.date ? new Date(`${event.date}T12:00:00`) : null;
