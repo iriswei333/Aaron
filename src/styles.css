@@ -1271,6 +1271,77 @@ time { color: #e26f39; font-weight: 900; }
 .account-danger h3 { color: #9e3c2d; }
 .account-danger p { max-width: 620px; }
 
+/* Five-step welcome flow, based on the supplied SproutCue profile card direction. */
+.welcome-shell { background: #efe9dd; color: #263229; min-height: 100vh; padding: 28px 24px 56px; width: 100%; }
+.welcome-header, .welcome-layout { margin: 0 auto; max-width: 1120px; }
+.welcome-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 18px; }
+.welcome-brand { align-items: center; color: #1f4a36; display: flex; font-size: 21px; font-weight: 850; gap: 9px; }
+.welcome-brand img { height: 32px; width: 32px; }
+.welcome-time { color: #7a7263; font-size: 12px; font-weight: 800; }
+.welcome-layout { background: #fbf7ef; border: 1px solid #dad2c1; border-radius: 20px; box-shadow: 0 24px 60px rgba(50,45,30,.14); display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(320px, .82fr); min-height: 660px; overflow: hidden; }
+.welcome-form { display: flex; flex-direction: column; padding: 38px 48px 42px; }
+.welcome-progress { align-items: center; display: flex; gap: 0; margin-bottom: 34px; }
+.welcome-progress i { background: #e7e0d2; height: 2px; width: 34px; }
+.welcome-progress-dot { align-items: center; background: #fff; border: 2px solid #e7e0d2; border-radius: 50%; color: #8c988f; display: flex; font-size: 11px; font-weight: 850; height: 28px; justify-content: center; width: 28px; }
+.welcome-progress-dot.current { border-color: #2f6b4e; box-shadow: 0 0 0 4px #e4efe6; color: #1f4a36; }
+.welcome-progress-dot.done { background: #2f6b4e; border-color: #2f6b4e; color: #fff; }
+.welcome-progress span:last-child { color: #8c988f; font-size: 12px; font-weight: 800; margin-left: 12px; }
+.welcome-form h1 { color: #263229; font-size: clamp(2rem, 3.2vw, 2.6rem); line-height: 1.05; margin: 0 0 8px; }
+.welcome-lede { color: #5c6b60; font-size: 14px; line-height: 1.55; margin: 0 0 20px; max-width: 500px; }
+.welcome-lede strong, .welcome-lede b { color: #1f4a36; }
+.welcome-label { color: #8c988f; display: block; font-size: 11px; font-weight: 850; letter-spacing: .08em; margin: 15px 0 7px; text-transform: uppercase; }
+.welcome-label input, .welcome-label select { background: #fff; border: 1.5px solid #e7e0d2; border-radius: 12px; color: #263229; display: block; font-size: 15px; margin-top: 7px; max-width: 400px; outline: 0; padding: 12px 14px; width: 100%; }
+.welcome-label input:focus, .welcome-label select:focus { border-color: #2f6b4e; }
+.welcome-label small { color: #8c988f; font-size: 11px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.welcome-two-fields { display: flex; gap: 9px; max-width: 400px; }
+.welcome-two-fields .welcome-label:first-child { flex: 1.35; }
+.welcome-two-fields .welcome-label:last-child { flex: .65; }
+.welcome-chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; max-width: 500px; }
+.welcome-chip { background: #fff; border: 1.5px solid #e7e0d2; border-radius: 999px; color: #5c6b60; font-size: 13px; font-weight: 800; margin: 0; padding: 9px 14px; }
+.welcome-chip:hover { border-color: #2f6b4e; }
+.welcome-chip.selected { background: #2f6b4e; border-color: #2f6b4e; color: #fff; }
+.welcome-radius-read { color: #1f4a36; display: block; font-size: 21px; letter-spacing: 0; margin: 4px 0; text-transform: none; }
+.welcome-label input[type=range] { accent-color: #2f6b4e; padding: 0; }
+.welcome-notice, .welcome-privacy-copy, .welcome-payoff-copy { color: #5c6b60; font-size: 13px; margin: 0 0 12px; }
+.welcome-visibility { display: grid; gap: 9px; max-width: 510px; }
+.welcome-visibility-card { align-items: flex-start; background: #fff; border: 1.5px solid #e7e0d2; border-radius: 13px; display: flex; gap: 12px; margin: 0; padding: 13px 14px; text-align: left; }
+.welcome-visibility-card.selected { border-color: #2f6b4e; box-shadow: 0 2px 10px rgba(47,107,78,.12); }
+.welcome-radio { border: 2px solid #e7e0d2; border-radius: 50%; flex: 0 0 18px; height: 18px; margin-top: 2px; width: 18px; }
+.welcome-visibility-card.selected .welcome-radio { border: 6px solid #2f6b4e; }
+.welcome-visibility-card strong { display: block; font-size: 14px; }
+.welcome-visibility-card small { color: #5c6b60; display: block; font-size: 12px; line-height: 1.4; margin-top: 2px; }
+.welcome-visibility-card em { background: #e4efe6; border-radius: 999px; color: #1f4a36; font-size: 10px; font-style: normal; margin-left: 5px; padding: 3px 7px; }
+.welcome-verify { align-items: center; background: #fff; border: 1px solid #e7e0d2; border-radius: 13px; display: flex; gap: 12px; margin-top: 16px; max-width: 510px; padding: 13px 14px; }
+.welcome-verify > span { align-items: center; background: #cfe5ec; border-radius: 11px; display: flex; font-size: 18px; height: 38px; justify-content: center; width: 38px; }
+.welcome-verify p { flex: 1; margin: 0; }
+.welcome-verify strong, .welcome-verify small { display: block; }
+.welcome-verify strong { color: #263229; font-size: 13px; }
+.welcome-verify small { color: #5c6b60; font-size: 11px; line-height: 1.35; }
+.welcome-verify button { background: #2f6b4e; border: 0; border-radius: 999px; color: #fff; font-size: 12px; font-weight: 800; margin: 0; padding: 9px 13px; }
+.welcome-actions { align-items: center; display: flex; gap: 12px; margin-top: auto; padding-top: 25px; }
+.welcome-primary { background: #2f6b4e; border: 0; border-radius: 999px; color: #fff; font-size: 14px; font-weight: 850; margin: 0; padding: 13px 23px; }
+.welcome-back, .welcome-skip { background: none; border: 0; color: #8c988f; font-size: 13px; font-weight: 800; margin: 0; padding: 10px 0; }
+.welcome-skip { margin-left: auto; text-decoration: underline; }
+.welcome-status { color: #e2643b; font-size: 12px; margin: 12px 0 0; }
+.welcome-preview { align-items: center; background: #e4efe6; border-left: 1px solid #e7e0d2; display: flex; flex-direction: column; padding: 38px 34px; }
+.welcome-preview-label { color: #1f4a36; font-size: 11px; font-weight: 850; letter-spacing: .08em; margin: 0 0 14px; text-transform: uppercase; }
+.welcome-family-card { background: #2f6b4e; border-radius: 22px; box-shadow: 0 14px 34px rgba(31,74,54,.25); color: #fff; max-width: 330px; overflow: hidden; padding: 22px; position: relative; width: 100%; }
+.welcome-orb { background: #1f4a36; border-radius: 50%; height: 150px; opacity: .3; position: absolute; right: -50px; top: -55px; width: 150px; }
+.welcome-avatar-stack { display: flex; position: relative; }
+.welcome-avatar-stack span { align-items: center; background: #e2643b; border: 2px solid #fff; border-radius: 50%; display: flex; font-size: 14px; font-weight: 850; height: 44px; justify-content: center; width: 44px; }
+.welcome-avatar-stack span + span { background: #f6b73c; color: #7a5410; margin-left: -9px; }
+.welcome-family-card h2 { color: #fff; font-size: 20px; margin: 12px 0 2px; position: relative; }
+.welcome-family-card > p { color: #fff; font-size: 12px; margin: 0; opacity: .85; position: relative; }
+.welcome-kid { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.28); border-radius: 999px; display: inline-flex; font-size: 12px; font-weight: 800; margin-top: 8px; padding: 5px 12px; position: relative; }
+.muted-kid { opacity: .58; }
+.welcome-preview-days { display: flex; gap: 5px; margin-top: 13px; }
+.welcome-preview-day { align-items: center; border: 1px solid rgba(255,255,255,.18); border-radius: 8px; color: rgba(255,255,255,.5); display: flex; font-size: 10px; font-weight: 800; height: 26px; justify-content: center; width: 26px; }
+.welcome-preview-day.active { background: #f6b73c; border-color: #f6b73c; color: #7a5410; }
+.welcome-verified { color: #9fe1cb; display: block; font-size: 11px; margin-top: 12px; }
+.welcome-preview-note { color: #1f4a36; font-size: 12px; line-height: 1.6; margin: 17px 0 0; max-width: 280px; text-align: center; }
+.welcome-art { border-radius: 14px; height: 132px; margin-top: 23px; object-fit: cover; opacity: .85; width: min(100%, 330px); }
+@media (max-width: 760px) { .welcome-shell { padding: 16px 12px 30px; } .welcome-layout { display: block; } .welcome-form { padding: 28px 22px 30px; } .welcome-preview { border-left: 0; border-top: 1px solid #e7e0d2; padding: 28px 22px 34px; } .welcome-actions { margin-top: 18px; } .welcome-art { display: none; } }
+
 .profile-facts {
   display: flex;
   flex-wrap: wrap;

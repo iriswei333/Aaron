@@ -369,6 +369,7 @@ export function resetPlayState(state) {
   state.familyEvents = [];
   state.familyEventsStatus = 'Save a home city or location to find weekend events.';
   state.familyEventsMeta = null;
+  state.familyEventsLoading = false;
   state.familyEventsRequestKey = '';
 }
 
@@ -563,6 +564,7 @@ async function loadFamilyEvents(ctx, options = {}) {
   if (!location) {
     state.familyEvents = [];
     state.familyEventsMeta = null;
+    state.familyEventsLoading = false;
     state.familyEventsRequestKey = '';
     state.familyEventsStatus = 'Save a home city or location to find weekend events.';
     if (state.tab === 'play') ctx.renderCurrent();
@@ -576,14 +578,19 @@ async function loadFamilyEvents(ctx, options = {}) {
 
   const requestId = ++familyEventRequestId;
   state.familyEventsRequestKey = requestKey;
+  state.familyEventsLoading = true;
   state.familyEventsStatus = `Checking weekend events around ${shortLocation(location)}...`;
   if (state.tab === 'play') ctx.renderCurrent();
 
   try {
-    const payload = await apiRequest(`/family-events${options.force ? '?refresh=1' : ''}`);
+    const refreshQuery = options.force ? `?refresh=1&request=${Date.now()}` : '';
+    const locationQuery = `location=${encodeURIComponent(shortLocation(location))}`;
+    const separator = refreshQuery ? '&' : '?';
+    const payload = await apiRequest(`/family-events${refreshQuery}${separator}${locationQuery}`, options.force ? { cache: 'no-store' } : {});
     if (requestId !== familyEventRequestId) return;
     state.familyEvents = Array.isArray(payload.events) ? payload.events : [];
     state.familyEventsMeta = payload;
+    state.familyEventsLoading = false;
     const locationCity = payload.locationCity || shortLocation(location);
     const sourceLabel = payload.sourceLabel || 'family event sources';
     const dateLabel = payload.dateRangeLabel ? ` for ${payload.dateRangeLabel}` : '';
@@ -597,6 +604,7 @@ async function loadFamilyEvents(ctx, options = {}) {
     if (requestId !== familyEventRequestId) return;
     state.familyEvents = [];
     state.familyEventsMeta = null;
+    state.familyEventsLoading = false;
     state.familyEventsStatus = `Could not load weekend events: ${error.message}`;
   }
 
@@ -1248,7 +1256,7 @@ async function toggleFamilyEventAttendance(ctx, event) {
 }
 
 function renderFamilyEvents(state) {
-  if (!state.familyEventsMeta && state.familyEventsStatus?.startsWith('Checking')) {
+  if (state.familyEventsLoading || (!state.familyEventsMeta && state.familyEventsStatus?.startsWith('Checking'))) {
     return '<p class="muted">Loading weekend event sources...</p>';
   }
   if (!state.familyEvents?.length) {
@@ -1336,7 +1344,7 @@ export function renderPlay(ctx) {
     ? `<p class="muted">Based on today, ${escapeHtml(upcomingHolidays[0].name)} is next.</p>${upcomingHolidays.map((holiday, index) => `<article class="mini-card">${icon(holiday.personalized ? '🎂' : '🎁')}<div><h3>${escapeHtml(holiday.name)}</h3><p><strong>${escapeHtml(holiday.dateLabel)} · ${escapeHtml(holiday.countdown)}</strong></p><p>${escapeHtml(holiday.reminder)}</p>${index === 0 ? `<small>${escapeHtml(holiday.timing)}</small>` : ''}</div></article>`).join('')}`
     : '<p class="muted">No upcoming holidays found.</p>';
   const locationToolMarkup = `<div id="location-tool-backdrop" class="modal-backdrop" hidden><section class="modal-dialog location-tool location-tool-dialog" role="dialog" aria-modal="true" aria-labelledby="location-tool-title"><div class="section-heading"><div><p class="eyebrow">Set your home base</p><h2 id="location-tool-title">Enter an address</h2></div><button id="close-location-tool" type="button" class="icon-button" aria-label="Close location form">×</button></div><p>${escapeHtml(locationStatus)}</p><form id="location-form"><label class="input-label" for="location-address">Address or place</label><input id="location-address" value="${escapeAttribute(location?.address || '')}" placeholder="Home address, city, or favorite play area" /><button type="submit">Update location</button></form><div class="weather-grid"><strong>${escapeHtml(state.weather.label)}</strong><span>Rain: ${escapeHtml(state.weather.precipitation)}</span><span>Wind: ${escapeHtml(state.weather.wind)}</span></div></section></div>`;
-  ctx.layout(`<main class="play-screen playdates-workspace"><aside class="playdates-list-pane"><div class="playdates-list-heading"><div><p class="eyebrow">Playground finder</p><h2>Playdates</h2></div><div class="weather-chip compact-weather"><strong>${escapeHtml(state.weather.temperature)}</strong><span>${escapeHtml(state.weather.label)}</span></div></div><section id="upcoming-playdates" class="play-list-section"><div class="section-heading"><div><p class="eyebrow">Selected playground</p><h3>${escapeHtml(currentPlayground?.name || 'Choose a playground')}</h3><p class="muted">${escapeHtml(state.playDateStatus)}</p></div><div class="playdate-section-actions"><button id="refresh-playdates" type="button" class="secondary-button small-button" ${currentPlayground ? '' : 'disabled'}>Refresh</button><button type="button" class="rail-create playdate-create-button" data-open-create-playdate ${currentPlayground ? '' : 'disabled'}>＋ New playdate</button></div></div><div class="cards-list">${renderPlayDateList(state, currentPlayground)}</div></section><section class="play-list-section"><div class="section-heading"><div><p class="eyebrow">Nearby places</p><h3>Playgrounds nearby</h3></div><span class="result-count">${playOptions.length} found</span></div><div class="cards-list">${playOptionsMarkup}</div></section><section id="weekend-family-events" class="play-list-section"><div class="section-heading"><div><p class="eyebrow">This weekend</p><h3>Family events</h3></div><button id="refresh-family-events" type="button" class="secondary-button small-button">Refresh</button></div>${renderFamilyEvents(state)}</section><section class="play-list-section holiday-list-section"><h3>Holiday planning</h3>${holidayMarkup}</section></aside><section class="playdates-map-pane"><div class="panel map-panel"><div class="section-heading"><div><p class="eyebrow">Around your family</p><h2>Nearby play map</h2><p class="muted">Showing a ${searchRadiusMiles}-mile square around your family.</p></div><div class="map-location-actions"><button id="use-current-location" type="button" class="secondary-button small-button">Use current location</button><button id="open-location-tool" type="button" class="secondary-button small-button">Enter an address</button></div></div><div class="play-map-visual">${playMapChipsMarkup}${mapMarkup}</div><div class="map-legend"><span><i class="legend-dot home-dot"></i>You</span><span><i class="legend-dot play-dot"></i>Playground</span><span><i class="legend-dot indoor-dot"></i>Indoor backup</span><span><i class="legend-dot playdate-dot"></i>Playdate</span></div></div></section>${locationToolMarkup}${createPlayDateFormMarkup}${editingPlayDate ? renderEditPlayDateForm(editingPlayDate, ageLabel) : ''}${playgroundDetailModalMarkup}</main>`);
+  ctx.layout(`<main class="play-screen playdates-workspace"><aside class="playdates-list-pane"><div class="playdates-list-heading"><div><p class="eyebrow">Playground finder</p><h2>Playdates</h2></div><div class="weather-chip compact-weather"><strong>${escapeHtml(state.weather.temperature)}</strong><span>${escapeHtml(state.weather.label)}</span></div></div><section id="upcoming-playdates" class="play-list-section"><div class="section-heading"><div><p class="eyebrow">Selected playground</p><h3>${escapeHtml(currentPlayground?.name || 'Choose a playground')}</h3><p class="muted">${escapeHtml(state.playDateStatus)}</p></div><div class="playdate-section-actions"><button id="refresh-playdates" type="button" class="secondary-button small-button" ${currentPlayground ? '' : 'disabled'}>Refresh</button><button type="button" class="rail-create playdate-create-button" data-open-create-playdate ${currentPlayground ? '' : 'disabled'}>＋ New playdate</button></div></div><div class="cards-list">${renderPlayDateList(state, currentPlayground)}</div></section><section class="play-list-section"><div class="section-heading"><div><p class="eyebrow">Nearby places</p><h3>Playgrounds nearby</h3></div><span class="result-count">${playOptions.length} found</span></div><div class="cards-list">${playOptionsMarkup}</div></section><section id="weekend-family-events" class="play-list-section"><div class="section-heading"><div><p class="eyebrow">This weekend</p><h3>Family events</h3></div><button id="refresh-family-events" type="button" class="secondary-button small-button" ${state.familyEventsLoading ? 'disabled' : ''}>${state.familyEventsLoading ? 'Refreshing…' : 'Refresh'}</button></div>${renderFamilyEvents(state)}</section><section class="play-list-section holiday-list-section"><h3>Holiday planning</h3>${holidayMarkup}</section></aside><section class="playdates-map-pane"><div class="panel map-panel"><div class="section-heading"><div><p class="eyebrow">Around your family</p><h2>Nearby play map</h2><p class="muted">Showing a ${searchRadiusMiles}-mile square around your family.</p></div><div class="map-location-actions"><button id="use-current-location" type="button" class="secondary-button small-button">Use current location</button><button id="open-location-tool" type="button" class="secondary-button small-button">Enter an address</button></div></div><div class="play-map-visual">${playMapChipsMarkup}${mapMarkup}</div><div class="map-legend"><span><i class="legend-dot home-dot"></i>You</span><span><i class="legend-dot play-dot"></i>Playground</span><span><i class="legend-dot indoor-dot"></i>Indoor backup</span><span><i class="legend-dot playdate-dot"></i>Playdate</span></div></div></section>${locationToolMarkup}${createPlayDateFormMarkup}${editingPlayDate ? renderEditPlayDateForm(editingPlayDate, ageLabel) : ''}${playgroundDetailModalMarkup}</main>`);
 
   if (state.playFocus === 'family-events') {
     state.playFocus = '';

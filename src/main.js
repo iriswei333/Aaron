@@ -22,6 +22,7 @@ import {
   isChildComplete,
   normalizeChild,
   normalizeChildProfile,
+  normalizePlayPreferences,
 } from '../lib/profile-defaults.js';
 
 let root = document.getElementById('root');
@@ -69,6 +70,8 @@ const state = {
   onboardingStatus: '',
   showProfileSetup: false,
   profileDraft: null,
+  onboardingStep: 1,
+  onboardingMeta: null,
   locationStatus: '',
   savedFamilyEvents: [],
   albumLink: readFirstStoredValue(['sproutCueApplePhotosLink', 'aaronApplePhotosLink'], DEFAULT_ALBUM_LINK),
@@ -100,6 +103,7 @@ const state = {
   familyEvents: [],
   familyEventsStatus: 'Save a home city or location to find weekend events.',
   familyEventsMeta: null,
+  familyEventsLoading: false,
   familyEventsRequestKey: '',
   chatContacts: [],
   chatMessages: [],
@@ -186,6 +190,32 @@ function profileDraftFromUser(user = state.user) {
     activeChildId: childProfileState.activeChildId || children[0]?.id || '',
     children,
   };
+}
+
+function onboardingMetaFromUser(user = state.user) {
+  if (state.onboardingMeta) return state.onboardingMeta;
+  const preferences = normalizePlayPreferences(user?.playPreferences);
+  const child = getChildProfile(user);
+  return {
+    relationship: '',
+    interests: Array.isArray(child.favoriteActivities) ? child.favoriteActivities : [],
+    neighborhood: user?.location?.address || user?.location?.label || child.homeCity || '',
+    radius: preferences.searchRadiusMiles,
+    days: preferences.availabilityDays,
+    times: [],
+    visibility: preferences.visibility,
+    verified: false,
+  };
+}
+
+function openWelcome() {
+  state.showProfileSetup = true;
+  state.onboardingStep = 1;
+  state.profileDraft = null;
+  state.onboardingMeta = null;
+  state.onboardingStatus = '';
+  if (globalThis.location?.pathname !== '/welcome') globalThis.history.replaceState({}, '', '/welcome');
+  render();
 }
 
 function childHeaderSummary() {
@@ -352,6 +382,10 @@ async function signInWithPassword() {
     state.authStatus = '';
     applyUserProfile(user);
     state.apiMessage = 'Family profile synced with Supabase.';
+    if (!getChildProfileState(user).onboardingComplete) {
+      openWelcome();
+      return;
+    }
     render();
   } catch (error) {
     state.authStatus = error.message || 'Password sign-in failed.';
@@ -440,8 +474,6 @@ function updateDraftFromActiveForm(form) {
     birthday: formData.get('birthday'),
     ageLabel: formData.get('ageLabel'),
     homeCity: formData.get('homeCity'),
-    diaperSize: formData.get('diaperSize'),
-    daycareDays: formData.get('daycareDays'),
     favoriteActivities: formData.get('favoriteActivities'),
   }, activeDraftChild(draft)));
   const children = draft.children.map((child) => (child.id === updatedChild.id ? updatedChild : child));
@@ -539,36 +571,66 @@ function renderOnboarding() {
   ensureRoot();
   const draft = profileDraftFromUser();
   const activeChild = activeDraftChild(draft);
-  const isEditing = getChildProfileState(state.user).onboardingComplete;
-  const childTabs = draft.children.map((child, index) => {
-    const label = child.name || `Child ${index + 1}`;
-    const selected = child.id === draft.activeChildId;
-    return `<button type="button" class="${selected ? 'selected' : ''}" data-edit-child="${escapeAttribute(child.id)}" aria-pressed="${selected ? 'true' : 'false'}">${escapeHtml(label)}</button>`;
-  }).join('');
-  const removeButton = draft.children.length > 1
-    ? `<button id="remove-child" type="button" class="secondary-button danger-button">Remove this child</button>`
-    : '';
-  const accountDeletion = isEditing
-    ? '<section class="account-danger"><h3>Delete parent data</h3><p> Permanently delete this parent profile, child profiles, plans, play dates, chat messages, and local account data.</p><button id="delete-parent-data" type="button" class="secondary-button danger-button">Delete parent data</button></section>'
-    : '';
-  const profileAvatarUrl = state.user?.socialLinks?.avatarUrl || '/avatars/sproutcue-default-avatar.png';
+  const meta = onboardingMetaFromUser();
+  const step = state.onboardingStep || 1;
+  const days = [['mon','M'],['tue','T'],['wed','W'],['thu','T'],['fri','F'],['sat','S'],['sun','S']];
+  const interests = [['sandbox','🏖️ Sandbox'],['bikes','🚲 Bikes'],['climbing','🧗 Climbing'],['crafts','🎨 Crafts'],['ball games','⚽ Ball games'],['quiet play','🌿 Quiet play']];
+  const selected = (list, value) => list.includes(value) ? ' selected' : '';
+  const chips = (items, values, attr = 'data-value') => items.map(([value, label]) => `<button type="button" class="welcome-chip${selected(values, value)}" ${attr}="${escapeAttribute(value)}">${label}</button>`).join('');
+  const previewDays = days.map(([value, label]) => `<span class="welcome-preview-day${selected(meta.days, value) ? ' active' : ''}">${label}</span>`).join('');
+  const cardKid = activeChild.name ? `<span class="welcome-kid">🧒 ${escapeHtml(activeChild.name)}${activeChild.ageLabel ? ` · ${escapeHtml(activeChild.ageLabel)}` : ''}</span>` : '<span class="welcome-kid muted-kid">🧒 Add your kid</span>';
+  const progress = [1,2,3,4,5].map((item) => `<span class="welcome-progress-dot ${item < step ? 'done' : ''} ${item === step ? 'current' : ''}">${item === 5 ? '✦' : item}</span>`).join('<i></i>');
+  const formField = step === 1 ? `<label class="welcome-label">Your first name<input id="welcome-name" value="${escapeAttribute(draft.displayName)}" placeholder="e.g. Priya" /></label><label class="welcome-label">You are…<span class="welcome-chip-row" id="welcome-rel">${chips([['mom','Mom'],['dad','Dad'],['grandparent','Grandparent'],['caregiver','Caregiver']], meta.relationship ? [meta.relationship] : [])}</span></label><div class="welcome-two-fields"><label class="welcome-label">Kid’s first name<input id="welcome-kid" value="${escapeAttribute(activeChild.name)}" placeholder="Name" /></label><label class="welcome-label">Age<select id="welcome-age"><option value="">Age</option>${[1,2,3,4,5,6,7,'8+'].map((age) => `<option ${String(activeChild.ageLabel) === String(age) ? 'selected' : ''}>${age}</option>`).join('')}</select></label></div><label class="welcome-label">What do they love? <small>(helps match playdates)</small><span class="welcome-chip-row" id="welcome-interests">${chips(interests, meta.interests)}</span></label>`
+    : step === 2 ? `<label class="welcome-label">Neighborhood<input id="welcome-neighborhood" value="${escapeAttribute(meta.neighborhood)}" placeholder="Capitol Hill, Seattle" /></label><label class="welcome-label">How far for a good playdate?<strong class="welcome-radius-read" id="welcome-radius-read">${meta.radius} miles</strong><input id="welcome-radius" type="range" min="1" max="10" value="${meta.radius}" /></label>`
+    : step === 3 ? `<p class="welcome-notice">Not a commitment — just a shortcut to playdates you could actually make.</p><label class="welcome-label">Days<span class="welcome-chip-row" id="welcome-days">${chips(days, meta.days)}</span></label><label class="welcome-label">Times <small>(optional)</small><span class="welcome-chip-row" id="welcome-times">${chips([['morning','🌅 Mornings'],['afternoon','☀️ Afternoons'],['after-school','🎒 After school']], meta.times)}</span></label>`
+    : step === 4 ? `<p class="welcome-privacy-copy">You can change this anytime — even per playdate.</p><div class="welcome-visibility">${[['friends-nearby','Friends + nearby families','Verified families in your radius can see open playdates.','Recommended'],['nearby-only','Nearby families only','Keep your family visible to nearby matches.',''],['invite-only','Invite-only','Only families you invite can find you.','']].map(([value,title,desc,badge]) => `<button type="button" class="welcome-visibility-card${meta.visibility === value ? ' selected' : ''}" data-visibility="${value}"><span class="welcome-radio"></span><span><strong>${title} ${badge ? `<em>${badge}</em>` : ''}</strong><small>${desc}</small></span></button>`).join('')}</div><div class="welcome-verify"><span>📱</span><p><strong>Verify your phone</strong><small>Verified families get 3× more joins — a trust signal other parents look for.</small></p><button type="button" id="welcome-verify">${meta.verified ? '✓ Verified' : 'Verify'}</button></div>`
+    : `<p class="welcome-payoff-copy">Your family card is ready to help you find an easy first connection.</p>`;
+  const back = step > 1 ? '<button type="button" class="welcome-back" id="welcome-back">← Back</button>' : '';
+  const nextLabel = step === 5 ? 'Go to my map →' : step === 4 ? 'Finish setup' : 'Continue';
+  root.innerHTML = `<main class="welcome-shell"><header class="welcome-header"><div class="welcome-brand"><img src="/favicon.svg" alt="" /><span>SproutCue</span></div><span class="welcome-time">Takes about 2 minutes</span></header><div class="welcome-layout"><section class="welcome-form"><div class="welcome-progress">${progress}<span>Step ${step} of 4${step === 5 ? ' · Done' : ''}</span></div><p class="eyebrow">${step === 5 ? 'Your first connection' : 'Welcome to SproutCue'}</p><h1>${step === 1 ? 'Who’s coming to play?' : step === 2 ? 'Where do you usually play?' : step === 3 ? 'When are you usually free?' : step === 4 ? 'Who can see your playdates?' : `You’re in, ${escapeHtml(draft.displayName || 'friend')}! 🎈`}</h1><p class="welcome-lede">${step === 1 ? 'Other parents see a family card, not a profile. First names and kid ages only — no last names, no photos of kids required, ever.' : step === 2 ? 'We show your neighborhood, never your address. Your radius helps personalize playdates.' : step === 3 ? 'Tell us the windows that tend to work. Skip this if your week is still a moving target.' : step === 4 ? 'Trust settings are yours to control. Friends + nearby is the recommended starting point.' : 'Your profile is ready for nearby playdates.'}</p><form id="welcome-form">${formField}<div class="welcome-actions">${back}<button type="submit" class="welcome-primary">${nextLabel}</button>${step === 3 ? '<button type="button" class="welcome-skip" id="welcome-skip">Skip for now</button>' : ''}</div></form><p class="welcome-status">${escapeHtml(state.onboardingStatus || '')}</p></section><aside class="welcome-preview"><p class="welcome-preview-label">Your family card · live preview</p><div class="welcome-family-card"><div class="welcome-orb"></div><div class="welcome-avatar-stack"><span>${escapeHtml((draft.displayName || '?').slice(0,1).toUpperCase())}</span><span>${escapeHtml((activeChild.name || '?').slice(0,1).toUpperCase())}</span></div><h2>${escapeHtml(draft.displayName || 'Your name')}</h2><p>${escapeHtml(meta.neighborhood || 'Your neighborhood')} · new this week 🌱</p><div>${cardKid}</div><div class="welcome-preview-days">${previewDays}</div>${meta.verified ? '<strong class="welcome-verified">✓ Phone verified</strong>' : ''}</div><p class="welcome-preview-note">This is exactly what another parent sees. First names and kid ages only — nothing more.</p><img class="welcome-art" src="/illustrations/playdates.png" alt="Families meeting at a neighborhood playground" /></aside></div></main>`;
+  document.getElementById('welcome-form')?.addEventListener('submit', (event) => { event.preventDefault(); captureWelcomeStep(); if (step < 5) { state.onboardingStep = step + 1; renderOnboarding(); } else saveWelcomeProfile(); });
+  document.getElementById('welcome-back')?.addEventListener('click', () => { captureWelcomeStep(); state.onboardingStep = step - 1; renderOnboarding(); });
+  document.getElementById('welcome-skip')?.addEventListener('click', () => { captureWelcomeStep(); state.onboardingStep = 4; renderOnboarding(); });
+  document.getElementById('welcome-verify')?.addEventListener('click', () => { captureWelcomeStep(); meta.verified = true; state.onboardingMeta = meta; renderOnboarding(); });
+  document.querySelectorAll('#welcome-rel .welcome-chip').forEach((button) => button.addEventListener('click', () => { captureWelcomeStep(); meta.relationship = button.dataset.value; state.onboardingMeta = meta; renderOnboarding(); }));
+  document.querySelectorAll('#welcome-interests .welcome-chip').forEach((button) => button.addEventListener('click', () => { captureWelcomeStep(); meta.interests = meta.interests.includes(button.dataset.value) ? meta.interests.filter((x) => x !== button.dataset.value) : [...meta.interests, button.dataset.value]; state.onboardingMeta = meta; renderOnboarding(); }));
+  document.querySelectorAll('#welcome-days .welcome-chip, #welcome-times .welcome-chip').forEach((button) => button.addEventListener('click', () => { const key = button.closest('#welcome-days') ? 'days' : 'times'; meta[key] = meta[key].includes(button.dataset.value) ? meta[key].filter((x) => x !== button.dataset.value) : [...meta[key], button.dataset.value]; state.onboardingMeta = meta; renderOnboarding(); }));
+  document.querySelectorAll('[data-visibility]').forEach((button) => button.addEventListener('click', () => { meta.visibility = button.dataset.visibility; state.onboardingMeta = meta; renderOnboarding(); }));
+  document.getElementById('welcome-radius')?.addEventListener('input', (event) => { meta.radius = Number(event.target.value); state.onboardingMeta = meta; document.getElementById('welcome-radius-read').textContent = `${meta.radius} miles`; });
+}
 
-  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">${escapeHtml(state.user.email || 'Parent profile')}</p><h1>${APP_NAME}</h1></div></div></header><main class="onboarding-layout"><section class="panel onboarding-panel"><p class="eyebrow">${isEditing ? 'Edit profile' : 'Child setup'}</p><h2>${isEditing ? 'Manage children on this profile' : 'Tell us who this planner is for'}</h2><form id="profile-form" class="profile-form"><label class="input-label" for="parent-display-name">Parent display name</label><input id="parent-display-name" name="displayName" autocomplete="name" value="${escapeAttribute(draft.displayName)}" placeholder="Milo Family" /><div class="profile-avatar-editor"><img class="profile-avatar-image" src="${escapeAttribute(profileAvatarUrl)}" alt="Your profile avatar" /><div><strong>Your avatar</strong><small>Use a photo or keep the SproutCue default.</small><label class="profile-avatar-upload">Upload avatar<input id="profile-avatar-input" type="file" accept="image/*" /></label></div></div><div class="child-editor-bar"><div class="child-tabs" aria-label="Children on this profile">${childTabs}</div><button id="add-child" type="button" class="secondary-button">Add child</button></div><input name="childId" type="hidden" value="${escapeAttribute(activeChild.id)}" /><div class="form-grid two-field-grid"><label><span>Child nickname</span><input name="childName" value="${escapeAttribute(activeChild.name)}" placeholder="Milo" maxlength="60" required /></label><label><span>Birthday</span><input name="birthday" type="date" value="${escapeAttribute(activeChild.birthday)}" max="${new Date().toISOString().slice(0, 10)}" /></label><label><span>Age if no birthday</span><input name="ageLabel" value="${escapeAttribute(activeChild.ageLabel)}" placeholder="2y 4m" maxlength="32" /></label><label><span>Home city</span><input name="homeCity" value="${escapeAttribute(activeChild.homeCity)}" placeholder="Seattle" maxlength="80" required /></label><label><span>Observed diaper size</span><input name="diaperSize" type="number" min="1" max="8" value="${escapeAttribute(activeChild.diaperSize || '')}" placeholder="e.g. 4" /></label></div><label class="input-label" for="daycare-days">Daycare days</label><input class="input-label" name="daycareDays" value="${escapeAttribute(activeChild.daycareDays || '')}" placeholder="mon, tue, thu" /><label class="input-label" for="favorite-activities">Favorite activities</label><input name="favoriteActivities" value="${escapeAttribute(activeChild.favoriteActivities)}" placeholder="cars, climbing, story time" /><div class="form-actions"><button type="submit">${isEditing ? 'Save profile' : 'Save and open planner'}</button>${removeButton}${isEditing ? '<button id="cancel-profile-edit" type="button" class="secondary-button">Cancel</button>' : ''}</div></form><p class="muted">${escapeHtml(state.onboardingStatus || `${draft.children.length} child${draft.children.length === 1 ? '' : 'ren'} on this profile. The selected child becomes the active planner view.`)}</p>${accountDeletion}</section><section class="panel auth-note"><h2>What changes</h2><div class="profile-facts"><span>Derived age + stage</span><span>Nearby playgrounds</span><span>Weekend events</span><span>Playdate planning</span></div><p>Birthday stays the source of truth. SproutCue uses the selected child and home city to personalize playdate discovery.</p></section></main></div>`;
+function captureWelcomeStep() {
+  const draft = profileDraftFromUser();
+  const meta = onboardingMetaFromUser();
+  const name = document.getElementById('welcome-name')?.value?.trim();
+  const kid = document.getElementById('welcome-kid')?.value?.trim();
+  const age = document.getElementById('welcome-age')?.value;
+  if (name !== undefined) draft.displayName = name;
+  if (kid !== undefined) { const child = activeDraftChild(draft); child.name = kid; child.ageLabel = age || child.ageLabel; }
+  meta.neighborhood = document.getElementById('welcome-neighborhood')?.value?.trim() || meta.neighborhood;
+  meta.radius = Number(document.getElementById('welcome-radius')?.value || meta.radius);
+  state.profileDraft = draft;
+  state.onboardingMeta = meta;
+}
 
-  document.getElementById('profile-form').addEventListener('submit', saveProfileSetup);
-  document.getElementById('profile-avatar-input')?.addEventListener('change', handleProfileAvatarChange);
-  document.querySelectorAll('[data-edit-child]').forEach((button) => {
-    button.addEventListener('click', () => setActiveDraftChild(button.dataset.editChild));
-  });
-  document.getElementById('add-child')?.addEventListener('click', addDraftChild);
-  document.getElementById('remove-child')?.addEventListener('click', () => removeDraftChild(activeChild.id));
-  document.getElementById('delete-parent-data')?.addEventListener('click', deleteParentData);
-  document.getElementById('cancel-profile-edit')?.addEventListener('click', () => {
-    state.showProfileSetup = false;
-    state.profileDraft = null;
-    state.onboardingStatus = '';
-    render();
-  });
+async function saveWelcomeProfile() {
+  captureWelcomeStep();
+  const draft = profileDraftFromUser();
+  const meta = onboardingMetaFromUser();
+  const draftChild = activeDraftChild(draft);
+  if (meta.neighborhood) draftChild.homeCity = meta.neighborhood;
+  const childProfile = childProfileFromDraft(draft);
+  const child = getChildProfile({ childProfile });
+  if (!draft.displayName || !child.name || (!child.ageLabel && !child.birthday)) { state.onboardingStatus = 'Add your name, your kid’s name, and their age to continue.'; state.onboardingStep = 1; renderOnboarding(); return; }
+  if (!child.homeCity) { state.onboardingStatus = 'Add your neighborhood so we can personalize nearby playdates.'; state.onboardingStep = 2; renderOnboarding(); return; }
+  state.onboardingStatus = 'Saving your family card…'; renderOnboarding();
+  try {
+    const profile = await apiRequest('/profile', { method: 'PUT', body: JSON.stringify({ displayName: draft.displayName, childProfile }) });
+    state.user = profile.user;
+    await saveUserSection('play-preferences', { searchRadiusMiles: meta.radius, availabilityDays: meta.days, visibility: meta.visibility });
+    if (meta.neighborhood) await saveUserSection('location', { address: meta.neighborhood, label: meta.neighborhood, source: 'onboarding' });
+    state.showProfileSetup = false; state.profileDraft = null; state.onboardingMeta = null; state.onboardingStep = 1; state.onboardingStatus = ''; globalThis.history.replaceState({}, '', '/home'); applyUserProfile(state.user); render();
+  } catch (error) { state.onboardingStatus = `Could not save setup: ${error.message}`; renderOnboarding(); }
 }
 
 async function handleProfileAvatarChange(event) {
@@ -671,6 +733,10 @@ async function ensureBackendUser() {
     if (user) {
       applyUserProfile(user);
       state.apiMessage = 'Family profile synced.';
+      if (!getChildProfileState(user).onboardingComplete) {
+        openWelcome();
+        return;
+      }
     }
   } catch (error) {
     state.apiReady = false;
@@ -755,6 +821,10 @@ async function loginUser(event) {
     state.authStatus = '';
     state.apiReady = true;
     state.apiMessage = usesSupabaseAuth() ? 'Family profile synced with Supabase.' : 'Family profile synced.';
+    if (!getChildProfileState(user).onboardingComplete) {
+      openWelcome();
+      return;
+    }
   } catch (error) {
     state.authStatus = error.message;
   }
@@ -823,7 +893,7 @@ function render() {
     renderLogin();
     return;
   }
-  if (state.showProfileSetup || !getChildProfileState(state.user).onboardingComplete) {
+  if (state.showProfileSetup) {
     renderOnboarding();
     return;
   }
