@@ -111,6 +111,9 @@ const state = {
   parentingResources: [],
   parentingResourcesStatus: '',
   parentingResourcesAgeFilter: '',
+  homeSocialPoster: null,
+  homeSocialPosterStatus: '',
+  homeSocialPosterLoading: false,
 };
 
 const tabRenderers = {

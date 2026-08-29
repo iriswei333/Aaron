@@ -2,6 +2,19 @@
 
 A small Next.js daily planner for parents of young kids. The app keeps separate parent profiles, captures each child's setup details, and helps organize play, saved weekend events, social resources, and private family chat.
 
+## Weekly social-post agent
+
+The social-post generator runs outside the web app. It checks the existing ParentMap weekend-event logic for Seattle, Bellevue, Tacoma, Kirkland, Lynnwood, and Edmonds. If ParentMap has no parsed event, it tries DuckDuckGo web search and labels that source separately. It selects one highlight per region, writes Mandarin captions and source metadata, and can generate one 4:5 PNG poster per matched event.
+
+```bash
+npm run social:weekly -- --dry-run
+npm run social:weekly -- --regions Seattle,Bellevue --output output/social-posts
+```
+
+Image generation requires `OPENAI_API_KEY`. The command uses the bundled GPT Image CLI; set `IMAGE_GEN=/path/to/image_gen.py` if the default Codex skill path is different. A weekly run is saved as `weekly-YYYY-MM-DD.json`, with prompts in the matching `.jsonl` file and generated posters in the same output directory. Use cron, launchd, or GitHub Actions to run it weekly.
+
+See [docs/weekly-social-agent.md](docs/weekly-social-agent.md) for environment activation and setup instructions.
+
 ## Features
 
 - Parent profile login backed by Supabase Auth when configured, with a local JSON fallback for development

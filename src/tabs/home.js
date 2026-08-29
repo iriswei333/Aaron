@@ -40,6 +40,33 @@ export function resetHomeState(state) {
   state.homeUploadedPhoto = null;
   state.showHomeBackgroundPicker = false;
   state.homeBackgroundStatus = '';
+  state.homeSocialPoster = null;
+  state.homeSocialPosterStatus = '';
+  state.homeSocialPosterLoading = false;
+}
+
+async function loadHomeSocialPoster(ctx) {
+  const { state } = ctx;
+  state.homeSocialPosterLoading = true;
+  try {
+    const data = await apiRequest('/social-posters');
+    state.homeSocialPoster = data.recommendedPoster || null;
+    state.homeSocialPosterStatus = data.locationCity
+      ? (state.homeSocialPoster ? `Showing the closest generated post for ${data.locationCity}.` : `No generated poster matches ${data.locationCity} yet.`)
+      : 'Save a location to match a generated poster to your area.';
+  } catch (error) {
+    state.homeSocialPoster = null;
+    state.homeSocialPosterStatus = `Could not load generated poster: ${error.message}`;
+  }
+  state.homeSocialPosterLoading = false;
+  if (state.tab === 'home') ctx.renderCurrent();
+}
+
+function renderHomeSocialPoster(ctx) {
+  const { state } = ctx;
+  const poster = state.homeSocialPoster;
+  if (!poster) return `<div class="home-utility-card home-social-poster-empty"><p class="eyebrow">Weekend social post</p><strong>Generated poster</strong><span>${escapeHtml(state.homeSocialPosterStatus || 'Run the weekly social agent to create a location-matched poster.')}</span><button type="button" class="secondary-button" data-home-tab="chat">Open Social</button></div>`;
+  return `<div class="home-utility-card home-social-poster-card"><div class="home-social-poster-heading"><p class="eyebrow">Weekend social post</p><span>Nearby match</span></div><a href="${escapeAttribute(poster.url)}" target="_blank" rel="noreferrer"><img src="${escapeAttribute(poster.url)}" alt="Generated weekend social poster ${escapeAttribute(poster.name)}" loading="lazy" /></a><strong>${escapeHtml(poster.name.replace(/[-_]/g, ' ').replace(/\.\w+$/, ''))}</strong><span>${escapeHtml(state.homeSocialPosterStatus)}</span></div>`;
 }
 
 export async function loadHomeBackground(ctx) {
@@ -239,8 +266,11 @@ export function renderHome(ctx) {
   const homeDate = nextPlayDate ? formatHomePlayDate(nextPlayDate) : null;
   const weather = state.weather || {};
   const participantCount = Math.max(1, Number(nextPlayDate?.participantCount) || 1);
+  if (!state.homeSocialPosterStatus && !state.homeSocialPosterLoading) loadHomeSocialPoster(ctx);
   ctx.layout(`<main class="home-layout home-dashboard"><header class="home-welcome"><div><p class="eyebrow">Your family day, made social</p><h2>Good morning, ${escapeHtml(parent)}</h2><p>${escapeHtml(weather.label || 'A good day for family plans')} ${weather.temperature && weather.temperature !== '--' ? `· ${escapeHtml(weather.temperature)}` : ''}</p></div><div class="home-welcome-actions"><div class="home-weather"><span aria-hidden="true">${weather.label?.toLowerCase().includes('rain') ? '☔' : '☀️'}</span><strong>${escapeHtml(weather.temperature || '--')}</strong><small>${escapeHtml(weather.label || 'Weather loading')}</small></div></div></header><div class="home-dashboard-grid"><section class="home-primary-column"><div class="home-section-heading"><div><p class="eyebrow">Up next</p><h3>${nextPlayDate ? 'Your next playdate' : 'Make a plan for today'}</h3></div><button type="button" class="text-button" data-home-tab="play">See all playdates →</button></div>${nextPlayDate ? `<article class="home-next-playdate"><div class="home-next-playdate-glow"></div><span class="home-today-badge">${homeDate.date}</span><h3>${escapeHtml(nextPlayDate.playgroundName || 'Neighborhood playdate')}</h3><p>${escapeHtml(homeDate.time)} · ${escapeHtml(nextPlayDate.playgroundAddress || 'Nearby playground')}</p><small>${escapeHtml(nextPlayDate.isHost ? 'Hosted by your family' : 'You are going')} · ${participantCount} ${participantCount === 1 ? 'family' : 'families'} joining</small><div class="home-next-footer"><div class="home-participant-stack" aria-label="Families joining"><span>M</span><span>T</span><span>${participantCount > 2 ? `+${participantCount - 2}` : '✓'}</span></div><button type="button" data-open-chat-playdate="${escapeAttribute(nextPlayDate.id)}">Open chat <span>→</span></button></div></article>` : `<div class="home-empty-card home-empty-primary"><span aria-hidden="true">🛝</span><div><strong>Find a nearby playground</strong><small>See places, weather, and playdates around your family.</small></div><button type="button" data-home-tab="play">Find play →</button></div>`}<div class="home-section-heading home-invites-heading"><div><p class="eyebrow">Coming up</p><h3>Weekend events</h3></div><button type="button" class="text-button" data-home-tab="play" data-home-focus="family-events">Browse events →</button></div>${renderHomeEventCards(state)}</section><aside class="home-secondary-column"><div class="home-utility-card"><p class="eyebrow">Planning for</p><strong>${escapeHtml(childName)}</strong><span>${escapeHtml(state.user?.location?.address || state.user?.location?.label || 'Set a home base for nearby ideas')}</span><button type="button" class="secondary-button" data-home-tab="profile">Open family profile</button></div><div class="home-utility-card home-utility-soft"><p class="eyebrow">A little help nearby</p><strong>Keep the day moving</strong><span>Find weather-friendly places and family events matched to your home base.</span><button type="button" class="secondary-button" data-home-tab="play">Explore nearby →</button></div></aside></div></main>`);
 
+  const homeUtilityCard = document.querySelector('.home-secondary-column .home-utility-card');
+  if (homeUtilityCard) homeUtilityCard.outerHTML = renderHomeSocialPoster(ctx);
   document.getElementById('close-background-picker')?.addEventListener('click', () => {
     state.showHomeBackgroundPicker = false;
     ctx.renderCurrent();

@@ -9,7 +9,8 @@
     "start": "next start -H 127.0.0.1",
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "social:weekly": "node scripts/weekly-social-agent.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",

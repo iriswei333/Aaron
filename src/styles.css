@@ -903,6 +903,14 @@ time { color: #e26f39; font-weight: 900; }
 .home-utility-card strong { color: #1f4a36; font-size: 1.25rem; }
 .home-utility-card > span { color: #6d7b80; font-size: .82rem; line-height: 1.45; }
 .home-utility-card button { justify-self: start; margin: 8px 0 0; }
+.home-social-poster-card { gap: 8px; }
+.home-social-poster-heading { align-items: center; display: flex; justify-content: space-between; }
+.home-social-poster-heading span { background: #e4efe6; border-radius: 999px; color: #2f6b4e; font-size: .65rem; font-weight: 850; padding: 4px 7px; }
+.home-social-poster-card a { display: block; }
+.home-social-poster-card img { aspect-ratio: 4 / 5; border-radius: 12px; display: block; object-fit: cover; width: 100%; }
+.home-social-poster-card > strong { font-size: .92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-social-poster-card > span, .home-social-poster-empty > span { font-size: .74rem; }
+.home-social-poster-empty { min-height: 170px; }
 .home-utility-soft { background: #fdf3dc; border-color: #f0dca8; }
 .home-empty-card { align-items: center; background: #fffdf8; border: 1px dashed #d8cdbb; border-radius: 16px; display: flex; gap: 12px; padding: 17px; }
 .home-empty-card > span { font-size: 1.45rem; }
