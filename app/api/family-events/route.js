@@ -39,14 +39,16 @@ export async function GET(request) {
     if (!current.user) return profileErrorResponse(current);
 
     const url = new URL(request.url);
-    const { locationCity, startDate, endDate } = normalizeFamilyEventRequest(current.user, url.searchParams);
+    const { locationCity, locationZip, startDate, endDate } = normalizeFamilyEventRequest(current.user, url.searchParams);
     const requestId = Number(url.searchParams.get('request'));
     const page = Number.isFinite(requestId) ? pageForRequestId(requestId) : 1;
     const filters = {
       provider: 'parentmap',
+      secondaryProvider: 'seattles-child',
       range: 'weekend',
       page,
-      version: 1,
+      locationZip,
+      version: 2,
     };
     const cacheKey = familyEventCacheKey({ locationCity, startDate, endDate, filters });
     const refresh = url.searchParams.get('refresh') === '1';
@@ -65,6 +67,7 @@ export async function GET(request) {
       endDate,
       childProfile: getChildProfile(current.user),
       page,
+      locationZip,
     });
     const entry = {
       cacheKey,

@@ -119,6 +119,7 @@ let weatherRequestId = 0;
 let nearbyRequestId = 0;
 let playDateRequestId = 0;
 let familyEventRequestId = 0;
+let storyTimeRequestId = 0;
 
 function toNumber(value) {
   const number = Number(value);
@@ -371,6 +372,11 @@ export function resetPlayState(state) {
   state.familyEventsMeta = null;
   state.familyEventsLoading = false;
   state.familyEventsRequestKey = '';
+  state.storyTimes = [];
+  state.storyTimesStatus = 'Save a location to find nearby story times.';
+  state.storyTimesMeta = null;
+  state.storyTimesLoading = false;
+  state.storyTimesRequestKey = '';
 }
 
 async function loadSharedPlayDate(ctx) {
@@ -611,6 +617,45 @@ async function loadFamilyEvents(ctx, options = {}) {
   if (state.tab === 'play' || state.tab === 'home') ctx.renderCurrent();
 }
 
+function storyTimeRequestKey(state) {
+  const location = getUserLocation(state);
+  return `${state.user?.id || ''}|${shortLocation(location).toLowerCase()}`;
+}
+
+async function loadStoryTimes(ctx, options = {}) {
+  const { state } = ctx;
+  if (!state.user) return;
+  const location = getUserLocation(state);
+  if (!location) { state.storyTimes = []; state.storyTimesMeta = null; state.storyTimesStatus = 'Save a location to find nearby story times.'; if (state.tab === 'play') ctx.renderCurrent(); return; }
+  const requestKey = storyTimeRequestKey(state);
+  if (!options.force && state.storyTimesRequestKey === requestKey && state.storyTimesMeta) return;
+  const requestId = ++storyTimeRequestId;
+  state.storyTimesRequestKey = requestKey;
+  state.storyTimesLoading = true;
+  state.storyTimesStatus = `Finding story times near ${shortLocation(location)}...`;
+  if (state.tab === 'play') ctx.renderCurrent();
+  try {
+    const refreshQuery = options.force ? '?refresh=1' : '';
+    const separator = refreshQuery ? '&' : '?';
+    const coords = getLocationCoords(location);
+    const { searchRadiusMiles } = normalizePlayPreferences(state.user?.playPreferences);
+    const coordinateQuery = coords ? `&latitude=${coords.latitude}&longitude=${coords.longitude}` : '';
+    const payload = await apiRequest(`/story-times${refreshQuery}${separator}location=${encodeURIComponent(shortLocation(location))}${coordinateQuery}`, options.force ? { cache: 'no-store' } : {});
+    if (requestId !== storyTimeRequestId) return;
+    state.storyTimes = Array.isArray(payload.events) ? payload.events : [];
+    state.storyTimesMeta = payload;
+    state.storyTimesLoading = false;
+    state.storyTimesStatus = state.storyTimes.length
+      ? `Showing ${state.storyTimes.length} ${payload.cached ? 'cached' : 'updated'} story time${state.storyTimes.length === 1 ? '' : 's'} from ${payload.sourceLabel || 'library calendars'}${coords ? ` within ${searchRadiusMiles} miles` : ''}.`
+      : `No story times found for the next week. Open the source calendar for the latest schedule.`;
+  } catch (error) {
+    if (requestId !== storyTimeRequestId) return;
+    state.storyTimes = []; state.storyTimesMeta = null; state.storyTimesLoading = false;
+    state.storyTimesStatus = `Could not load story times: ${error.message}`;
+  }
+  if (state.tab === 'play') ctx.renderCurrent();
+}
+
 export function refreshFamilyEvents(ctx) {
   loadFamilyEvents(ctx, { force: true });
 }
@@ -620,6 +665,7 @@ export function refreshPlayPlanning(ctx) {
   loadNearbyPlayOptions(ctx);
   loadUserPlayDates(ctx);
   loadFamilyEvents(ctx);
+  loadStoryTimes(ctx);
 }
 
 function requestCurrentLocation(ctx) {
@@ -1186,8 +1232,8 @@ function renderFamilyEventCard(event, state) {
   const image = event.imageUrl || 'https://images.unsplash.com/photo-1504150558240-0b4d9e5c0d87?auto=format&fit=crop&w=640&q=80';
   const attended = isFamilyEventAttended(event, state);
   const attendanceButton = `<button type="button" class="secondary-button small-button" data-attend-family-event="${escapeAttribute(familyEventId(event))}" aria-pressed="${attended ? 'true' : 'false'}">${attended ? 'Going' : 'Join'}</button>`;
-  const eventMeta = [event.timeLabel || 'Time TBD', event.venue || 'ParentMap event'].filter(Boolean).join(' • ');
-  return `<article class="${cardClass} event-card-with-thumb"><img class="resource-thumb" src="${escapeAttribute(image)}" alt="" loading="lazy" /><div class="event-card-main"><span>${escapeHtml(badgeParts[0] || 'Family event')}</span><h3>${escapeHtml(event.title || 'Family event')}</h3><small>${escapeHtml(eventMeta)}</small><div class="play-card-actions">${attendanceButton}</div></div><div class="event-card-date-pin-wrap">${eventDatePinMarkup(event)}</div></article>`;
+  const eventMeta = [event.timeLabel || 'Time TBD', event.venue || event.sourceLabel || 'Family event'].filter(Boolean).join(' • ');
+  return `<article class="${cardClass} event-card-with-thumb"><img class="resource-thumb" src="${escapeAttribute(image)}" alt="" loading="lazy" /><div class="event-card-main"><span>${escapeHtml(badgeParts.join(' • ') || 'Family event')}</span><h3>${escapeHtml(event.title || 'Family event')}</h3><small>${escapeHtml(eventMeta)}</small><div class="play-card-actions">${attendanceButton}</div></div><div class="event-card-date-pin-wrap">${eventDatePinMarkup(event)}</div></article>`;
 }
 
 function eventDatePinMarkup(event) {
@@ -1263,6 +1309,18 @@ function renderFamilyEvents(state) {
     return '<p class="muted">Weekend event sources will appear after your home city or location is available.</p>';
   }
   return state.familyEvents.slice(0, 5).map((event) => renderFamilyEventCard(event, state)).join('');
+}
+
+function renderStoryTimes(state) {
+  if (state.storyTimesLoading) return '<p class="muted">Loading nearby story times...</p>';
+  if (!state.storyTimes?.length) return `<p class="muted">${escapeHtml(state.storyTimesStatus || 'No story times found.')}</p>`;
+  return state.storyTimes.slice(0, 8).map((event) => {
+    const date = event.date ? new Date(`${event.date}T12:00:00`) : null;
+    const dateLabel = date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : event.dateLabel || 'Date pending';
+    const distanceLabel = Number.isFinite(Number(event.distanceMiles)) ? ` · ${formatDistance(Number(event.distanceMiles))}` : '';
+    const detailUrl = event.url || event.sourceUrl;
+    return `<article class="mini-card story-time-card"><div class="story-time-icon" aria-hidden="true">📖</div><div><p class="eyebrow">${escapeHtml(dateLabel)}${event.timeLabel ? ` · ${escapeHtml(event.timeLabel)}` : ''}${distanceLabel}</p><h3>${escapeHtml(event.title || 'Story Time')}</h3><p>${escapeHtml(event.venue || event.sourceLabel || 'Library event')}</p><div class="play-card-actions">${detailUrl ? `<a class="secondary-button small-button" href="${escapeAttribute(detailUrl)}" target="_blank" rel="noreferrer">View details</a>` : ''}</div></div></article>`;
+  }).join('');
 }
 
 function playgroundRecommendationReason(option, state) {
@@ -1344,7 +1402,7 @@ export function renderPlay(ctx) {
     ? `<p class="muted">Based on today, ${escapeHtml(upcomingHolidays[0].name)} is next.</p>${upcomingHolidays.map((holiday, index) => `<article class="mini-card">${icon(holiday.personalized ? '🎂' : '🎁')}<div><h3>${escapeHtml(holiday.name)}</h3><p><strong>${escapeHtml(holiday.dateLabel)} · ${escapeHtml(holiday.countdown)}</strong></p><p>${escapeHtml(holiday.reminder)}</p>${index === 0 ? `<small>${escapeHtml(holiday.timing)}</small>` : ''}</div></article>`).join('')}`
     : '<p class="muted">No upcoming holidays found.</p>';
   const locationToolMarkup = `<div id="location-tool-backdrop" class="modal-backdrop" hidden><section class="modal-dialog location-tool location-tool-dialog" role="dialog" aria-modal="true" aria-labelledby="location-tool-title"><div class="section-heading"><div><p class="eyebrow">Set your home base</p><h2 id="location-tool-title">Enter an address</h2></div><button id="close-location-tool" type="button" class="icon-button" aria-label="Close location form">×</button></div><p>${escapeHtml(locationStatus)}</p><form id="location-form"><label class="input-label" for="location-address">Address or place</label><input id="location-address" value="${escapeAttribute(location?.address || '')}" placeholder="Home address, city, or favorite play area" /><button type="submit">Update location</button></form><div class="weather-grid"><strong>${escapeHtml(state.weather.label)}</strong><span>Rain: ${escapeHtml(state.weather.precipitation)}</span><span>Wind: ${escapeHtml(state.weather.wind)}</span></div></section></div>`;
-  ctx.layout(`<main class="play-screen playdates-workspace"><aside class="playdates-list-pane"><div class="playdates-list-heading"><div><p class="eyebrow">Playground finder</p><h2>Playdates</h2></div><div class="weather-chip compact-weather"><strong>${escapeHtml(state.weather.temperature)}</strong><span>${escapeHtml(state.weather.label)}</span></div></div><section id="upcoming-playdates" class="play-list-section"><div class="section-heading"><div><p class="eyebrow">Selected playground</p><h3>${escapeHtml(currentPlayground?.name || 'Choose a playground')}</h3><p class="muted">${escapeHtml(state.playDateStatus)}</p></div><div class="playdate-section-actions"><button id="refresh-playdates" type="button" class="secondary-button small-button" ${currentPlayground ? '' : 'disabled'}>Refresh</button><button type="button" class="rail-create playdate-create-button" data-open-create-playdate ${currentPlayground ? '' : 'disabled'}>＋ New playdate</button></div></div><div class="cards-list">${renderPlayDateList(state, currentPlayground)}</div></section><section class="play-list-section"><div class="section-heading"><div><p class="eyebrow">Nearby places</p><h3>Playgrounds nearby</h3></div><span class="result-count">${playOptions.length} found</span></div><div class="cards-list">${playOptionsMarkup}</div></section><section id="weekend-family-events" class="play-list-section"><div class="section-heading"><div><p class="eyebrow">This weekend</p><h3>Family events</h3></div><button id="refresh-family-events" type="button" class="secondary-button small-button" ${state.familyEventsLoading ? 'disabled' : ''}>${state.familyEventsLoading ? 'Refreshing…' : 'Refresh'}</button></div>${renderFamilyEvents(state)}</section><section class="play-list-section holiday-list-section"><h3>Holiday planning</h3>${holidayMarkup}</section></aside><section class="playdates-map-pane"><div class="panel map-panel"><div class="section-heading"><div><p class="eyebrow">Around your family</p><h2>Nearby play map</h2><p class="muted">Showing a ${searchRadiusMiles}-mile square around your family.</p></div><div class="map-location-actions"><button id="use-current-location" type="button" class="secondary-button small-button">Use current location</button><button id="open-location-tool" type="button" class="secondary-button small-button">Enter an address</button></div></div><div class="play-map-visual">${playMapChipsMarkup}${mapMarkup}</div><div class="map-legend"><span><i class="legend-dot home-dot"></i>You</span><span><i class="legend-dot play-dot"></i>Playground</span><span><i class="legend-dot indoor-dot"></i>Indoor backup</span><span><i class="legend-dot playdate-dot"></i>Playdate</span></div></div></section>${locationToolMarkup}${createPlayDateFormMarkup}${editingPlayDate ? renderEditPlayDateForm(editingPlayDate, ageLabel) : ''}${playgroundDetailModalMarkup}</main>`);
+  ctx.layout(`<main class="play-screen playdates-workspace"><aside class="playdates-list-pane"><div class="playdates-list-heading"><div><p class="eyebrow">Playground finder</p><h2>Playdates</h2></div><div class="weather-chip compact-weather"><strong>${escapeHtml(state.weather.temperature)}</strong><span>${escapeHtml(state.weather.label)}</span></div></div><section id="upcoming-playdates" class="play-list-section"><div class="section-heading"><div><p class="eyebrow">Selected playground</p><h3>${escapeHtml(currentPlayground?.name || 'Choose a playground')}</h3><p class="muted">${escapeHtml(state.playDateStatus)}</p></div><div class="playdate-section-actions"><button id="refresh-playdates" type="button" class="secondary-button small-button" ${currentPlayground ? '' : 'disabled'}>Refresh</button><button type="button" class="rail-create playdate-create-button" data-open-create-playdate ${currentPlayground ? '' : 'disabled'}>＋ New playdate</button></div></div><div class="cards-list">${renderPlayDateList(state, currentPlayground)}</div></section><section class="play-list-section"><div class="section-heading"><div><p class="eyebrow">Nearby places</p><h3>Playgrounds nearby</h3></div><span class="result-count">${playOptions.length} found</span></div><div class="cards-list">${playOptionsMarkup}</div></section><section id="daily-story-times" class="play-list-section"><div class="section-heading"><div><p class="eyebrow">Every day</p><h3>Nearby story times</h3><p class="muted">${escapeHtml(state.storyTimesStatus || '')}</p></div><button id="refresh-story-times" type="button" class="secondary-button small-button" ${state.storyTimesLoading ? 'disabled' : ''}>${state.storyTimesLoading ? 'Refreshing…' : 'Refresh'}</button></div>${renderStoryTimes(state)}</section><section id="weekend-family-events" class="play-list-section"><div class="section-heading"><div><p class="eyebrow">This weekend</p><h3>Family events</h3></div><button id="refresh-family-events" type="button" class="secondary-button small-button" ${state.familyEventsLoading ? 'disabled' : ''}>${state.familyEventsLoading ? 'Refreshing…' : 'Refresh'}</button></div>${renderFamilyEvents(state)}</section><section class="play-list-section holiday-list-section"><h3>Holiday planning</h3>${holidayMarkup}</section></aside><section class="playdates-map-pane"><div class="panel map-panel"><div class="section-heading"><div><p class="eyebrow">Around your family</p><h2>Nearby play map</h2><p class="muted">Showing a ${searchRadiusMiles}-mile square around your family.</p></div><div class="map-location-actions"><button id="use-current-location" type="button" class="secondary-button small-button">Use current location</button><button id="open-location-tool" type="button" class="secondary-button small-button">Enter an address</button></div></div><div class="play-map-visual">${playMapChipsMarkup}${mapMarkup}</div><div class="map-legend"><span><i class="legend-dot home-dot"></i>You</span><span><i class="legend-dot play-dot"></i>Playground</span><span><i class="legend-dot indoor-dot"></i>Indoor backup</span><span><i class="legend-dot playdate-dot"></i>Playdate</span></div></div></section>${locationToolMarkup}${createPlayDateFormMarkup}${editingPlayDate ? renderEditPlayDateForm(editingPlayDate, ageLabel) : ''}${playgroundDetailModalMarkup}</main>`);
 
   if (state.playFocus === 'family-events') {
     state.playFocus = '';
@@ -1438,6 +1496,7 @@ export function renderPlay(ctx) {
   }
   document.getElementById('refresh-playdates')?.addEventListener('click', () => loadPlayDates(ctx, currentPlayground));
   document.getElementById('refresh-family-events')?.addEventListener('click', () => loadFamilyEvents(ctx, { force: true }));
+  document.getElementById('refresh-story-times')?.addEventListener('click', () => loadStoryTimes(ctx, { force: true }));
   document.querySelectorAll('[data-join-playdate]').forEach((button) => {
     button.addEventListener('click', () => joinPlayDate(ctx, button.dataset.joinPlaydate, currentPlayground));
   });

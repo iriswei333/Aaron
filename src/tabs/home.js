@@ -222,8 +222,9 @@ function isFutureFamilyEvent(item, now) {
     const date = new Date(timestamp);
     return Number.isFinite(date.getTime()) && date >= now;
   }
-  if (item.metadata?.date) {
-    const date = new Date(`${item.metadata.date}T23:59:59`);
+  const dateValue = item.date || item.metadata?.date;
+  if (dateValue) {
+    const date = new Date(`${dateValue}T23:59:59`);
     return Number.isFinite(date.getTime()) && date >= now;
   }
   return false;
@@ -247,8 +248,31 @@ function formatHomePlayDate(playDate) {
   };
 }
 
+function selectedHomeWeekendEvents(state) {
+  return (state.savedFamilyEvents || [])
+    .filter((item) => item.kind === 'external_event' && item.status !== 'cancelled' && isFutureFamilyEvent(item, new Date()))
+    .map((item) => ({
+      ...item,
+      date: item.metadata?.date || item.date || '',
+      dateLabel: item.metadata?.dateLabel || item.dateLabel || '',
+      timeLabel: item.metadata?.timeLabel || item.timeLabel || '',
+      imageUrl: item.metadata?.imageUrl || item.imageUrl || '',
+    }))
+    .sort((a, b) => {
+      const aDate = new Date(`${a.date || '9999-12-31'}T12:00:00`);
+      const bDate = new Date(`${b.date || '9999-12-31'}T12:00:00`);
+      return aDate - bDate;
+    });
+}
+
+function homeWeekendEvents(state) {
+  const selected = selectedHomeWeekendEvents(state);
+  if (selected.length) return selected;
+  return state.familyEvents || [];
+}
+
 function renderHomeEventCards(state) {
-  const events = (state.familyEvents || []).slice(0, 5);
+  const events = homeWeekendEvents(state).slice(0, 5);
   if (!events.length) return `<div class="home-empty-card"><span aria-hidden="true">🎟️</span><div><strong>No weekend events loaded yet</strong><small>Open Play to find family-friendly events near your home base.</small></div></div>`;
   return `<div class="home-weekend-list">${events.map((event) => {
     const date = event.date ? new Date(`${event.date}T12:00:00`) : null;

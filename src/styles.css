@@ -125,6 +125,12 @@
 .playdate-section-actions .playdate-create-button { padding: 6px 9px; width: auto; }
 .play-list-section .section-heading p { margin-bottom: 0; }
 .play-list-section .mini-card { margin-top: 6px; padding: 9px; }
+.story-time-card { align-items: flex-start; gap: 10px; }
+.story-time-icon { align-items: center; background: #e8f1eb; border-radius: 12px; display: flex; flex: 0 0 38px; font-size: 1.15rem; height: 38px; justify-content: center; }
+.story-time-card .eyebrow { margin-bottom: 2px; }
+.story-time-card h3 { margin-bottom: 2px; }
+.story-time-card small { display: block; margin-top: 4px; }
+.story-time-card .play-card-actions { margin-top: 7px; }
 .play-list-section .play-card .resource-thumb { flex-basis: 58px; height: 58px; width: 58px; }
 .compact-play-card { align-items: flex-start; gap: 10px; padding: 10px; }
 .compact-play-card h3 { font-size: .95rem; margin-bottom: 3px; }

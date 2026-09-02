@@ -7,6 +7,7 @@ import { DEFAULT_SOCIAL_REGIONS, generateWeeklySocialPosts } from '../lib/social
 
 const projectRoot = resolve(new URL('..', import.meta.url).pathname);
 const imageGen = process.env.IMAGE_GEN || join(process.env.CODEX_HOME || join(homedir(), '.codex'), 'skills/.system/imagegen/scripts/image_gen.py');
+const MAX_WEEKLY_POSTERS = 8;
 
 function argValue(name, fallback = '') {
   const index = process.argv.indexOf(name);
@@ -15,6 +16,7 @@ function argValue(name, fallback = '') {
 
 const dryRun = process.argv.includes('--dry-run');
 const skipImages = process.argv.includes('--skip-images');
+const sampleRun = process.argv.includes('--sample');
 const outputDir = resolve(argValue('--output', join(projectRoot, 'output/social-posts')));
 const defaultRegionList = DEFAULT_SOCIAL_REGIONS.map((item) => item.city).join(',');
 const regions = argValue('--regions', defaultRegionList)
@@ -29,7 +31,7 @@ Asset type: vertical 4:5 Mandarin social media event poster
 Primary request: Create a polished Mandarin family-event poster for ${post.title} in ${post.city}, based on a clean, friendly community flyer style similar to a children’s safety-day poster: warm cream background, rounded coral/orange headline panel, bold readable display typography, three cheerful illustrated family characters, a navy ribbon, simple circular feature icons, and clear information bands.
 Scene/backdrop: welcoming local weekend event with a subtle ${post.city} landmark or neighborhood backdrop, simplified so the text remains easy to read.
 Style/medium: professional flat cartoon illustration, bright family-friendly colors, crisp outlines, light print texture, generous margins, no dense collage.
-Composition/framing: vertical 4:5; headline in the top third; family characters in the middle; date/time/location and source credit in clean bands near the bottom.
+Composition/framing: vertical 4:5; headline in the top third; family characters in the middle; date/time/location and Sproutecue brand credit in clean bands near the bottom.
 Text (verbatim; render exactly in simplified Chinese and English where shown):
 “${post.headline}”
 “${post.title}”
@@ -37,10 +39,31 @@ Text (verbatim; render exactly in simplified Chinese and English where shown):
 “${post.dateLabel || post.date || '本周末'}”
 “${post.timeLabel || '时间请以活动页面为准'}”
 “${post.venue || post.city}”
-“带上家人，一起去玩！”
+“${post.bannerText || '带上家人，一起去玩！'}”
 “资料整理：Sproutecue”
-“活动来源：${post.sourceLabel || 'ParentMap'}”
-Constraints: preserve the event title and facts exactly; make all text legible at mobile size; no QR code, phone number, fake logo, watermark, invented detail, or tiny unreadable copy.`;
+Constraints: preserve the event title and facts exactly; keep only the Sproutecue brand name as the poster credit; make all text legible at mobile size; no event-source label, QR code, phone number, fake logo, watermark, invented detail, or tiny unreadable copy.`;
+}
+
+function selectPosterPosts(posts, limit = MAX_WEEKLY_POSTERS) {
+  const groups = new Map();
+  for (const post of posts) {
+    if (!groups.has(post.city)) groups.set(post.city, []);
+    groups.get(post.city).push(post);
+  }
+  const selected = [];
+  let offset = 0;
+  while (selected.length < limit) {
+    let added = false;
+    for (const cityPosts of groups.values()) {
+      if (cityPosts[offset] && selected.length < limit) {
+        selected.push(cityPosts[offset]);
+        added = true;
+      }
+    }
+    if (!added) break;
+    offset += 1;
+  }
+  return selected;
 }
 
 function showProgress(completed, total, current = '') {
@@ -85,12 +108,22 @@ function runImageBatch(jobs, promptPath, outputDir) {
 
 async function main() {
   const run = await generateWeeklySocialPosts({ regions });
+  const posterPosts = selectPosterPosts(run.posts, sampleRun ? 1 : MAX_WEEKLY_POSTERS);
   await mkdir(outputDir, { recursive: true });
   const manifestPath = join(outputDir, `weekly-${run.weekKey}.json`);
   const promptPath = join(outputDir, `weekly-${run.weekKey}.jsonl`);
-  const manifest = { ...run, imageDirectory: outputDir, imageGenCommand: imageGen };
+  const manifest = {
+    ...run,
+    imageDirectory: outputDir,
+    imageGenCommand: imageGen,
+    posterLimit: sampleRun ? 1 : MAX_WEEKLY_POSTERS,
+    sampleRun,
+    posterPostIds: posterPosts.map((post) => post.id),
+  };
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
-  const jobs = run.posts.map((post) => ({
+  const roundupPath = join(outputDir, `weekly-${run.weekKey}-roundup.md`);
+  await writeFile(roundupPath, `# ${run.roundup.title}\n\n${run.roundup.caption}\n`);
+  const jobs = posterPosts.map((post) => ({
     prompt: posterPrompt(post),
     use_case: 'ads-marketing',
     size: '1024x1536',
@@ -100,10 +133,12 @@ async function main() {
   await writeFile(promptPath, jobs.map((job) => JSON.stringify(job)).join('\n') + (jobs.length ? '\n' : ''));
 
   console.log(`Weekend: ${run.startDate}–${run.endDate}`);
-  console.log(`Matched ${run.posts.length} of ${run.regions.length} regions.`);
+  console.log(`Matched ${run.posts.length} of ${run.regions.length * 2} Saturday/Sunday slots.`);
+  console.log(`Poster jobs: ${jobs.length} of ${run.posts.length} matched events (${sampleRun ? 'sample limit: 1' : `weekly limit: ${MAX_WEEKLY_POSTERS}`}).`);
   console.log(`Manifest: ${manifestPath}`);
   console.log(`Prompts:  ${promptPath}`);
-  for (const status of run.statuses) console.log(`${status.city}: ${status.matched ? 'matched' : status.providerStatus}`);
+  console.log(`Roundup:  ${roundupPath}`);
+  for (const status of run.statuses) console.log(`${status.city} ${status.day}: ${status.matched ? 'matched' : status.providerStatus}`);
 
   if (dryRun || skipImages || jobs.length === 0) {
     console.log(dryRun ? 'Dry run: no images generated.' : 'Image generation skipped.');

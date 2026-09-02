@@ -4,14 +4,15 @@ A small Next.js daily planner for parents of young kids. The app keeps separate 
 
 ## Weekly social-post agent
 
-The social-post generator runs outside the web app. It checks the existing ParentMap weekend-event logic for Seattle, Bellevue, Tacoma, Kirkland, Lynnwood, and Edmonds. If ParentMap has no parsed event, it tries DuckDuckGo web search and labels that source separately. It selects one highlight per region, writes Mandarin captions and source metadata, and can generate one 4:5 PNG poster per matched event.
+The social-post generator runs outside the web app. It checks the existing ParentMap weekend-event logic separately for Saturday and Sunday in Seattle, Bellevue, Tacoma, Kirkland, Lynnwood, and Edmonds. It reads matched event detail descriptions, then uses the OpenAI API to translate and generate one short Mandarin highlight of 2–3 sentences per event when `OPENAI_API_KEY` is available. If ParentMap has no parsed event for a day, it tries DuckDuckGo web search and labels that source separately. It selects up to two highlights per region, writes Mandarin captions and source metadata, generates a Mandarin roundup Markdown post, and generates at most 8 4:5 PNG posters per week.
 
 ```bash
 npm run social:weekly -- --dry-run
 npm run social:weekly -- --regions Seattle,Bellevue --output output/social-posts
+npm run social:weekly -- --sample
 ```
 
-Image generation requires `OPENAI_API_KEY`. The command uses the bundled GPT Image CLI; set `IMAGE_GEN=/path/to/image_gen.py` if the default Codex skill path is different. A weekly run is saved as `weekly-YYYY-MM-DD.json`, with prompts in the matching `.jsonl` file and generated posters in the same output directory. Use cron, launchd, or GitHub Actions to run it weekly.
+Image generation requires `OPENAI_API_KEY`. The command uses the bundled GPT Image CLI; set `IMAGE_GEN=/path/to/image_gen.py` if the default Codex skill path is different. Use `--sample` to write one weekly roundup and generate only one sample poster. A weekly run is saved as `weekly-YYYY-MM-DD.json`, with prompts in the matching `.jsonl` file and generated posters in the same output directory. Use cron, launchd, or GitHub Actions to run it weekly.
 
 See [docs/weekly-social-agent.md](docs/weekly-social-agent.md) for environment activation and setup instructions.
 
@@ -168,7 +169,7 @@ data/
 ## Notes
 
 - Weather uses Open-Meteo from the browser after a profile has saved latitude and longitude.
-- Weekend family events are fetched server-side only. The API uses the saved profile city or location city, parses ParentMap calendar pages for supported Puget Sound cities, caches results for 12 hours, and falls back to clearly labeled search links when no parsed event cards are available.
+- Weekend family events are fetched server-side only. The API uses the saved profile city or location city, queries ParentMap and Seattle's Child (using a saved ZIP when available), caches merged results for 12 hours, and falls back to clearly labeled search links when no parsed event cards are available.
 - Parenting resources are fetched and parsed server-side by child age group, then cached in `parenting_resource_cache` for 24 hours. Social’s Refresh button bypasses that cache.
 - Meal planning, grocery shopping events, and recurring family-logistics events were retired in the 202608190001 cutoff migration. The migration removes their stored profile/table data and narrows saved family events to external weekend events.
 - Photos and videos selected for local caption drafting are previewed locally in the browser. Media is uploaded only when the parent explicitly shares it in parent-to-parent chat.
