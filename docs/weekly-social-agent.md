@@ -42,4 +42,12 @@ For a test run that writes one weekly roundup and generates only one sample post
 npm run social:weekly -- --sample
 ```
 
-Generated manifests, prompts, and poster images are saved under `output/social-posts/` by default.
+To regenerate a poster that received negative feedback while keeping the same city and day:
+
+```bash
+npm run social:weekly -- --regenerate Seattle,2026-09-05
+```
+
+Use the `--regenerate City,YYYY-MM-DD` flag more than once for multiple posters. Each request searches that city/day again and selects a different eligible event from the results. When an alternate event is found, the matching `weekly-YYYY-MM-DD-roundup.md` file is regenerated too. The roundup includes only the up-to-eight events represented by the poster set, lists each event’s city, name, and location without exact event times, uses one sentence of highlights per event, and is capped at 670 words. Add `--feedback "..."` to include the critique in the replacement prompt. Regeneration intentionally overwrites only the requested poster; all other existing posters remain skipped.
+
+Generated manifests, prompts, and poster images are saved under `output/social-posts/` by default. Before generating images, the agent checks that directory and skips any poster whose expected `{city}-{date}.png` file already exists; the weekly limit is filled with other missing posters when available.

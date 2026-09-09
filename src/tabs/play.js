@@ -1319,7 +1319,7 @@ function renderStoryTimes(state) {
     const dateLabel = date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : event.dateLabel || 'Date pending';
     const distanceLabel = Number.isFinite(Number(event.distanceMiles)) ? ` · ${formatDistance(Number(event.distanceMiles))}` : '';
     const detailUrl = event.url || event.sourceUrl;
-    return `<article class="mini-card story-time-card"><div class="story-time-icon" aria-hidden="true">📖</div><div><p class="eyebrow">${escapeHtml(dateLabel)}${event.timeLabel ? ` · ${escapeHtml(event.timeLabel)}` : ''}${distanceLabel}</p><h3>${escapeHtml(event.title || 'Story Time')}</h3><p>${escapeHtml(event.venue || event.sourceLabel || 'Library event')}</p><div class="play-card-actions">${detailUrl ? `<a class="secondary-button small-button" href="${escapeAttribute(detailUrl)}" target="_blank" rel="noreferrer">View details</a>` : ''}</div></div></article>`;
+    return `<article class="mini-card story-time-card"><div class="story-time-icon" aria-hidden="true">📖</div><div class="story-time-content"><p class="eyebrow">${escapeHtml(dateLabel)}${event.timeLabel ? ` · ${escapeHtml(event.timeLabel)}` : ''}${distanceLabel}</p><h3>${escapeHtml(event.title || 'Story Time')}</h3><small>${escapeHtml(event.venue || event.sourceLabel || 'Library event')}</small></div>${detailUrl ? `<div class="story-time-actions"><a class="secondary-button small-button" href="${escapeAttribute(detailUrl)}" target="_blank" rel="noreferrer">View details</a></div>` : ''}</article>`;
   }).join('');
 }
 

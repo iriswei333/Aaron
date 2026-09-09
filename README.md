@@ -10,9 +10,13 @@ The social-post generator runs outside the web app. It checks the existing Paren
 npm run social:weekly -- --dry-run
 npm run social:weekly -- --regions Seattle,Bellevue --output output/social-posts
 npm run social:weekly -- --sample
+# Regenerate an existing poster after feedback (city,date)
+npm run social:weekly -- --regenerate Seattle,2026-09-05
+# Include the feedback in the replacement prompt
+npm run social:weekly -- --regenerate Seattle,2026-09-05 --feedback "The headline is too small and the layout feels crowded."
 ```
 
-Image generation requires `OPENAI_API_KEY`. The command uses the bundled GPT Image CLI; set `IMAGE_GEN=/path/to/image_gen.py` if the default Codex skill path is different. Use `--sample` to write one weekly roundup and generate only one sample poster. A weekly run is saved as `weekly-YYYY-MM-DD.json`, with prompts in the matching `.jsonl` file and generated posters in the same output directory. Use cron, launchd, or GitHub Actions to run it weekly.
+Image generation requires `OPENAI_API_KEY`. The command uses the bundled GPT Image CLI; set `IMAGE_GEN=/path/to/image_gen.py` if the default Codex skill path is different. Existing `{city}-{date}.png` files in the output directory are skipped, so rerunning the agent only generates missing posters. The weekly roundup contains only the up-to-eight events represented by the poster set, lists each event’s city, name, and location without exact event times, uses one sentence of highlights per event, includes a Mandarin invitation to create a family card and discover nearby playdates, playgrounds, storytimes, and weekend events, and is capped at 670 words. If a poster is not good enough, pass `--regenerate City,YYYY-MM-DD` to search that same city/day again, select a different eligible event, and replace that poster; the weekly roundup is regenerated as well when an alternate event is found. Repeat the flag for multiple posters. Add `--feedback "..."` to include the critique in the replacement prompt. Use `--sample` to write one weekly roundup and generate only one missing sample poster. A weekly run is saved as `weekly-YYYY-MM-DD.json`, with prompts in the matching `.jsonl` file and generated posters in the same output directory. Use cron, launchd, or GitHub Actions to run it weekly.
 
 See [docs/weekly-social-agent.md](docs/weekly-social-agent.md) for environment activation and setup instructions.
 

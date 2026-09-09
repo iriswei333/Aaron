@@ -125,12 +125,15 @@
 .playdate-section-actions .playdate-create-button { padding: 6px 9px; width: auto; }
 .play-list-section .section-heading p { margin-bottom: 0; }
 .play-list-section .mini-card { margin-top: 6px; padding: 9px; }
-.story-time-card { align-items: flex-start; gap: 10px; }
+.story-time-card { align-items: center; gap: 10px; }
 .story-time-icon { align-items: center; background: #e8f1eb; border-radius: 12px; display: flex; flex: 0 0 38px; font-size: 1.15rem; height: 38px; justify-content: center; }
+.story-time-content { flex: 1 1 auto; min-width: 0; overflow: hidden; }
 .story-time-card .eyebrow { margin-bottom: 2px; }
-.story-time-card h3 { margin-bottom: 2px; }
+.story-time-card .eyebrow { background: #e4efe6; border-radius: 999px; color: #2f6b4e; display: inline-flex; font-size: .64rem; max-width: 100%; overflow: hidden; padding: 3px 7px; text-overflow: ellipsis; white-space: nowrap; }
+.story-time-card h3 { font-size: .86rem; line-height: 1.15; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .story-time-card small { display: block; margin-top: 4px; }
-.story-time-card .play-card-actions { margin-top: 7px; }
+.story-time-actions { flex: 0 0 auto; }
+.story-time-actions .small-button { font-size: .68rem; padding: 5px 8px; white-space: nowrap; }
 .play-list-section .play-card .resource-thumb { flex-basis: 58px; height: 58px; width: 58px; }
 .compact-play-card { align-items: flex-start; gap: 10px; padding: 10px; }
 .compact-play-card h3 { font-size: .95rem; margin-bottom: 3px; }
