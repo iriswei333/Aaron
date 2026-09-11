@@ -12,6 +12,15 @@ function citySlug(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
+function posterEventDate(name) {
+  const match = String(name || '').match(/-(\d{4}-\d{2}-\d{2})\.(?:png|jpe?g|webp)$/i);
+  if (!match) return '';
+  const date = new Date(`${match[1]}T00:00:00Z`);
+  return Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== match[1]
+    ? ''
+    : match[1];
+}
+
 export async function GET(request) {
   try {
     const current = await getCurrentProfile(request);
@@ -38,9 +47,12 @@ export async function GET(request) {
       .map(async (name) => ({
         name,
         url: `/api/social-posters?file=${encodeURIComponent(name)}`,
+        eventDate: posterEventDate(name),
         modifiedAt: (await stat(resolve(POSTER_DIR, name))).mtime.toISOString(),
       })));
-    posters.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt));
+    posters.sort((a, b) => (b.eventDate || '').localeCompare(a.eventDate || '')
+      || b.modifiedAt.localeCompare(a.modifiedAt)
+      || a.name.localeCompare(b.name));
     const locationCity = familyEventCityForUser(current.user);
     const prefix = `${citySlug(locationCity)}-`;
     const recommendedPoster = locationCity

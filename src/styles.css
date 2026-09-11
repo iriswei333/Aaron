@@ -135,7 +135,11 @@
 .story-time-actions { flex: 0 0 auto; }
 .story-time-actions .small-button { font-size: .68rem; padding: 5px 8px; white-space: nowrap; }
 .play-list-section .play-card .resource-thumb { flex-basis: 58px; height: 58px; width: 58px; }
-.compact-play-card { align-items: flex-start; gap: 10px; padding: 10px; }
+.compact-play-card { align-items: flex-start; gap: 10px; padding: 10px; position: relative; }
+.compact-play-card .playground-list-select { position: absolute; inset: 0; z-index: 1; width: 100%; margin: 0; padding: 0; border: 0; border-radius: inherit; background: transparent; box-shadow: none; cursor: pointer; }
+.compact-play-card .playground-list-select:hover { background: rgb(0 0 0 / 3%); transform: none; }
+.compact-play-card .playground-list-select:focus-visible { outline: 2px solid #357a50; outline-offset: 2px; }
+.compact-play-card [data-view-playground-detail] { position: relative; z-index: 2; }
 .compact-play-card h3 { font-size: .95rem; margin-bottom: 3px; }
 .play-card-meta-row { align-items: center; display: flex; gap: 6px; min-width: 0; white-space: nowrap; }
 .compact-playground-highlights { flex: 1 1 auto; margin: 0; min-width: 0; overflow: hidden; }

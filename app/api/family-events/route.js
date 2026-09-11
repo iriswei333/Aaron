@@ -10,6 +10,7 @@ import {
   familyEventExpiresAt,
   fetchFamilyEvents,
   normalizeFamilyEventRequest,
+  resolveFamilyEventWebsites,
 } from '../../../lib/family-events.js';
 import { getChildProfile } from '../../../lib/profile-defaults.js';
 import { getCurrentProfile, profileErrorResponse } from '../../../lib/profile-session.js';
@@ -48,7 +49,7 @@ export async function GET(request) {
       range: 'weekend',
       page,
       locationZip,
-      version: 2,
+      version: 3,
     };
     const cacheKey = familyEventCacheKey({ locationCity, startDate, endDate, filters });
     const refresh = url.searchParams.get('refresh') === '1';
@@ -79,7 +80,7 @@ export async function GET(request) {
       sourceLabel: fetched.sourceLabel,
       sourceUrls: fetched.sourceUrls,
       filters,
-      events: fetched.events,
+      events: await resolveFamilyEventWebsites(fetched.events),
       fallback: fetched.fallback,
       providerStatus: fetched.providerStatus,
       fetchedAt,

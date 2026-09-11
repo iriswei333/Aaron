@@ -191,6 +191,7 @@ function homeObjects(state) {
   const now = new Date();
   (state.profilePlayDates || [])
     .filter((item) => {
+      if (item.status === 'cancelled') return false;
       const endsAt = new Date(item.endsAt || item.startsAt || 0);
       return Number.isFinite(endsAt.getTime()) && endsAt >= now;
     })
@@ -286,7 +287,7 @@ export function renderHome(ctx) {
   const childProfile = getChildProfile(state.user);
   const childName = childDisplayName(childProfile);
   const parent = firstName(state.user?.displayName, 'there');
-  const nextPlayDate = (state.profilePlayDates || []).filter((item) => new Date(item.endsAt || item.startsAt).getTime() >= Date.now()).sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))[0];
+  const nextPlayDate = (state.profilePlayDates || []).filter((item) => item.status !== 'cancelled' && new Date(item.endsAt || item.startsAt).getTime() >= Date.now()).sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))[0];
   const homeDate = nextPlayDate ? formatHomePlayDate(nextPlayDate) : null;
   const weather = state.weather || {};
   const participantCount = Math.max(1, Number(nextPlayDate?.participantCount) || 1);
