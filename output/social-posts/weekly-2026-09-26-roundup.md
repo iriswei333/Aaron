@@ -2,46 +2,49 @@
 
 这个周末，6 个城市都有适合家庭的活动！🌿
 
-本周亮点包括「Ai Weiwei: Circle of Animals/Zodiac Heads」和「Pumpkin Farm and Puzzle Patch」，适合安排轻松又充实的亲子时光。从户外探索到社区活动，各个城市都有值得带孩子一起体验的选择。
+本周亮点包括「Mid-Autumn Festival」和「Carpinito Brothers Fall Festival」，适合安排轻松又充实的亲子时光。从户外探索到社区活动，各个城市都有值得带孩子一起体验的选择。
 
 我们整理了 8 场地区亮点：
 
-1. Seattle：Ai Weiwei: Circle of Animals/Zodiac Heads
-   Olympic Sculpture Park
-   亮点：🎨 可以体验艺术与文化主题活动。
+1. Seattle：Mid-Autumn Festival
+   Seattle Chinese Garden
+   趋势关键词：fall festival、Mid-Autumn Moon Festival
+   亮点：中秋庆典，欣赏文化表演与趣味活动，适合全家同乐。
 
-2. Bellevue：Pumpkin Farm and Puzzle Patch
-   JB Family Growers
-   趋势关键词：pumpkin
-   亮点：穿梭于数英里的巨型玉米迷宫小径，乐趣不停。
+2. Seattle：Carpinito Brothers Fall Festival
+   Carpinito Brothers Farm
+   趋势关键词：fall festival
+   亮点：南瓜遍地、玉米迷宫等你挑战，晴天还能以雷尼尔山为背景拍照。
 
-3. Tacoma：Lattin’s Fall Festival
+3. Bellevue：StoryWalk at Lake Wilderness Arboretum
+   Lake Wilderness Arboretum
+   趋势关键词：story time
+   亮点：走在小径上一页页读绘本，大小朋友一起把散步变成阅读探险。
+
+4. Bellevue：Downtown Issaquah Story Stroll: ‘Watercress’
+   Village Theatre Issaquah
+   趋势关键词：story time
+   亮点：与图书馆合作的 Story Stroll 活动带来 Andrea Wang 与 Jason Chin 的暖心绘本《Watercress》。
+
+5. Tacoma：Lattin’s Fall Festival
    Lattin’s Country Cider Mill and Farm
    趋势关键词：fall festival
-   亮点：南瓜田秋季嘉年华，采南瓜、充气城堡、可爱农场动物、游戏等亲子活动齐全。
+   亮点：南瓜田采摘、充气城堡和各类游戏齐上阵，还能与可爱农场动物近距离互动。
 
-4. Kirkland：Downtown Issaquah Story Stroll: ‘Watercress’
-   Village Theatre Issaquah
-   亮点：📚 可以体验教育与探索主题活动。
+6. Kirkland：Pumpkin Farm and Puzzle Patch
+   JB Family Growers
+   趋势关键词：pumpkin
+   亮点：走进巨型玉米迷宫，沿着蜿蜒小径尽情探索。
 
-5. Lynnwood：Fall Festival at Bob’s Corn and Pumpkin Farm
-   Bob’s Corn and Pumpkin Farm
-   趋势关键词：fall festival、pumpkin
-   亮点：乘坐拖拉机前往田间，亲手采摘南瓜并挑战玉米迷宫。
+7. Lynnwood：Craven Farm Fall Festival
+   Craven Farm
+   趋势关键词：fall festival
+   亮点：2019年被《读者文摘》评为华州最佳南瓜田，近年跻身全美优选，亲子人气旺。
 
-6. Edmonds：Harvest Festival at Swans Trail Farms
+8. Edmonds：Harvest Festival at Swans Trail Farms
    Swan’s Trail Farms
    趋势关键词：harvest
    亮点：🌿 可以体验户外与运动主题活动。
-
-7. Seattle：Carpinito Brothers Fall Festival
-   Carpinito Brothers Farm
-   趋势关键词：fall festival
-   亮点：雷尼尔雪山作背景的南瓜田与玉米迷宫，处处都是拍照灵感。
-
-8. Bellevue：Seahawks Watch Parties at Legacy Square
-   Legacy Square
-   亮点：免费入场，与球迷一起观看西雅图海鹰比赛，现场有草地游戏、五人制球场开放和餐饮供应。
 
 收藏这份周末清单，带上家人一起出门玩吧！
 

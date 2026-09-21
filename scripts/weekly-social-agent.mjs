@@ -9,6 +9,11 @@ const projectRoot = resolve(new URL('..', import.meta.url).pathname);
 const imageGen = process.env.IMAGE_GEN || join(process.env.CODEX_HOME || join(homedir(), '.codex'), 'skills/.system/imagegen/scripts/image_gen.py');
 const MAX_WEEKLY_POSTERS = 8;
 const MAX_ROUNDUP_WORDS = 670;
+const DEFAULT_CITY_POSTER_LIMIT = 1;
+const CITY_POSTER_LIMITS = new Map([
+  ['seattle', 2],
+  ['bellevue', 2],
+]);
 const POSTER_FORMAT = {
   width: 1024,
   height: 1536,
@@ -220,41 +225,32 @@ async function loadRunFromRoundup(roundupPath) {
   return { ...run, sourceManifestPath: manifestPath };
 }
 
-function selectPosterPosts(posts, limit = MAX_WEEKLY_POSTERS, existingPosterNames = new Set(), weekKey = '', regenerationTargets = new Set()) {
+function cityPosterLimit(city) {
+  return CITY_POSTER_LIMITS.get(city.toLowerCase()) || DEFAULT_CITY_POSTER_LIMIT;
+}
+
+function selectPosterSet(posts, limit = MAX_WEEKLY_POSTERS, weekKey = '', regenerationTargets = new Set()) {
   const groups = new Map();
   for (const post of posts) {
     if (!groups.has(post.city)) groups.set(post.city, []);
     groups.get(post.city).push(post);
   }
   const selected = [];
-  const selectedIds = new Set();
   const selectedEventKeys = new Set();
   const isRegenerationTarget = (post) => regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || weekKey}`);
-  for (const post of posts) {
-    if (selected.length >= limit) break;
-    const eventKey = posterEventKey(post);
-    if (isRegenerationTarget(post) && !selectedEventKeys.has(eventKey)) {
-      selected.push(post);
-      selectedIds.add(post.id);
-      selectedEventKeys.add(eventKey);
-    }
-  }
-  let offset = 0;
-  while (selected.length < limit) {
-    let added = false;
-    for (const cityPosts of groups.values()) {
-      const post = cityPosts[offset];
-      if (post && selected.length < limit && !selectedIds.has(post.id)
-        && !selectedEventKeys.has(posterEventKey(post))
-        && (isRegenerationTarget(post) || !existingPosterNames.has(posterFilename(post, weekKey)))) {
+  for (const cityPosts of groups.values()) {
+    const targets = cityPosts.filter(isRegenerationTarget);
+    const ranked = [...cityPosts].sort((a, b) => (b.recommendationScore || 0) - (a.recommendationScore || 0));
+    const cityCandidates = [...targets, ...ranked].filter((post, index, candidates) => candidates.findIndex((candidate) => candidate.id === post.id) === index);
+    for (const post of cityCandidates.slice(0, cityPosterLimit(cityPosts[0].city))) {
+      if (selected.length >= limit) break;
+      const eventKey = posterEventKey(post);
+      if (!selectedEventKeys.has(eventKey)) {
         selected.push(post);
-        selectedIds.add(post.id);
-        selectedEventKeys.add(posterEventKey(post));
-        added = true;
+        selectedEventKeys.add(eventKey);
       }
     }
-    if (!added) break;
-    offset += 1;
+    if (selected.length >= limit) break;
   }
   return selected;
 }
@@ -317,10 +313,10 @@ async function main() {
     : await generateWeeklySocialPosts({ regions, alternateSlots: regenerationTargets, excludedEventSlots });
   const existingPosterNames = await readExistingPosterNames(outputDir);
   const posterLimit = sampleRun ? 1 : MAX_WEEKLY_POSTERS;
-  const posterPosts = selectPosterPosts(run.posts, posterLimit, existingPosterNames, run.weekKey, regenerationTargets);
-  const roundupPosterPosts = [...posterPosts, ...run.posts.filter((post) => existingPosterNames.has(posterFilename(post, run.weekKey)))]
-    .filter((post, index, posts) => posts.findIndex((candidate) => candidate.id === post.id) === index)
-    .slice(0, posterLimit);
+  const posterSet = selectPosterSet(run.posts, posterLimit, run.weekKey, regenerationTargets);
+  const posterPosts = posterSet.filter((post) => regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)
+    || !existingPosterNames.has(posterFilename(post, run.weekKey)));
+  const roundupPosterPosts = posterSet;
   const roundup = makeWeeklyRoundup(roundupPosterPosts, run.startDate, run.endDate);
   roundup.caption = limitWords(roundup.caption);
   const matchedRegenerationTargets = new Set(posterPosts.filter((post) => regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)).map((post) => `${post.city.toLowerCase()}|${post.date || run.weekKey}`));
@@ -334,7 +330,7 @@ async function main() {
     imageGenCommand: imageGen,
     posterLimit,
     existingPosterCount: existingPosterNames.size,
-    skippedExistingPosterCount: run.posts.filter((post) => existingPosterNames.has(posterFilename(post, run.weekKey))
+    skippedExistingPosterCount: posterSet.filter((post) => existingPosterNames.has(posterFilename(post, run.weekKey))
       && !regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)).length,
     regenerationRequests,
     feedback,
@@ -342,6 +338,8 @@ async function main() {
     unmatchedRegenerationRequests,
     sampleRun,
     posterPostIds: posterPosts.map((post) => post.id),
+    posterSetPostIds: posterSet.map((post) => post.id),
+    posterLimitByCity: Object.fromEntries([...new Set(posterSet.map((post) => post.city))].map((city) => [city, cityPosterLimit(city)])),
     roundupPostIds: roundupPosterPosts.map((post) => post.id),
     roundupWordLimit: MAX_ROUNDUP_WORDS,
   };
@@ -363,7 +361,7 @@ async function main() {
   console.log(`Weekend: ${run.startDate}–${run.endDate}`);
   if (sourceRoundupPath) console.log(`Source roundup: ${sourceRoundupPath} (event search skipped).`);
   console.log(`Matched ${run.posts.length} of ${run.regions.length * 2} Saturday/Sunday slots.`);
-  const skippedExistingCount = run.posts.filter((post) => existingPosterNames.has(posterFilename(post, run.weekKey))
+  const skippedExistingCount = posterSet.filter((post) => existingPosterNames.has(posterFilename(post, run.weekKey))
     && !regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)).length;
   console.log(`Poster jobs: ${jobs.length} of ${run.posts.length} matched events (${sampleRun ? 'sample limit: 1' : `weekly limit: ${MAX_WEEKLY_POSTERS}`}; skipped ${skippedExistingCount} existing).`);
   if (regenerationRequests.length) console.log(`Regenerating: ${regenerationRequests.join('; ')}`);

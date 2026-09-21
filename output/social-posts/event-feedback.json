@@ -38,5 +38,61 @@
     "normalizedTitle": "salmonseesonatissaquahcreek",
     "family": "salmonseeson",
     "reason": ""
+  },
+  {
+    "city": "lynnwood",
+    "date": "2026-09-26",
+    "title": "Fall Festival at Bob’s Corn and Pumpkin Farm",
+    "normalizedTitle": "fallfestivalatbobscornandpumpkinfarm",
+    "family": "fallfestival",
+    "reason": "too many relevent events"
+  },
+  {
+    "city": "seattle",
+    "date": "2026-09-26",
+    "title": "Ai Weiwei: Circle of Animals/Zodiac Heads",
+    "normalizedTitle": "aiweiweicircleofanimalszodiacheads",
+    "family": "",
+    "reason": "too many relevent events"
+  },
+  {
+    "city": "seattle",
+    "date": "2026-09-26",
+    "title": "Renton parkrun",
+    "normalizedTitle": "rentonparkrun",
+    "family": "",
+    "reason": "not attractive"
+  },
+  {
+    "city": "tacoma",
+    "date": "2026-09-26",
+    "title": "Tumwater Falls Festival",
+    "normalizedTitle": "tumwaterfallsfestival",
+    "family": "",
+    "reason": "too far"
+  },
+  {
+    "city": "edmonds",
+    "date": "2026-09-27",
+    "title": "Sky Valley Heritage Hunt",
+    "normalizedTitle": "skyvalleyheritagehunt",
+    "family": "",
+    "reason": "not attractive"
+  },
+  {
+    "city": "kirkland",
+    "date": "2026-09-26",
+    "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
+    "normalizedTitle": "downtownissaquahstorystrollwatercress",
+    "family": "",
+    "reason": "duplicated event"
+  },
+  {
+    "city": "bellevue",
+    "date": "2026-09-26",
+    "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
+    "normalizedTitle": "downtownissaquahstorystrollwatercress",
+    "family": "",
+    "reason": "duplicated event"
   }
 ]
