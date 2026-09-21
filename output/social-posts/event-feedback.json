@@ -1,0 +1,42 @@
+[
+  {
+    "city": "seattle",
+    "date": "2026-09-20",
+    "title": "aiweiweicircleofanimalszodiacheads",
+    "normalizedTitle": "aiweiweicircleofanimalszodiacheads",
+    "family": "",
+    "reason": ""
+  },
+  {
+    "city": "kirkland",
+    "date": "2026-09-19",
+    "title": "downtownissaquahstorystrollwatercress",
+    "normalizedTitle": "downtownissaquahstorystrollwatercress",
+    "family": "downtownissaquahstorystrollw",
+    "reason": "duplicated events in history"
+  },
+  {
+    "city": "seattle",
+    "date": "2026-09-20",
+    "title": "salmonseeson",
+    "normalizedTitle": "salmonseeson",
+    "family": "",
+    "reason": "too many relevant events"
+  },
+  {
+    "city": "seattle",
+    "date": "2026-09-20",
+    "title": "salmonseesonatnorthcreektrailpark",
+    "normalizedTitle": "salmonseesonatnorthcreektrailpark",
+    "family": "salmonseeson",
+    "reason": "too many relevant events"
+  },
+  {
+    "city": "kirkland",
+    "date": "2026-09-26",
+    "title": "Salmon SEEson at Issaquah Creek",
+    "normalizedTitle": "salmonseesonatissaquahcreek",
+    "family": "salmonseeson",
+    "reason": ""
+  }
+]

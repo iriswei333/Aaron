@@ -48,6 +48,22 @@ To regenerate a poster that received negative feedback while keeping the same ci
 npm run social:weekly -- --regenerate Seattle,2026-09-05
 ```
 
+If the event itself is unsuitable, persist that feedback so future runs exclude it:
+
+```bash
+npm run social:weekly -- --reject-event "Seattle|2026-09-05|Event name|Event location is too far from the recommended city"
+```
+
+The rejected-event registry is saved in `event-feedback.json` in the output directory. New records preserve the readable event title, store a normalized title for punctuation-insensitive matching, and save the fourth pipe-separated field as the reason, such as `duplicated events in the history posters` or `event location is too far from recommended city`. Titles with a location suffix such as `Event Series at Venue A` also create a global event-family exclusion for `Event Series`, so another location for the same series will not be selected. Older compact normalized records remain supported. Repeat `--reject-event` for multiple events; the normal event scoring and no-duplicate selection still apply to the remaining results.
+
 Use the `--regenerate City,YYYY-MM-DD` flag more than once for multiple posters. Each request searches that city/day again and selects a different eligible event from the results. When an alternate event is found, the matching `weekly-YYYY-MM-DD-roundup.md` file is regenerated too. The roundup includes only the up-to-eight events represented by the poster set, lists each event’s city, name, and location without exact event times, uses one sentence of highlights per event, and is capped at 670 words. Add `--feedback "..."` to include the critique in the replacement prompt. Regeneration intentionally overwrites only the requested poster; all other existing posters remain skipped.
 
-Generated manifests, prompts, and poster images are saved under `output/social-posts/` by default. Before generating images, the agent checks that directory and skips any poster whose expected `{city}-{date}.png` file already exists; the weekly limit is filled with other missing posters when available.
+Generated manifests, prompts, and poster images are saved under `output/social-posts/` by default. Posters use a fixed 1024×1536 (2:3) reference-inspired template: navy top ribbon, rounded orange event card, cream weekend banner, family illustration, three event-specific feature tiles, navy date/time/location bar, green Mandarin call-to-action, and SproutCue footer pill. The feature tiles are derived from the event title, theme, highlights, description, and trend keywords rather than fixed generic copy. Only event content and a subtle city illustration vary. Event selection applies trend recommendations: regional state fairs receive a geographic boost; fall festivals, pumpkin events, harvest events, and Mid-Autumn Moon Festival/Moon Festival events receive seasonal boosts in fall, with cultural events prioritized for the Mandarin community. Matching keywords and recommendation reasons are written to the manifest and roundup. Before generating images, the agent checks that directory and skips any poster whose expected `{city}-{date}.png` file already exists; the weekly limit is filled with other missing posters when available.
+
+To generate posters from an existing roundup without fetching weekend events again, pass the roundup path:
+
+```bash
+npm run social:weekly -- --from-roundup output/social-posts/weekly-2026-09-19-roundup.md
+```
+
+The agent loads the companion `weekly-YYYY-MM-DD.json` manifest for the full event facts, including exact poster date/time/location fields that are not shown in the shortened roundup.

@@ -1,0 +1,684 @@
+{
+  "id": "weekly-2026-09-19",
+  "weekKey": "2026-09-19",
+  "startDate": "2026-09-19",
+  "endDate": "2026-09-20",
+  "regions": [
+    "Seattle",
+    "Bellevue",
+    "Tacoma",
+    "Kirkland",
+    "Lynnwood",
+    "Edmonds"
+  ],
+  "posts": [
+    {
+      "id": "social-seattle-2026-09-19-farm-fest-at-rainier-beach-urban-farm-and-wetlands",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "Farm Fest at Rainier Beach Urban Farm and Wetlands",
+      "theme": "Arts + Culture",
+      "headline": "Seattle · 星期六亲子精选",
+      "bannerText": "带上家人，一起去玩！",
+      "highlights": [
+        "免费亲子同乐，探索西雅图最大的城市农场，还能和羊驼、鸡近距离互动。现场音乐、本地美食摊、自然手作、巨型游戏和果园故事时间一应俱全。停车位有限，建议骑行或搭乘公共交通。"
+      ],
+      "description": "Join Tilth Alliance on Saturday, September 19; 10 a.m.-3 p.m. for Farm Fest at Rainier Beach Urban Farm & Wetlands, a celebration of urban agriculture and the Southeast Seattle community! Featuring live music, food and drink, community partner booths, and activities for all ages, this family-friendly event is free and open to the public! Enjoy food from a variety of local vendors, dance to musical performances, visit with llamas and chickens, learn from community partner organizations, get creative with nature crafts, try your hand at giant games, stop by for story time in the orchard, and best of all, explore Seattle’s largest urban farm! As parking is limited around the farm, we strongly encourage biking or taking public transportation when possible! Bike racks will be available, generously provided by Bike Works. This event is hosted in partnership with Friends of Rainier Beach Urban Farm and Wetlands and Nurturing Roots.",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Farm Fest at Rainier Beach Urban Farm and Wetlands\n免费入场，Sep 19 · 10 a.m.–3 p.m. · Rainier Beach Urban Farm & Wetlands\n\nAt Rainier Beach Urban Farm & Wetlands. Arts + Culture, Play + Recreation, Festivals + Community.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-09-19",
+      "dateLabel": "Saturday, Sept. 19",
+      "timeLabel": "10 a.m.–3 p.m.",
+      "venue": "Rainier Beach Urban Farm & Wetlands",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2018/07/Farm-Fest-02-819x1024-1.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/farm-fest-rainier-beach-urban-farm-and-wetlands/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-19&page=1&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-seattle-2026-09-20-starfire-equipment-drive",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "Starfire Equipment Drive",
+      "theme": "Play + Recreation",
+      "headline": "Seattle · 星期日亲子精选",
+      "bannerText": "把周末过成美好回忆！",
+      "highlights": [
+        "捐出八成新的足球、球鞋和护腿板，转赠给需要的孩子。设有8个投递点，亦可线上捐款或在合作商户消费支持购置新装备。"
+      ],
+      "description": "We are hosting an Equipment Drive! Gather your gently used balls, cleats, and shin guards, and we’ll pass them onto kids who need them. Thanks to our amazing partners, we have 8 different locations for you to drop off you equipment: Starfire Sports, Elliot Bay Inneos, Stoup Brewing SeaTac, Urban Air Tukwila, and these WaFd branches: Columbia City, Kent, Mercer Island, and Rainier Beach. You can also help us raise money to buy new equipment. *Make a donation on our website. *Round up when you make a purchase at Stoup Brewing SeaTac this week. *Treat yourself at Nothing Bundt Cakes on Friday, the 25th between 1:00pm and 6:00pm, and 20% of the proceeds will be donated to our fund. Thanks for helping us support more kids who want to play soccer!",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Starfire Equipment Drive\n免费入场，Sep 20 · 8 a.m.–5 p.m. · Starfire Sports\n\nAt Starfire Sports. Play + Recreation.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-09-20",
+      "dateLabel": "Sunday, Sept. 20",
+      "timeLabel": "8 a.m.–5 p.m.",
+      "venue": "Starfire Sports",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/09/jennifer@starfiresports.com-www.starfiresports.com-Facebook-Post-1.png",
+      "eventUrl": "https://www.parentmap.com/calendar/starfire-equipment-drive/2026-09-20/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-20&page=1&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-bellevue-2026-09-19-salmon-seeson-at-issaquah-creek",
+      "region": "Bellevue",
+      "city": "Bellevue",
+      "title": "Salmon SEEson at Issaquah Creek",
+      "theme": "Education + Learning",
+      "headline": "Bellevue · 星期六亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "从桥上近距离观看鲑鱼洄游，亲眼见证生命回归之旅。适合亲子自然观察与科普。沿道有街边停车，记得提前规划、不留痕迹、共创包容体验。"
+      ],
+      "description": "See salmon return to Issaquah Creek from the W Sunset Way bridge over Issaquah Creek near Newport Way NW from September through November . Street parking is available along W Sunset Way east of the bridge. If you decide to visit this site, please remember to recreate responsibly : plan ahead, choose a site near you, leave no trace, and contribute to an inclusive experience for all. Issaquah Salmon Hatchery image credit: Thales/Flickr CC .",
+      "caption": "这个周末去Bellevue玩什么？🌿\n\n推荐：Salmon SEEson at Issaquah Creek\n免费入场，Sep 19 · 8 a.m.–4:30 p.m. · Bridge over Issaquah Creek\n\nAt Bridge over Issaquah Creek. Education + Learning, Play + Recreation.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-09-19",
+      "dateLabel": "Saturday, Sept. 19",
+      "timeLabel": "8 a.m.–4:30 p.m.",
+      "venue": "Bridge over Issaquah Creek",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775190961150-issaquah-salmon-hatchery-credit-thales-via-flickr-cc-croppe-horiz-f51536bc2f4d.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/salmon-seeson-issaquah-creek/2026-09-19/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-19&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-bellevue-2026-09-20-fall-city-apple-festival",
+      "region": "Bellevue",
+      "city": "Bellevue",
+      "title": "Fall City Apple Festival",
+      "theme": "Play + Recreation",
+      "headline": "Bellevue · 星期日亲子精选",
+      "bannerText": "把周末过成美好回忆！",
+      "highlights": [
+        "🌿 可以体验户外与运动主题活动。💛 适合安排周末亲子时光。"
+      ],
+      "description": "Each September we celebrate the bounty of the Snoqualmie Valley apple harvest with a family-oriented festival. Proceeds from food sales, horse rides, contest entries and vendor booth fees benefit the Warrior Family Retreat and provide summer camp scholarships to local kids whose family is struggling. Children of all ages can experience the thrill of a guided horse ride, jump in a bouncy castle, learn to rope a cow, play corn hole, try their hand at making art, and so much more. They also help grind and press fresh apples to make delicious raw cider.",
+      "caption": "这个周末去Bellevue玩什么？🌿\n\n推荐：Fall City Apple Festival\n免费入场，Sep 20 · 10 a.m.–5 p.m. · Northwest Natural Horsemanship Center\n\nAt Northwest Natural Horsemanship Center. Play + Recreation, Festivals + Community.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-09-20",
+      "dateLabel": "Sunday, Sept. 20",
+      "timeLabel": "10 a.m.–5 p.m.",
+      "venue": "Northwest Natural Horsemanship Center",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775185922677-fall-city-apple-festival-7c6ed0b39bde.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/fall-city-apple-festival-0/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-20&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "harvest"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 10,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-tacoma-2026-09-19-storywalk-at-alderwood-park-c-sar-s-cerulean-surprise",
+      "region": "Tacoma",
+      "city": "Tacoma",
+      "title": "Storywalk at Alderwood Park: César’s Cerulean Surprise",
+      "theme": "Education + Learning",
+      "headline": "Tacoma · 星期六亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "📚 可以体验教育与探索主题活动。💛 适合安排周末亲子时光。"
+      ],
+      "description": "Walk along and read the Storywalk at Alderwood Park during the park’s open hours. The September/October title is César’s Cerulean Surprise by Jenny Lacika. César asks to borrow his sister Gabi’s cerulean crayon, but Gabi does not know what cerulean is and decides to identify the color by asking yes-no questions. It’s a window into an all-too-familiar sibling dynamic, a slice of life many readers can identify with. Along with the subtle math hints, both Gabi and César sprinkle in Spanish words. Further explanation can be found in an author’s note, along with interactive tips for adults, showing how to encourage the math connections during reading.",
+      "caption": "这个周末去Tacoma玩什么？🌿\n\n推荐：Storywalk at Alderwood Park: César’s Cerulean Surprise\n免费入场，Sep 19 · 8 a.m.–5:30 p.m. · Alderwood Park – Tacoma\n\nAt Alderwood Park – Tacoma. Education + Learning, Play + Recreation.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-09-19",
+      "dateLabel": "Saturday, Sept. 19",
+      "timeLabel": "8 a.m.–5:30 p.m.",
+      "venue": "Alderwood Park – Tacoma",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/08/storywalk__web-1024x512.png",
+      "eventUrl": "https://www.parentmap.com/calendar/storywalk-at-alderwood-park-cesars-cerulean-surprise/2026-09-19/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-19&page=1&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-tacoma-2026-09-20-storywalk-at-lake-wilderness-arboretum",
+      "region": "Tacoma",
+      "city": "Tacoma",
+      "title": "StoryWalk at Lake Wilderness Arboretum",
+      "theme": "Education + Learning",
+      "headline": "Tacoma · 星期日亲子精选",
+      "bannerText": "一起发现身边的小惊喜！",
+      "highlights": [
+        "📚 可以体验教育与探索主题活动。💛 适合安排周末亲子时光。"
+      ],
+      "description": "The Lake Wilderness Arboretum and Maple Valley Library have partnered together to bring a StoryWalk to Maple Valley. StoryWalk is an innovative approach to encouraging people of all ages to get out and walk while enjoying wonderful children’s books. With her wealth of experience, Sharon Chastain, the children’s librarian at the Maple Valley Library, selects the best children’s books for this story walk project. Then the pages are installed in frames along the Arboretum’s Main Looping Trail so as September StoryWalk: This month’s StoryWalk selection, The Girl with Big, Big Questions written by Britney Winn Lee, is a lively picture book about a persistent girl and her quest for knowledge. It celebrates the spirit of curiousity and shows us that asking questions is how we learn and grow – perhaps the perfect book to read as a new school year starts. So get outside, go for a walk, and read a book.",
+      "caption": "这个周末去Tacoma玩什么？🌿\n\n推荐：StoryWalk at Lake Wilderness Arboretum\n免费入场，Sep 20 · 9 a.m.–5 p.m. · Lake Wilderness Arboretum\n\nAt Lake Wilderness Arboretum. Education + Learning, Play + Recreation.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-09-20",
+      "dateLabel": "Sunday, Sept. 20",
+      "timeLabel": "9 a.m.–5 p.m.",
+      "venue": "Lake Wilderness Arboretum",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/08/unnamed-14-1024x1024.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/storywalk-lake-wilderness-arboretum-2/2026-09-20/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-20&page=1&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-kirkland-2026-09-19-salmon-seeson-at-90th-st-bridge-in-redmond",
+      "region": "Kirkland",
+      "city": "Kirkland",
+      "title": "Salmon SEEson at 90th St Bridge in Redmond",
+      "theme": "Education + Learning",
+      "headline": "Kirkland · 星期六亲子精选",
+      "bannerText": "带上家人，一起去玩！",
+      "highlights": [
+        "📚 可以体验教育与探索主题活动。💛 适合安排周末亲子时光。"
+      ],
+      "description": "You may be able to see adult coho, sockeye, and Chinook salmon in September and October as they migrate up the Sammamish River to their spawning grounds in Bear Creek. For best viewing, visit in the early morning or late afternoon to avoid glare and bring polarized glasses.",
+      "caption": "这个周末去Kirkland玩什么？🌿\n\n推荐：Salmon SEEson at 90th St Bridge in Redmond\n免费入场，Sep 19 · 8 a.m.–7 p.m. · 90th St Bridge\n\nAt 90th St Bridge. Education + Learning, Play + Recreation.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-09-19",
+      "dateLabel": "Saturday, Sept. 19",
+      "timeLabel": "8 a.m.–7 p.m.",
+      "venue": "90th St Bridge",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775078699875-690thstbridgecreditlmnarchitects-7a3dd8f904cb-1024x819.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/salmon-seeson-90th-st-bridge-redmond/2026-09-19/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-19&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-kirkland-2026-09-20-pumpkin-farm-and-puzzle-patch",
+      "region": "Kirkland",
+      "city": "Kirkland",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "theme": "Play + Recreation",
+      "headline": "Kirkland · 星期日亲子精选",
+      "bannerText": "带上家人，一起去玩！",
+      "highlights": [
+        "在巨型玉米迷宫里漫游数英里的蜿蜒小径，再亲手采摘南瓜、迷你南瓜和多彩葫芦。打卡金秋田园风光，拍出全家都爱的美照，收获一场实惠又难忘的秋日冒险。"
+      ],
+      "description": "Spend hours exploring miles of winding trails through our giant corn maze, hand-pick the perfect pumpkin, mini squash, or colorful gourds, and capture beautiful photos that you’ll treasure for years to come. Whether it’s your first visit or an annual tradition, there’s something special waiting for everyone at the farm. We can’t wait to welcome you for a fun-filled autumn adventure that’s affordable, memorable, and full of everything you love about the season. Come make lasting memories with us Image sourced from event website.",
+      "caption": "这个周末去Kirkland玩什么？🌿\n\n推荐：Pumpkin Farm and Puzzle Patch\nSep 20 · 9 a.m.–7 p.m. · JB Family Growers\n\nAt JB Family Growers. Play + Recreation, Festivals + Community, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-09-20",
+      "dateLabel": "Sunday, Sept. 20",
+      "timeLabel": "9 a.m.–7 p.m.",
+      "venue": "JB Family Growers",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775188861538-ig_692022_62a247ce6a0ed105068264_0-45a8d8ce63c1-1024x1280.jpeg",
+      "eventUrl": "https://www.parentmap.com/calendar/pumpkin-farm-and-puzzle-patch/2026-09-20/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-20&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "pumpkin"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 12,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-lynnwood-2026-09-19-fall-festival-at-bob-s-corn-and-pumpkin-farm",
+      "region": "Lynnwood",
+      "city": "Lynnwood",
+      "title": "Fall Festival at Bob’s Corn and Pumpkin Farm",
+      "theme": "Play + Recreation",
+      "headline": "Lynnwood · 星期六亲子精选",
+      "bannerText": "带上家人，一起去玩！",
+      "highlights": [
+        "坐拖拉机下田、闯玉米迷宫、亲手采摘南瓜，沉浸式体验秋日农场。热苹果酒配上Sarah招牌甜甜圈，大人孩子都能满足。"
+      ],
+      "description": "Welcome to Bob’s Fall Festival! We have combined some of the best parts of the fall season into what we are now calling our Annual Fall Festival! Pumpkins and Corn are part of what we are known for here and we love it! Plan a visit between September 19th and November 1st to enjoy a fun tractor ride down to our lower fields, pick your own pumpkins from our pumpkin patches, find your way through our corn maze, enjoy some of Sarah’s famous donuts, drink some hot apple cider, and pick up your farm f",
+      "caption": "这个周末去Lynnwood玩什么？🌿\n\n推荐：Fall Festival at Bob’s Corn and Pumpkin Farm\nSep 19 · 10 a.m.–7 p.m. · Bob’s Corn and Pumpkin Farm\n\nAt Bob’s Corn and Pumpkin Farm. Play + Recreation, Festivals + Community.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-09-19",
+      "dateLabel": "Saturday, Sept. 19",
+      "timeLabel": "10 a.m.–7 p.m.",
+      "venue": "Bob’s Corn and Pumpkin Farm",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775184855087-2016bobscornmaze-6e081d183b0a.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/fall-festival-bobs-corn-and-pumpkin-farm/2026-09-19/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-19&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "fall festival",
+        "pumpkin"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 28,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-lynnwood-2026-09-20-craven-farm-fall-festival",
+      "region": "Lynnwood",
+      "city": "Lynnwood",
+      "title": "Craven Farm Fall Festival",
+      "theme": "Play + Recreation",
+      "headline": "Lynnwood · 星期日亲子精选",
+      "bannerText": "一起发现身边的小惊喜！",
+      "highlights": [
+        "曾获《读者文摘》评为华州最佳南瓜田，深受小朋友喜爱。牛形小火车、农场观光车、主题玉米迷宫、苹果炮和投射器、跳跳垫与农场动物让全家玩不停，现场还有咖啡和甜甜圈。这个南瓜季来打卡，一起延续或开启家庭传统。"
+      ],
+      "description": "Named Washington State’s best pumpkin patch by “Readers Digest” in 2019, and more recently among the best pumpkin farms in the country (!), this farm is justifiably very popular, especially with younger kids. As the Snohomish Valley’s Original Pumpkin Patch, Craven Farm is a decades old tradition for many families. Continue your family tradition or start a new one this fall at Craven Farm! At Craven Farm, we’re dedicated to creating an enjoyable and memorable fall experience for everyone who visits us. Our farm offers an extensive range of activities to suit all age groups, including apple cannons and slingers, fair foods, espresso, and donuts. Our unique attractions like cow trains, wagon rides, multiple acres of themed corn mazes, jump pad & animals are sure to keep you entertained for hours on end. Visit us today and make some unforgettable memories with us this fall! Check out our huge list of pumpkin extravaganzas happening this year.",
+      "caption": "这个周末去Lynnwood玩什么？🌿\n\n推荐：Craven Farm Fall Festival\nSep 20 · 10 a.m.–6 p.m. · Craven Farm\n\nAt Craven Farm. Play + Recreation, Festivals + Community, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-09-20",
+      "dateLabel": "Sunday, Sept. 20",
+      "timeLabel": "10 a.m.–6 p.m.",
+      "venue": "Craven Farm",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775187588608-craven-farm-pumpkin-patchjpg-ea0a337f1a6e.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/craven-farm-fall-festival-0/2026-09-20/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-20&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "fall festival"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 16,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-edmonds-2026-09-19-harvest-festival-at-swans-trail-farms",
+      "region": "Edmonds",
+      "city": "Edmonds",
+      "title": "Harvest Festival at Swans Trail Farms",
+      "theme": "Play + Recreation",
+      "headline": "Edmonds · 星期六亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "🌿 可以体验户外与运动主题活动。💛 适合安排周末亲子时光。"
+      ],
+      "description": "Get ready for fall fun at Swans Trail Farms, just 30 minutes from Seattle! Harvest Festival is open daily from 10 AM–6 PM, with U-Pick apples and pumpkins, family-friendly attractions, farm-fresh food, and plenty of fall memories to make. Don’t miss our magical pumpkin garden, a favorite spot for fall photos! Enjoy the full experience of the Harvest Festival with over 30+ farm fun attractions! Wander through the legendary Washington State Corn Maze, a 12-acre masterpiece meticulously shaped like our state. You’ll navigate 4.5 miles of paths, discovering over 700 state roads and landmarks. Afterward, warm up with our famous apple cider donuts and fresh-pressed cider, or visit our Cidery for a hard cider made with apples from our own orchard. With friendly farm animals and a charming Country Store full Image sourced from event website.",
+      "caption": "这个周末去Edmonds玩什么？🌿\n\n推荐：Harvest Festival at Swans Trail Farms\nSep 19 · 10 a.m.–6 p.m. · Swan’s Trail Farms\n\nAt Swan’s Trail Farms. Play + Recreation, Festivals + Community, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-09-19",
+      "dateLabel": "Saturday, Sept. 19",
+      "timeLabel": "10 a.m.–6 p.m.",
+      "venue": "Swan’s Trail Farms",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775190565890-wagon-ride--102b1d0eace0.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/harvest-festival-swans-trail-farms/2026-09-19/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-19&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "harvest"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 10,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-edmonds-2026-09-20-imagine-the-possibilities-sensory-time",
+      "region": "Edmonds",
+      "city": "Edmonds",
+      "title": "Imagine the Possibilities Sensory Time",
+      "theme": "Education + Learning",
+      "headline": "Edmonds · 星期日亲子精选",
+      "bannerText": "一起发现身边的小惊喜！",
+      "highlights": [
+        "为自闭症谱系、感统障碍及其他特殊需要儿童开放的专属安静时段，环境安全、理解包容。提供社交故事、降噪耳罩、太阳镜和感统球等支持。需提前报名。"
+      ],
+      "description": "Sensory Time is a special Sunday program for families with children on the autism spectrum, children with sensory processing disorders and children with other special needs. During Sensory Time, Imagine Children’s Museum provides these families exclusive access to the North side of the Museum between 9 – 11 a.m. For questions contact Reservations@ImagineCM.org Click here for Imagine Children’s Museum Social Story 3rd Sunday of the Month • Social stories, sound-reducing earmuffs, sunglasses and sensory balls available • Enjoy a safe and understanding environment • Play during a quieter, less crowded time Pre-registration required",
+      "caption": "这个周末去Edmonds玩什么？🌿\n\n推荐：Imagine the Possibilities Sensory Time\n免费入场，Sep 20 · 9 a.m.–11 a.m. · Imagine Children’s Museum\n\nAt Imagine Children’s Museum. Education + Learning, Play + Recreation, Inclusive + Sensory Friendly.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-09-20",
+      "dateLabel": "Sunday, Sept. 20",
+      "timeLabel": "9 a.m.–11 a.m.",
+      "venue": "Imagine Children’s Museum",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775187479247-317718927_10160886728047932_7892974313181786519_n-0e48ba7bbaeb.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/imagine-possibilities-sensory-time-s2/2026-09-20/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-20&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    }
+  ],
+  "roundup": {
+    "title": "本周末亲子活动精选｜6城8场",
+    "caption": "这个周末，6 个城市都有适合家庭的活动！🌿\n\n本周亮点包括「Farm Fest at Rainier Beach Urban Farm and Wetlands」和「Salmon SEEson at Issaquah Creek」，适合安排轻松又充实的亲子时光。从户外探索到社区活动，各个城市都有值得带孩子一起体验的选择。\n\n我们整理了 8 场地区亮点：\n\n1. Seattle：Farm Fest at Rainier Beach Urban Farm and Wetlands\n   Rainier Beach Urban Farm & Wetlands\n   亮点：免费亲子同乐，探索西雅图最大的城市农场，还能和羊驼、鸡近距离互动。\n\n2. Bellevue：Salmon SEEson at Issaquah Creek\n   Bridge over Issaquah Creek\n   亮点：从桥上近距离观看鲑鱼洄游，亲眼见证生命回归之旅。\n\n3. Tacoma：Storywalk at Alderwood Park: César’s Cerulean Surprise\n   Alderwood Park – Tacoma\n   亮点：📚 可以体验教育与探索主题活动。\n\n4. Kirkland：Salmon SEEson at 90th St Bridge in Redmond\n   90th St Bridge\n   亮点：📚 可以体验教育与探索主题活动。\n\n5. Lynnwood：Fall Festival at Bob’s Corn and Pumpkin Farm\n   Bob’s Corn and Pumpkin Farm\n   趋势关键词：fall festival、pumpkin\n   亮点：坐拖拉机下田、闯玉米迷宫、亲手采摘南瓜，沉浸式体验秋日农场。\n\n6. Edmonds：Harvest Festival at Swans Trail Farms\n   Swan’s Trail Farms\n   趋势关键词：harvest\n   亮点：🌿 可以体验户外与运动主题活动。\n\n7. Seattle：Starfire Equipment Drive\n   Starfire Sports\n   亮点：捐出八成新的足球、球鞋和护腿板，转赠给需要的孩子。\n\n8. Bellevue：Fall City Apple Festival\n   Northwest Natural Horsemanship Center\n   趋势关键词：harvest\n   亮点：🌿 可以体验户外与运动主题活动。\n\n收藏这份周末清单，带上家人一起出门玩吧！\n\n想让周末更轻松？来 SproutCue 找附近的 playdate、游乐场、故事时间和周末活动吧！🛝📚 创建你的家庭卡片，认识附近愿意一起玩的家庭，一起发现更多亲子时光！💛\n\n资料整理：SproutCue\n活动日期：2026-09-19–2026-09-20",
+    "posts": [
+      {
+        "city": "Seattle",
+        "title": "Farm Fest at Rainier Beach Urban Farm and Wetlands",
+        "date": "2026-09-19",
+        "dateLabel": "Saturday, Sept. 19",
+        "timeLabel": "10 a.m.–3 p.m.",
+        "venue": "Rainier Beach Urban Farm & Wetlands",
+        "highlights": [
+          "免费亲子同乐，探索西雅图最大的城市农场，还能和羊驼、鸡近距离互动。现场音乐、本地美食摊、自然手作、巨型游戏和果园故事时间一应俱全。停车位有限，建议骑行或搭乘公共交通。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/farm-fest-rainier-beach-urban-farm-and-wetlands/"
+      },
+      {
+        "city": "Bellevue",
+        "title": "Salmon SEEson at Issaquah Creek",
+        "date": "2026-09-19",
+        "dateLabel": "Saturday, Sept. 19",
+        "timeLabel": "8 a.m.–4:30 p.m.",
+        "venue": "Bridge over Issaquah Creek",
+        "highlights": [
+          "从桥上近距离观看鲑鱼洄游，亲眼见证生命回归之旅。适合亲子自然观察与科普。沿道有街边停车，记得提前规划、不留痕迹、共创包容体验。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/salmon-seeson-issaquah-creek/2026-09-19/"
+      },
+      {
+        "city": "Tacoma",
+        "title": "Storywalk at Alderwood Park: César’s Cerulean Surprise",
+        "date": "2026-09-19",
+        "dateLabel": "Saturday, Sept. 19",
+        "timeLabel": "8 a.m.–5:30 p.m.",
+        "venue": "Alderwood Park – Tacoma",
+        "highlights": [
+          "📚 可以体验教育与探索主题活动。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/storywalk-at-alderwood-park-cesars-cerulean-surprise/2026-09-19/"
+      },
+      {
+        "city": "Kirkland",
+        "title": "Salmon SEEson at 90th St Bridge in Redmond",
+        "date": "2026-09-19",
+        "dateLabel": "Saturday, Sept. 19",
+        "timeLabel": "8 a.m.–7 p.m.",
+        "venue": "90th St Bridge",
+        "highlights": [
+          "📚 可以体验教育与探索主题活动。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/salmon-seeson-90th-st-bridge-redmond/2026-09-19/"
+      },
+      {
+        "city": "Lynnwood",
+        "title": "Fall Festival at Bob’s Corn and Pumpkin Farm",
+        "date": "2026-09-19",
+        "dateLabel": "Saturday, Sept. 19",
+        "timeLabel": "10 a.m.–7 p.m.",
+        "venue": "Bob’s Corn and Pumpkin Farm",
+        "highlights": [
+          "坐拖拉机下田、闯玉米迷宫、亲手采摘南瓜，沉浸式体验秋日农场。热苹果酒配上Sarah招牌甜甜圈，大人孩子都能满足。"
+        ],
+        "matchingKeywords": [
+          "fall festival",
+          "pumpkin"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/fall-festival-bobs-corn-and-pumpkin-farm/2026-09-19/"
+      },
+      {
+        "city": "Edmonds",
+        "title": "Harvest Festival at Swans Trail Farms",
+        "date": "2026-09-19",
+        "dateLabel": "Saturday, Sept. 19",
+        "timeLabel": "10 a.m.–6 p.m.",
+        "venue": "Swan’s Trail Farms",
+        "highlights": [
+          "🌿 可以体验户外与运动主题活动。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [
+          "harvest"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/harvest-festival-swans-trail-farms/2026-09-19/"
+      },
+      {
+        "city": "Seattle",
+        "title": "Starfire Equipment Drive",
+        "date": "2026-09-20",
+        "dateLabel": "Sunday, Sept. 20",
+        "timeLabel": "8 a.m.–5 p.m.",
+        "venue": "Starfire Sports",
+        "highlights": [
+          "捐出八成新的足球、球鞋和护腿板，转赠给需要的孩子。设有8个投递点，亦可线上捐款或在合作商户消费支持购置新装备。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/starfire-equipment-drive/2026-09-20/"
+      },
+      {
+        "city": "Bellevue",
+        "title": "Fall City Apple Festival",
+        "date": "2026-09-20",
+        "dateLabel": "Sunday, Sept. 20",
+        "timeLabel": "10 a.m.–5 p.m.",
+        "venue": "Northwest Natural Horsemanship Center",
+        "highlights": [
+          "🌿 可以体验户外与运动主题活动。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [
+          "harvest"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/fall-city-apple-festival-0/"
+      }
+    ],
+    "startDate": "2026-09-19",
+    "endDate": "2026-09-20",
+    "author": "SproutCue"
+  },
+  "source": "parentmap",
+  "generatedAt": "2026-09-16T17:55:02.069Z",
+  "statuses": [
+    {
+      "city": "Seattle",
+      "day": "2026-09-19",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-19&page=1&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Seattle",
+      "day": "2026-09-20",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-20&page=1&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Bellevue",
+      "day": "2026-09-19",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-19&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Bellevue",
+      "day": "2026-09-20",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-20&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Tacoma",
+      "day": "2026-09-19",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-19&page=1&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Tacoma",
+      "day": "2026-09-20",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-20&page=1&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Kirkland",
+      "day": "2026-09-19",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-19&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Kirkland",
+      "day": "2026-09-20",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-20&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Lynnwood",
+      "day": "2026-09-19",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-19&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Lynnwood",
+      "day": "2026-09-20",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-20&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Edmonds",
+      "day": "2026-09-19",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-19&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Edmonds",
+      "day": "2026-09-20",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-09-20&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    }
+  ],
+  "imageDirectory": "/Users/iriswei/Documents/AaronDaily/output/social-posts",
+  "imageGenCommand": "/Users/iriswei/.codex/skills/.system/imagegen/scripts/image_gen.py",
+  "posterLimit": 8,
+  "existingPosterCount": 6,
+  "skippedExistingPosterCount": 0,
+  "regenerationRequests": [],
+  "feedback": "",
+  "rejectedEvents": [
+    {
+      "city": "seattle",
+      "date": "2026-09-20",
+      "title": "aiweiweicircleofanimalszodiacheads",
+      "reason": ""
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-09-19",
+      "title": "downtownissaquahstorystrollwatercress",
+      "reason": "duplicated events in history"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-20",
+      "title": "salmonseeson",
+      "reason": "too many relevant events"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-20",
+      "title": "salmonseesonatnorthcreektrailpark",
+      "reason": "too many relevant events"
+    }
+  ],
+  "unmatchedRegenerationRequests": [],
+  "sampleRun": false,
+  "posterPostIds": [
+    "social-seattle-2026-09-19-farm-fest-at-rainier-beach-urban-farm-and-wetlands",
+    "social-bellevue-2026-09-19-salmon-seeson-at-issaquah-creek",
+    "social-tacoma-2026-09-19-storywalk-at-alderwood-park-c-sar-s-cerulean-surprise",
+    "social-kirkland-2026-09-19-salmon-seeson-at-90th-st-bridge-in-redmond",
+    "social-lynnwood-2026-09-19-fall-festival-at-bob-s-corn-and-pumpkin-farm",
+    "social-edmonds-2026-09-19-harvest-festival-at-swans-trail-farms",
+    "social-seattle-2026-09-20-starfire-equipment-drive",
+    "social-bellevue-2026-09-20-fall-city-apple-festival"
+  ],
+  "roundupPostIds": [
+    "social-seattle-2026-09-19-farm-fest-at-rainier-beach-urban-farm-and-wetlands",
+    "social-bellevue-2026-09-19-salmon-seeson-at-issaquah-creek",
+    "social-tacoma-2026-09-19-storywalk-at-alderwood-park-c-sar-s-cerulean-surprise",
+    "social-kirkland-2026-09-19-salmon-seeson-at-90th-st-bridge-in-redmond",
+    "social-lynnwood-2026-09-19-fall-festival-at-bob-s-corn-and-pumpkin-farm",
+    "social-edmonds-2026-09-19-harvest-festival-at-swans-trail-farms",
+    "social-seattle-2026-09-20-starfire-equipment-drive",
+    "social-bellevue-2026-09-20-fall-city-apple-festival"
+  ],
+  "roundupWordLimit": 670,
+  "sourceManifestPath": "/Users/iriswei/Documents/AaronDaily/output/social-posts/weekly-2026-09-19.json"
+}
