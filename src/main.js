@@ -10,6 +10,7 @@ import { DEFAULT_ALBUM_LINK, DEFAULT_HOME_BACKGROUND_KEY, applyHomeProfile, clea
 import { getLocationCoords, refreshPlayPlanning, renderPlay, renderSharedPlayDate, resetPlayState } from './tabs/play.js';
 import { renderSocial, resetSocialState, resizeAvatarFile } from './tabs/social.js';
 import { renderFamilyProfile } from './tabs/profile.js';
+import { renderStudio, resetStudioState } from './tabs/studio.js';
 import { createSupabaseBrowserClient } from '../lib/supabase/client.js';
 import { loadFamilyPlans } from './family-plans.js';
 import {
@@ -32,6 +33,7 @@ let root = document.getElementById('root');
 const TAB_PATHS = {
   home: '/home',
   play: '/play',
+  studio: '/play-studio',
   profile: '/family',
 };
 
@@ -122,11 +124,18 @@ const state = {
   homeSocialPoster: null,
   homeSocialPosterStatus: '',
   homeSocialPosterLoading: false,
+  pictureBooks: [],
+  pictureBooksLoaded: false,
+  pictureBooksLoading: false,
+  pictureBookStatus: '',
+  pictureBookPreviewUrl: '',
+  pictureBookPreviewTitle: '',
 };
 
 const tabRenderers = {
   home: renderHome,
   play: renderPlay,
+  studio: renderStudio,
   chat: renderSocial,
   profile: renderFamilyProfile,
 };
@@ -136,6 +145,7 @@ const appContext = {
   layout,
   saveUserSection,
   renderCurrent: render,
+  navigateToTab,
 };
 
 
@@ -237,6 +247,7 @@ function childHeaderSummary() {
 const TAB_EMOJIS = {
   home: [0x1f3e0, '🏠'],
   play: [0x1f6dd, '🛝'],
+  studio: [0x2726, '✦'],
   chat: [0x1f4ac, '💬'],
   profile: [0x1f46a, '👪'],
 };
@@ -244,6 +255,7 @@ const TAB_EMOJIS = {
 const TAB_ICONS = {
   home: '<path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" />',
   play: '<path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.6" />',
+  studio: '<path d="M12 3v18M3 12h18" /><path d="m6 6 12 12M18 6 6 18" />',
   chat: '<path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-5 4z" />',
   profile: '<circle cx="12" cy="8" r="3.5" /><path d="M5 20c1.3-3.4 3.9-5 7-5s5.7 1.6 7 5" />',
 };
@@ -259,7 +271,7 @@ function tabEmoji(name) {
 
 function layout(content) {
   ensureRoot();
-  const tabs = [['home', 'Today'], ['play', 'Discover'], ['profile', 'Family']];
+  const tabs = [['home', 'Today'], ['play', 'Discover'], ['studio', 'Play Studio'], ['profile', 'Family']];
   const locationLabel = state.user?.location?.address || state.user?.location?.label || getChildProfile(state.user)?.homeCity || 'Location not set';
   const unreadChatCount = (state.chatContacts || []).reduce((total, thread) => total + (Number(thread.unreadCount) || 0), 0);
   const navMarkup = tabs.map(([key, label]) => `<button class="rail-nav-button ${state.tab === key ? 'active' : ''}" data-tab="${key}" aria-current="${state.tab === key ? 'page' : 'false'}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_ICONS[key]}</svg><span>${label}</span>${key === 'profile' && unreadChatCount ? `<span class="rail-count">${unreadChatCount}</span>` : ''}</button>`).join('');
@@ -297,6 +309,7 @@ async function deleteParentData() {
     resetHomeState(state);
     resetSocialState(state);
     resetPlayState(state);
+    resetStudioState(state);
     render();
   } catch (error) {
     state.apiMessage = `Deletion failed: ${error.message}`;
@@ -818,6 +831,7 @@ async function logoutUser() {
   resetHomeState(state);
   resetSocialState(state);
   resetPlayState(state);
+  resetStudioState(state);
   state.authStatus = 'Signed out. Choose another family profile.';
   state.onboardingStatus = '';
   state.showProfileSetup = false;

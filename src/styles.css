@@ -2116,6 +2116,58 @@ input, select, textarea { border-color: #e8c9b4; border-radius: var(--radius-con
 .today-intent small { color: var(--color-muted); font-size: .72rem; }
 .today-intent:hover, .today-intent.active { background: #fff7ef; border-color: #e9aa7d; }
 
+.today-studio-shortcut {
+  align-items: center;
+  background: linear-gradient(120deg, #f2f7e5, #fff6e9);
+  border: 1px solid #dce8c8;
+  border-radius: 24px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 18px 20px;
+}
+.today-studio-icon { align-items: center; background: var(--color-brand); border-radius: 16px; color: #fff; display: flex; font-size: 1.5rem; height: 54px; justify-content: center; width: 54px; }
+.today-studio-shortcut h2 { font-size: clamp(1.2rem, 2.4vw, 1.6rem); margin: 2px 0 4px; }
+.today-studio-shortcut p:last-of-type { color: var(--color-muted); margin: 0; }
+.today-studio-shortcut button, .studio-form button { background: var(--color-brand); color: #fff; padding: 12px 16px; }
+
+/* Play Studio — private, family-owned creative assets. */
+.studio-page { display: grid; gap: 26px; margin: 0 auto; max-width: 1240px; padding: 34px 30px 64px; width: 100%; }
+.studio-hero { align-items: flex-end; background: linear-gradient(135deg, #fff3e3, #f1f7e6); border: 1px solid var(--color-line); border-radius: 30px; display: flex; justify-content: space-between; overflow: hidden; padding: clamp(26px, 5vw, 52px); position: relative; }
+.studio-hero > div { max-width: 720px; position: relative; z-index: 1; }
+.studio-hero h1 { color: var(--color-ink); font-size: clamp(3rem, 7vw, 5.4rem); letter-spacing: -.06em; line-height: .9; margin: 10px 0 16px; }
+.studio-hero p:last-child { color: var(--color-muted); font-size: 1.02rem; line-height: 1.6; margin: 0; max-width: 610px; }
+.studio-spark { align-items: center; background: var(--color-brand); border-radius: 50%; color: #fff7df; display: flex; font-size: clamp(3rem, 9vw, 6.5rem); height: clamp(120px, 18vw, 210px); justify-content: center; margin: -20px 0 -35px; transform: rotate(8deg); width: clamp(120px, 18vw, 210px); }
+.studio-create { align-items: center; background: #fff; border: 1px solid var(--color-line); border-radius: 26px; box-shadow: var(--shadow-card); display: grid; gap: 28px; grid-template-columns: minmax(0, 1fr) minmax(330px, .8fr); padding: 28px; }
+.studio-create h2, .studio-library h2, .studio-preview h2 { color: var(--color-ink); font-size: clamp(1.55rem, 3vw, 2.2rem); letter-spacing: -.04em; margin: 3px 0 9px; }
+.studio-create p:last-child { color: var(--color-muted); line-height: 1.55; margin: 0; max-width: 600px; }
+.studio-form { display: grid; gap: 12px; }
+.studio-form label { color: var(--color-ink); display: grid; font-size: .82rem; font-weight: 800; gap: 6px; }
+.studio-form label small { color: var(--color-muted); font-size: .72rem; font-weight: 600; }
+.studio-form input { background: #fffdf9; min-width: 0; width: 100%; }
+.studio-form input[type="file"] { padding: 9px; }
+.studio-message { background: #fff6e8; border: 1px solid #f1d8ad; border-radius: 16px; color: #86501d; margin: 0; padding: 13px 16px; }
+.studio-library { display: grid; gap: 16px; }
+.studio-library-heading, .studio-book-heading, .studio-preview { align-items: flex-start; display: flex; gap: 18px; justify-content: space-between; }
+.studio-book-list { display: grid; gap: 16px; }
+.studio-book-card { background: #fff; border: 1px solid var(--color-line); border-radius: 24px; box-shadow: var(--shadow-card); padding: 23px; }
+.studio-book-heading h2 { color: var(--color-ink); font-size: 1.55rem; letter-spacing: -.035em; margin: 3px 0 5px; }
+.studio-book-heading p:last-child { color: var(--color-muted); margin: 0; }
+.studio-status { background: var(--color-brand-soft); border-radius: 999px; color: var(--color-brand-strong); font-size: .72rem; font-weight: 850; padding: 7px 10px; white-space: nowrap; }
+.studio-status.ready { background: #e2f1e5; color: #27633b; }
+.studio-status.failed { background: #fff0ea; color: #a44522; }
+.studio-page-grid { display: grid; gap: 10px; grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: 20px; }
+.studio-page { background: #fffaf2; border: 1px solid #f0dfcc; border-radius: 15px; display: grid; gap: 5px; min-height: 136px; padding: 13px; }
+.studio-page strong { color: var(--color-ink); font-size: .85rem; line-height: 1.15; }
+.studio-page small { color: var(--color-muted); font-size: .7rem; margin-bottom: auto; }
+.studio-page .secondary-button { font-size: .72rem; min-height: 34px; padding: 7px 8px; white-space: nowrap; }
+.studio-preview { background: #fff; border: 1px solid var(--color-line); border-radius: 24px; box-shadow: var(--shadow-card); display: grid; grid-template-columns: minmax(0, 1fr) auto; padding: 22px; }
+.studio-preview img { border-radius: 18px; grid-column: 1 / -1; margin-top: 4px; max-width: 640px; width: 100%; }
+.studio-empty { align-items: center; background: #fffdf9; border: 1px dashed #dbcdbd; border-radius: 20px; display: flex; gap: 14px; padding: 26px; }
+.studio-empty > span { align-items: center; background: var(--color-brand-soft); border-radius: 14px; color: var(--color-brand-strong); display: flex; font-size: 1.4rem; height: 50px; justify-content: center; width: 50px; }
+.studio-empty strong { color: var(--color-ink); }
+.studio-empty p { color: var(--color-muted); margin: 3px 0 0; }
+
 .today-adventure-grid { display: grid; gap: 18px; grid-template-columns: minmax(0, 1.55fr) minmax(290px, .75fr); }
 .today-adventure-card {
   background-image: linear-gradient(90deg, rgba(48, 31, 19, .86), rgba(48, 31, 19, .54) 56%, rgba(48, 31, 19, .08)), var(--today-adventure-image);
@@ -2180,6 +2232,17 @@ input, select, textarea { border-color: #e8c9b4; border-radius: var(--radius-con
   .today-greeting .home-weather { margin-top: 18px; width: 100%; }
   .today-location-pill { max-width: 100%; }
   .today-intent strong { font-size: .78rem; line-height: 1.15; }
+  .today-studio-shortcut { align-items: start; grid-template-columns: auto minmax(0, 1fr); padding: 16px; }
+  .today-studio-shortcut button { grid-column: 1 / -1; width: 100%; }
+  .today-studio-icon { border-radius: 13px; height: 44px; width: 44px; }
+  .studio-page { gap: 20px; padding: 22px 16px 40px; }
+  .studio-hero { align-items: flex-start; border-radius: 23px; padding: 28px 22px; }
+  .studio-hero h1 { font-size: clamp(3rem, 17vw, 4.4rem); }
+  .studio-spark { font-size: 2rem; height: 65px; margin: 0 -5px 0 12px; min-width: 65px; width: 65px; }
+  .studio-create { grid-template-columns: 1fr; padding: 21px; }
+  .studio-page-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .studio-book-heading { flex-direction: column; gap: 10px; }
+  .studio-status { align-self: flex-start; }
   .today-adventure-card { background-image: linear-gradient(180deg, rgba(48, 31, 19, .16), rgba(48, 31, 19, .82) 68%), var(--today-adventure-image); border-radius: 23px; min-height: 480px; padding: 24px 20px; }
   .today-adventure-card h2 { font-size: 2.45rem; }
   .today-journey-card { border-radius: 23px; }

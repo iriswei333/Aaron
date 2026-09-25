@@ -154,8 +154,45 @@ The app stores a few browser-local values such as the login email and selected H
 - `DELETE /api/account/delete` deletes the signed-in parent’s SproutCue profile data and associated app records.
 - `POST /api/auth/login` keeps the local JSON fallback working when Supabase is not configured.
 - `POST /api/auth/logout` clears the local fallback profile cookie.
+- `GET /api/family-assets/picture-book-templates` returns the active reusable career-book template.
+- `POST /api/family-assets/picture-books` accepts 2–5 `photos` image files (JPEG, PNG, or WebP) and creates a private family-owned picture-book asset. Optional `childId`, `childName`, and `templateSlug` are stored with the asset.
+- `GET /api/family-assets/picture-books` lists the signed-in family's picture-book assets.
+- `GET /api/family-assets/picture-books/:bookId` reads one family asset and its page statuses.
+- `POST /api/family-assets/picture-books/:bookId/pages/:pageKey` generates one page from the submitted reference photos. Generate one page at a time so clients can show progress and retry individual pages.
+- `GET /api/family-assets/picture-books/:bookId/assets/:pageKey` streams a private generated PNG to the owning family.
 
 The sign-in page links to the in-app privacy policy at `/privacy`. Replace its placeholders before production launch.
+
+## Personalized picture-book API
+
+The picture-book API is a server-side image-generation workflow. It keeps `OPENAI_API_KEY` on the server and uses `gpt-image-2.5-sunburst` by default for reference-photo editing. Set these environment variables before generating an asset:
+
+```bash
+OPENAI_API_KEY=your_server_side_api_key
+PICTURE_BOOK_IMAGE_MODEL=gpt-image-2.5-sunburst
+PICTURE_BOOK_IMAGE_QUALITY=high
+```
+
+Run `supabase/migrations/202609250002_family_picture_book_assets.sql` with the rest of the Supabase migrations before production use. It adds a reusable, versioned `picture_book_templates` catalog; a `family_assets` parent table; family-owned books, pages, and reference-photo rows; row-level access policies; and a private `family-assets` storage bucket. The seeded `career-recognition-v1` template contains the cover plus nine career pages and the prescribed expression/angle specifications.
+
+Reference photos and outputs are stored under `data/family-assets/` only in local development. In Supabase mode they are private objects under the authenticated profile’s folder in the `family-assets` bucket; the API streams them only after profile ownership is checked.
+
+Example:
+
+```bash
+curl -X POST http://127.0.0.1:3000/api/family-assets/picture-books \
+  -H "x-sproutcue-local-user-id: YOUR_LOCAL_PROFILE_ID" \
+  -F "childName=Leo" \
+  -F "photos=@front.jpg" \
+  -F "photos=@three-quarter.jpg"
+
+curl -X POST http://127.0.0.1:3000/api/family-assets/picture-books/BOOK_ID/pages/cover \
+  -H "Content-Type: application/json" \
+  -H "x-sproutcue-local-user-id: YOUR_LOCAL_PROFILE_ID" \
+  --data '{}'
+```
+
+The built-in template assigns a distinct angle and expression to each career. The cover, doctor, firefighter, police officer, astronaut, chef, teacher, pilot, scientist and race-car-driver pages are generated separately, making quality review and page-level retries practical.
 
 ## Project Structure
 

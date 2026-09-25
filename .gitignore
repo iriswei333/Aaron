@@ -3,6 +3,7 @@ dist/
 .next/
 out/
 data/*.json
+data/family-assets/
 .env.local
 .env*.local
 .DS_Store
