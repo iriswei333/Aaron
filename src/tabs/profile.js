@@ -1,5 +1,6 @@
 import { escapeAttribute, escapeHtml } from '../shared.js';
-import { AVAILABILITY_DAY_OPTIONS, PROFILE_VISIBILITY_OPTIONS, childDisplayName, getChildProfile, MAX_SEARCH_RADIUS_MILES, MIN_SEARCH_RADIUS_MILES, normalizePlayPreferences } from '../../lib/profile-defaults.js';
+import { bindChatInteractions, ensureChatLoaded, renderChat } from './social.js';
+import { AVAILABILITY_DAY_OPTIONS, PROFILE_VISIBILITY_OPTIONS, STORY_LANGUAGE_OPTIONS, childAgeLabel, childDisplayName, getChildProfile, MAX_SEARCH_RADIUS_MILES, MIN_SEARCH_RADIUS_MILES, normalizePlayPreferences } from '../../lib/profile-defaults.js';
 
 function profilePlayDateTime(playDate) {
   const startsAt = new Date(playDate.startsAt);
@@ -17,6 +18,7 @@ export function renderFamilyProfile(ctx) {
   const location = state.user?.location;
   const locationLabel = location?.address || location?.label || active.homeCity || 'No location saved';
   const playPreferences = normalizePlayPreferences(state.user?.playPreferences);
+  ensureChatLoaded(ctx);
   const profilePlayDates = (Array.isArray(state.profilePlayDates) ? state.profilePlayDates : [])
     .filter((playDate) => playDate?.isHost || playDate?.isJoined)
     .slice()
@@ -40,19 +42,29 @@ export function renderFamilyProfile(ctx) {
   const availabilityMarkup = AVAILABILITY_DAY_OPTIONS.map(([value, label]) => `<button type="button" class="availability-day ${playPreferences.availabilityDays.includes(value) ? 'selected' : ''}" data-availability-day="${value}" aria-pressed="${playPreferences.availabilityDays.includes(value) ? 'true' : 'false'}">${label}</button>`).join('');
   const visibilityOptions = PROFILE_VISIBILITY_OPTIONS.map(([value, label]) => `<option value="${value}" ${playPreferences.visibility === value ? 'selected' : ''}>${label}</option>`).join('');
   const blockedFamilies = playPreferences.blockedFamilies || [];
-  ctx.layout(`<main class="stack profile-screen">
-    <section class="profile-hero panel">
-      <div class="profile-avatar">${escapeHtml((state.user?.displayName || 'F').slice(0, 1).toUpperCase())}</div>
-      <div><p class="eyebrow">Family profile</p><h2>${escapeHtml(state.user?.displayName || 'Your family')}</h2><p class="muted">Your private home base for playdates, chats, and family planning.</p></div>
-      <button id="profile-edit-action" type="button" class="secondary-button">Edit profile</button>
-    </section>
-    <section class="grid two-cols">
+  const storyLanguage = STORY_LANGUAGE_OPTIONS.find(([value]) => value === active.storyLanguage)?.[1] || 'English';
+  const favorites = active.favoriteActivities || [];
+  const practicingSteps = active.practicingSteps || [];
+  const profileChips = (items, empty) => items.length
+    ? `<div class="family-chip-list">${items.map((item) => `<span>${escapeHtml(item)}</span>`).join('')}</div>`
+    : `<p class="muted">${empty}</p>`;
+  ctx.layout(`<main class="stack profile-screen family-screen">
+    <header class="family-heading"><div><p class="eyebrow">Your family, your pace</p><h1>${escapeHtml(state.user?.displayName || 'Your family')}</h1><p>One private home for ${escapeHtml(childDisplayName(active, 'your child'))}’s profile, play plans, and family conversations.</p></div><button id="profile-edit-action" type="button" class="secondary-button">Edit family details</button></header>
+    <section class="family-child-card panel"><div class="family-child-avatar">${escapeHtml((active.name || 'K').slice(0, 1).toUpperCase())}</div><div class="family-child-intro"><p class="eyebrow">Your little explorer</p><h2>${escapeHtml(childDisplayName(active, 'Add your kid'))}</h2><p>${escapeHtml(childAgeLabel(active) || 'Age not set')} · Stories in ${escapeHtml(storyLanguage)}</p></div><div class="family-child-grid"><div><small>Favorites</small>${profileChips(favorites, 'Add a few favorite things to personalize play and stories.')}</div><div><small>Practicing now</small>${profileChips(practicingSteps, 'Add a little step such as brushing teeth or meeting new friends.')}</div></div></section>
+    <section class="panel family-chat-panel"><div class="section-heading"><div><p class="eyebrow">Family conversations</p><h2>Chats and playdate details</h2><p class="muted">Keep hellos, timing, and meetup notes beside the rest of your family plans.</p></div><span class="privacy-pill">${(state.chatContacts || []).length}</span></div>${renderChat(ctx)}${state.chatStatus ? `<p class="muted">${escapeHtml(state.chatStatus)}</p>` : ''}</section>
+    <section class="grid two-cols family-preferences-grid">
+      <div class="panel"><p class="eyebrow">Play preferences</p><h2>Make nearby feel personal</h2><div class="profile-stat"><span>Home base</span><strong>${escapeHtml(locationLabel)}</strong></div><div class="profile-stat"><span>Search area</span><strong id="play-radius-value">${playPreferences.searchRadiusMiles} miles</strong></div><div class="profile-stat"><span>Location sharing</span><strong>${location?.latitude && location?.longitude ? 'Precise location saved' : 'City-level only'}</strong></div><label class="profile-radius-setting" for="play-radius"><span>Search radius</span><input id="play-radius" type="range" min="${MIN_SEARCH_RADIUS_MILES}" max="${MAX_SEARCH_RADIUS_MILES}" step="1" value="${playPreferences.searchRadiusMiles}" /><small>Choose how far SproutCue looks for playgrounds, playdates, and family events.</small></label><div class="availability-setting"><div class="profile-setting-label"><span>Usually free</span><small>Help nearby families find a good time to play.</small></div><div class="availability-days" aria-label="Usually free days">${availabilityMarkup}</div></div><p id="play-preferences-status" class="profile-setting-status" aria-live="polite"></p><button id="profile-play-action" type="button">Find nearby play</button></div>
       <div class="panel"><div class="section-heading"><div><p class="eyebrow">Your playdates</p><h2>${profilePlayDates.length} ${profilePlayDates.length === 1 ? 'playdate' : 'playdates'}</h2></div></div><div class="profile-playdate-list">${playdateListMarkup}</div></div>
-      <div class="panel"><p class="eyebrow">Play preferences</p><h2>Make nearby feel personal</h2><div class="profile-stat"><span>Home base</span><strong>${escapeHtml(locationLabel)}</strong></div><div class="profile-stat"><span>Planning for</span><strong>${escapeHtml(childDisplayName(active, 'your child'))}</strong></div><div class="profile-stat"><span>Location sharing</span><strong>${location?.latitude && location?.longitude ? 'Precise location saved' : 'City-level only'}</strong></div><label class="profile-radius-setting" for="play-radius"><span>Search radius <strong id="play-radius-value">${playPreferences.searchRadiusMiles} miles</strong></span><input id="play-radius" type="range" min="${MIN_SEARCH_RADIUS_MILES}" max="${MAX_SEARCH_RADIUS_MILES}" step="1" value="${playPreferences.searchRadiusMiles}" /><small>Drag to choose how far SproutCue looks for playgrounds and family-friendly places.</small></label><div class="availability-setting"><div class="profile-setting-label"><span>Usually free</span><small>Help nearby families find a good time to play.</small></div><div class="availability-days" aria-label="Usually free days">${availabilityMarkup}</div></div><p id="play-preferences-status" class="profile-setting-status" aria-live="polite"></p><button id="profile-play-action" type="button">Find nearby play</button></div>
     </section>
     <section class="grid two-cols profile-safety-grid"><div class="panel profile-privacy"><div><p class="eyebrow">Visibility</p><h2>Choose who can find you</h2><p class="muted">This controls how your family appears in nearby matching and playdate discovery.</p></div><label class="visibility-control" for="profile-visibility"><span>Family visibility</span><select id="profile-visibility">${visibilityOptions}</select></label></div><div class="panel blocked-families-panel"><div class="section-heading"><div><p class="eyebrow">Trust & safety</p><h2>Blocked families</h2></div><span class="privacy-pill">${blockedFamilies.length}</span></div><p class="muted">Blocked families cannot appear in your nearby matching suggestions.</p><form id="blocked-family-form" class="blocked-family-form"><input id="blocked-family-name" maxlength="80" placeholder="Family name to block" aria-label="Family name to block" /><button type="submit" class="secondary-button">Block</button></form><div class="blocked-family-list">${blockedFamilies.length ? blockedFamilies.map((family) => `<div class="blocked-family-row"><span>${escapeHtml(family)}</span><button type="button" class="text-button" data-unblock-family="${escapeAttribute(family)}">Unblock</button></div>`).join('') : '<small>No families blocked.</small>'}</div></div></section>
   </main>`);
-  document.getElementById('profile-edit-action')?.addEventListener('click', () => { state.showProfileSetup = true; state.profileDraft = null; ctx.renderCurrent(); });
+  document.getElementById('profile-edit-action')?.addEventListener('click', () => {
+    state.showProfileSetup = true;
+    state.profileDraft = null;
+    state.onboardingMeta = null;
+    state.onboardingStep = 1;
+    ctx.renderCurrent();
+  });
   document.getElementById('profile-play-action')?.addEventListener('click', () => { state.tab = 'play'; ctx.renderCurrent(); });
   document.getElementById('play-radius')?.addEventListener('input', (event) => {
     const miles = Number(event.target.value);
@@ -94,4 +106,5 @@ export function renderFamilyProfile(ctx) {
   document.querySelectorAll('[data-unblock-family]').forEach((button) => button.addEventListener('click', () => {
     ctx.saveUserSection('play-preferences', { blockedFamilies: blockedFamilies.filter((family) => family !== button.dataset.unblockFamily) }).then(() => ctx.renderCurrent());
   }));
+  bindChatInteractions(ctx);
 }

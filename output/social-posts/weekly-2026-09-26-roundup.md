@@ -9,37 +9,36 @@
 1. Seattle：Mid-Autumn Festival
    Seattle Chinese Garden
    趋势关键词：fall festival、Mid-Autumn Moon Festival
-   亮点：中秋庆典，欣赏文化表演与趣味活动，适合全家同乐。
+   亮点：中秋庆典有文化表演和趣味活动，亲子同乐。
 
 2. Seattle：Carpinito Brothers Fall Festival
    Carpinito Brothers Farm
    趋势关键词：fall festival
-   亮点：南瓜遍地、玉米迷宫等你挑战，晴天还能以雷尼尔山为背景拍照。
+   亮点：南瓜满地、挑战玉米迷宫，雷尼尔山作背景随手都是大片。
 
 3. Bellevue：StoryWalk at Lake Wilderness Arboretum
    Lake Wilderness Arboretum
    趋势关键词：story time
-   亮点：走在小径上一页页读绘本，大小朋友一起把散步变成阅读探险。
+   亮点：沿步道边走边读，体验StoryWalk的户外阅读乐趣。
 
-4. Bellevue：Downtown Issaquah Story Stroll: ‘Watercress’
-   Village Theatre Issaquah
-   趋势关键词：story time
-   亮点：与图书馆合作的 Story Stroll 活动带来 Andrea Wang 与 Jason Chin 的暖心绘本《Watercress》。
+4. Bellevue：Pumpkin Farm and Puzzle Patch
+   JB Family Growers
+   趋势关键词：pumpkin
+   亮点：在巨型玉米迷宫里探索蜿蜒小径，尽情寻路。
 
 5. Tacoma：Lattin’s Fall Festival
    Lattin’s Country Cider Mill and Farm
    趋势关键词：fall festival
-   亮点：南瓜田采摘、充气城堡和各类游戏齐上阵，还能与可爱农场动物近距离互动。
+   亮点：在南瓜田采摘南瓜，畅玩弹跳城堡和亲子游戏。
 
-6. Kirkland：Pumpkin Farm and Puzzle Patch
-   JB Family Growers
-   趋势关键词：pumpkin
-   亮点：走进巨型玉米迷宫，沿着蜿蜒小径尽情探索。
+6. Kirkland：2026 Washington State Martial Arts Festival
+   Crossroads Community Park
+   亮点：免费入场、老少皆宜的武术文化节，欣赏武术表演、文化体验和互动活动。
 
 7. Lynnwood：Craven Farm Fall Festival
    Craven Farm
    趋势关键词：fall festival
-   亮点：2019年被《读者文摘》评为华州最佳南瓜田，近年跻身全美优选，亲子人气旺。
+   亮点：🌿 可以体验户外与运动主题活动。
 
 8. Edmonds：Harvest Festival at Swans Trail Farms
    Swan’s Trail Farms

@@ -12,7 +12,7 @@ export function resetSocialState(state) {
   state.parentingResourcesAgeFilter = '';
 }
 
-async function loadChat(ctx, contactId = '') {
+export async function loadChat(ctx, contactId = '') {
   const { state } = ctx;
   try {
     const data = await apiRequest(`/chat${contactId ? `?threadId=${encodeURIComponent(contactId)}` : ''}`);
@@ -39,7 +39,7 @@ async function loadChat(ctx, contactId = '') {
   } catch (error) {
     state.chatStatus = `Chat unavailable: ${error.message}`;
   }
-  if (state.tab === 'chat') ctx.renderCurrent();
+  if (state.tab === 'chat' || state.tab === 'profile') ctx.renderCurrent();
 }
 
 async function loadParentingResources(ctx, forceRefresh = false) {
@@ -148,7 +148,7 @@ export function resizeAvatarFile(file) {
   });
 }
 
-function renderChat(ctx) {
+export function renderChat(ctx) {
   const { state } = ctx;
   const contacts = sortChatThreads(state.chatContacts || []);
   const active = contacts.find((contact) => contact.id === state.activeChatContactId) || contacts[0];
@@ -160,6 +160,27 @@ function renderChat(ctx) {
     : '';
   const quickReplies = active ? quickReplySuggestions(active) : [];
   return `<div class="chat-layout"><aside class="chat-contacts">${contactList}</aside><section class="chat-thread">${active ? `<div class="chat-thread-heading"><div class="chat-thread-title"><div>${userAvatarMarkup(state.user, 'chat-header-avatar', 'Your profile avatar')}</div><div><strong>${escapeHtml(active.title || 'Chat')}</strong>${chatThreadSchedule(active) ? `<small>${escapeHtml(chatThreadSchedule(active))}</small>` : ''}<small>${active.type === 'playdate' ? 'Everyone in this playdate is included' : 'Private 1:1 conversation'}</small></div></div></div><div class="chat-messages">${messages || '<p class="muted">Say hello and make the meetup easy.</p>'}</div><div class="chat-quick-replies" aria-label="Quick reply suggestions">${quickReplies.map((reply) => `<button type="button" class="quick-reply" data-quick-reply="${escapeAttribute(reply)}">${escapeHtml(reply)}</button>`).join('')}</div><form id="chat-form" class="chat-compose"><input name="chat-text" placeholder="Message, emoji, or meetup note…" maxlength="2000" /><label class="chat-attach" title="Attach photo or short video">＋<input name="chat-media" type="file" accept="image/*,video/*" /></label><button type="submit">Send</button></form>` : '<div class="chat-empty"><span>💬</span><p>Your playdate family threads will appear here.</p></div>'}</section></div>`;
+}
+
+export function ensureChatLoaded(ctx) {
+  if (ctx.state.chatLoaded) return;
+  ctx.state.chatLoaded = true;
+  loadChat(ctx);
+}
+
+export function bindChatInteractions(ctx) {
+  const { state } = ctx;
+  document.querySelectorAll('[data-chat-contact]').forEach((button) => button.addEventListener('click', () => {
+    state.activeChatContactId = button.dataset.chatContact;
+    loadChat(ctx, state.activeChatContactId);
+  }));
+  document.getElementById('chat-form')?.addEventListener('submit', (event) => sendChat(ctx, event));
+  document.querySelectorAll('[data-quick-reply]').forEach((button) => button.addEventListener('click', () => {
+    const input = document.querySelector('#chat-form input[name="chat-text"]');
+    if (!input) return;
+    input.value = button.dataset.quickReply || '';
+    input.focus();
+  }));
 }
 
 const resourceFallbackImages = [
@@ -182,25 +203,12 @@ export function renderSocial(ctx) {
   const childProfile = getChildProfile(state.user);
   const childName = childDisplayName(childProfile, 'your child');
   const ageLabel = childAgeLabel(childProfile) || 'your child’s age range';
-  if (!state.chatLoaded) {
-    state.chatLoaded = true;
-    loadChat(ctx);
-  }
+  ensureChatLoaded(ctx);
   if (!state.parentingResourcesStatus) loadParentingResources(ctx);
 
   const usedResourceImages = new Set();
   ctx.layout(`<main class="stack"><section class="panel chat-panel"><div class="section-heading"><div><p class="eyebrow">Your playdate circle</p><h2>Chat</h2><p class="muted">Keep plans, hellos, and meetup details together with the families you connect with.</p></div></div>${renderChat(ctx)}${state.chatStatus ? `<p class="muted">${escapeHtml(state.chatStatus)}</p>` : ''}</section><section class="panel"><div class="section-heading"><div><p class="eyebrow">For your family</p><h2>Parenting resources</h2><p class="muted">${escapeHtml(state.parentingResourcesStatus || `Matching ParentMap articles to ${ageLabel}.`)}</p></div><button id="refresh-parenting-resources" type="button" class="secondary-button small-button">Refresh</button></div><div class="resource-grid">${state.parentingResources.length ? state.parentingResources.map((resource, index) => renderResourceCard(resource, index, usedResourceImages)).join('') : '<p class="muted">Age-matched articles will appear here.</p>'}</div></section></main>`);
 
-  document.querySelectorAll('[data-chat-contact]').forEach((button) => button.addEventListener('click', () => {
-    state.activeChatContactId = button.dataset.chatContact;
-    loadChat(ctx, state.activeChatContactId);
-  }));
-  document.getElementById('chat-form')?.addEventListener('submit', (event) => sendChat(ctx, event));
-  document.querySelectorAll('[data-quick-reply]').forEach((button) => button.addEventListener('click', () => {
-    const input = document.querySelector('#chat-form input[name="chat-text"]');
-    if (!input) return;
-    input.value = button.dataset.quickReply || '';
-    input.focus();
-  }));
+  bindChatInteractions(ctx);
   document.getElementById('refresh-parenting-resources')?.addEventListener('click', () => loadParentingResources(ctx, true));
 }

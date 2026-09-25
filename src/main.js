@@ -14,10 +14,10 @@ import { createSupabaseBrowserClient } from '../lib/supabase/client.js';
 import { loadFamilyPlans } from './family-plans.js';
 import {
   APP_NAME,
+  STORY_LANGUAGE_OPTIONS,
   createChildId,
   childProfileSummary,
   getChildProfile,
-  getChildProfiles,
   getChildProfileState,
   isChildComplete,
   normalizeChild,
@@ -32,11 +32,10 @@ let root = document.getElementById('root');
 const TAB_PATHS = {
   home: '/home',
   play: '/play',
-  chat: '/chat',
   profile: '/family',
 };
 
-const PATH_TABS = Object.fromEntries(Object.entries(TAB_PATHS).map(([tab, path]) => [path, tab]));
+const PATH_TABS = { ...Object.fromEntries(Object.entries(TAB_PATHS).map(([tab, path]) => [path, tab])), '/chat': 'profile' };
 
 function tabFromLocation() {
   const pathname = globalThis.location?.pathname?.replace(/\/$/, '') || '';
@@ -44,13 +43,14 @@ function tabFromLocation() {
 }
 
 function navigateToTab(tab, { replace = false } = {}) {
+  if (tab === 'chat') tab = 'profile';
   const path = TAB_PATHS[tab] || TAB_PATHS.home;
   const currentPath = globalThis.location?.pathname?.replace(/\/$/, '') || '';
   if (currentPath !== path) {
     const method = replace ? 'replaceState' : 'pushState';
     globalThis.history[method]({}, '', path);
   }
-  if (tab === 'chat') {
+  if (tab === 'profile') {
     state.chatLoaded = false;
   }
   state.tab = tab;
@@ -73,7 +73,7 @@ const state = {
   onboardingStep: 1,
   onboardingMeta: null,
   locationStatus: '',
-  savedFamilyEvents: [],
+  savedFamilyPlans: [],
   albumLink: readFirstStoredValue(['sproutCueApplePhotosLink', 'aaronApplePhotosLink'], DEFAULT_ALBUM_LINK),
   homeBackgroundKey: readFirstStoredValue(['sproutCueHomeBackgroundKey'], DEFAULT_HOME_BACKGROUND_KEY),
   homeUploadedPhoto: null,
@@ -84,6 +84,9 @@ const state = {
   nearbyPlayDates: [],
   nearbyPlayDatesRequestKey: '',
   nearbyPlayDateFilter: 'all',
+  discoverFilter: 'all',
+  discoverView: 'map',
+  discoverSelectedId: '',
   mapZoom: 1,
   nearbyStatus: 'Save a location to personalize nearby play options.',
   selectedPlaygroundKey: '',
@@ -207,6 +210,7 @@ function onboardingMetaFromUser(user = state.user) {
   return {
     relationship: '',
     interests: Array.isArray(child.favoriteActivities) ? child.favoriteActivities : [],
+    practicingSteps: Array.isArray(child.practicingSteps) ? child.practicingSteps : [],
     neighborhood: user?.location?.address || user?.location?.label || child.homeCity || '',
     radius: preferences.searchRadiusMiles,
     days: preferences.availabilityDays,
@@ -228,13 +232,6 @@ function openWelcome() {
 
 function childHeaderSummary() {
   return childProfileSummary(getChildProfile(state.user));
-}
-
-function childSwitcherMarkup() {
-  const children = getChildProfiles(state.user);
-  if (children.length <= 1) return '';
-  const activeChildId = getChildProfileState(state.user).activeChildId;
-  return `<label class="active-child-control"><span>Planning for</span><select id="active-child-select">${children.map((child) => `<option value="${escapeAttribute(child.id)}" ${child.id === activeChildId ? 'selected' : ''}>${escapeHtml(child.name || 'Unnamed child')}</option>`).join('')}</select></label>`;
 }
 
 const TAB_EMOJIS = {
@@ -262,11 +259,11 @@ function tabEmoji(name) {
 
 function layout(content) {
   ensureRoot();
-  const tabs = [['home', 'Home'], ['play', 'Play'], ['chat', 'Chat'], ['profile', 'Family']];
+  const tabs = [['home', 'Today'], ['play', 'Discover'], ['profile', 'Family']];
   const locationLabel = state.user?.location?.address || state.user?.location?.label || getChildProfile(state.user)?.homeCity || 'Location not set';
   const unreadChatCount = (state.chatContacts || []).reduce((total, thread) => total + (Number(thread.unreadCount) || 0), 0);
-  const navMarkup = tabs.map(([key, label]) => `<button class="rail-nav-button ${state.tab === key ? 'active' : ''}" data-tab="${key}" aria-current="${state.tab === key ? 'page' : 'false'}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_ICONS[key]}</svg><span>${label}</span>${key === 'chat' && unreadChatCount ? `<span class="rail-count">${unreadChatCount}</span>` : ''}</button>`).join('');
-  root.innerHTML = `<div class="app-shell"><div class="app-frame"><aside class="app-rail"><div class="rail-brand"><img src="/favicon.svg" alt="" aria-hidden="true" /><span>${APP_NAME}</span></div><nav class="rail-nav" aria-label="Planner sections">${navMarkup}</nav><button id="new-playdate" class="rail-create" type="button"><span aria-hidden="true">＋</span> New playdate</button><div class="rail-spacer"></div><div class="rail-account"><div class="rail-account-avatar">${escapeHtml((state.user?.displayName || 'F').slice(0, 1).toUpperCase())}</div><div class="rail-account-copy"><strong>${escapeHtml(state.user?.displayName || 'Family')}</strong><small>${escapeHtml(locationLabel)}</small></div></div><div class="rail-account-actions"><button id="edit-profile" type="button">Edit profile</button><button id="logout-user" type="button">Sign out</button></div>${childSwitcherMarkup()}</aside><section class="app-content"><div class="app-status ${state.apiReady ? 'ready' : ''}"><span>${escapeHtml(state.apiMessage)}</span>${state.user?.email ? `<small>${escapeHtml(state.user.email)}</small>` : ''}</div>${content}</section></div></div>`;
+  const navMarkup = tabs.map(([key, label]) => `<button class="rail-nav-button ${state.tab === key ? 'active' : ''}" data-tab="${key}" aria-current="${state.tab === key ? 'page' : 'false'}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_ICONS[key]}</svg><span>${label}</span>${key === 'profile' && unreadChatCount ? `<span class="rail-count">${unreadChatCount}</span>` : ''}</button>`).join('');
+  root.innerHTML = `<div class="app-shell"><div class="app-frame"><aside class="app-rail"><div class="rail-brand"><img src="/favicon.svg" alt="" aria-hidden="true" /><span>${APP_NAME}</span></div><nav class="rail-nav" aria-label="Main navigation">${navMarkup}</nav><button id="new-playdate" class="rail-create" type="button" aria-label="Create a new playdate"><span aria-hidden="true">＋</span><b>New playdate</b></button><div class="rail-spacer"></div><div class="rail-account"><div class="rail-account-avatar">${escapeHtml((state.user?.displayName || 'F').slice(0, 1).toUpperCase())}</div><div class="rail-account-copy"><strong>${escapeHtml(state.user?.displayName || 'Family')}</strong><small>${escapeHtml(locationLabel)}</small></div></div><div class="rail-account-actions"><button id="edit-profile" type="button">Edit profile</button><button id="logout-user" type="button">Sign out</button></div></aside><section class="app-content"><div class="app-status ${state.apiReady ? 'ready' : ''}"><span>${escapeHtml(state.apiMessage)}</span>${state.user?.email ? `<small>${escapeHtml(state.user.email)}</small>` : ''}</div>${content}</section></div></div>`;
   document.querySelectorAll('[data-tab]').forEach((button) => button.addEventListener('click', () => {
     navigateToTab(button.dataset.tab);
   }));
@@ -274,7 +271,6 @@ function layout(content) {
     state.playdateFocus = '';
     navigateToTab('play');
   });
-  document.getElementById('active-child-select')?.addEventListener('change', (event) => switchActiveChild(event.target.value));
   document.getElementById('edit-profile').addEventListener('click', () => {
     state.showProfileSetup = true;
     state.profileDraft = null;
@@ -297,7 +293,7 @@ async function deleteParentData() {
     state.apiMessage = 'Parent data deleted.';
     state.showProfileSetup = false;
     state.profileDraft = null;
-    state.savedFamilyEvents = [];
+    state.savedFamilyPlans = [];
     resetHomeState(state);
     resetSocialState(state);
     resetPlayState(state);
@@ -316,8 +312,8 @@ function renderLogin() {
   const intro = useSupabase
     ? 'Use an email magic link to open your private parent profile.'
     : 'Use an email to keep each local parent profile separate while you test.';
-  const featureNote = 'Less mental load for little-kid days.';
-  root.innerHTML = `<div class="app-shell auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">Parent profiles</p><h1>${APP_NAME}</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><p class="eyebrow">Sign in</p><h2>${heading}</h2><p>${intro}</p>${useSupabase ? '<div class="social-login-options"><button id="google-login" type="button" class="google-login-button"><svg class="social-logo google-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.79-.07-1.55-.2-2.27H12v4.3h5.38a4.6 4.6 0 0 1-1.99 3.02v2.5h3.22c1.88-1.73 2.99-4.28 2.99-7.55Z"/><path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.45l-3.22-2.5c-.9.6-2.04.95-3.4.95-2.61 0-4.82-1.76-5.61-4.13H3.06v2.58A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.39 13.87A6 6 0 0 1 6.08 12c0-.65.11-1.28.31-1.87V7.55H3.06A10 10 0 0 0 2 12c0 1.61.39 3.14 1.06 4.45l3.33-2.58Z"/><path fill="#EA4335" d="M12 6c1.47 0 2.79.51 3.83 1.51l2.87-2.87C16.96 2.91 14.7 2 12 2a10 10 0 0 0-8.94 5.55l3.33 2.58C7.18 7.76 9.39 6 12 6Z"/></svg>Continue with Google</button><button id="facebook-login" type="button" class="facebook-login-button"><svg class="social-logo facebook-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 8h3V4.5c-.52-.07-1.72-.17-3.27-.17-3.24 0-5.46 1.98-5.46 5.62V13H5v3.91h3.27V24h4.01v-7.09h3.34l.53-3.91h-3.87V10.3c0-1.13.31-2.3 1.72-2.3Z"/></svg>Continue with Facebook</button></div><div class="auth-divider"><span>or use email</span></div>' : ''}<form id="login-form"><label class="input-label" for="login-email">Parent email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required />${useSupabase ? '<label class="input-label" for="login-password">Password</label><input id="login-password" type="password" autocomplete="current-password" placeholder="Your password" minlength="6" />' : ''}<label class="input-label" for="login-name">Parent display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="Milo Family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>${buttonText}</button>${useSupabase ? '<button id="password-login" type="button" class="password-login-button" disabled>Sign in with password</button>' : ''}</form><p class="muted">${escapeHtml(state.authStatus || state.apiMessage)}</p><p class="privacy-link"><a href="/privacy" target="_blank" rel="noreferrer">Read the Privacy Policy</a></p></section><section class="panel auth-note"><p class="eyebrow">Made for parents of little ones</p><h2>Your family day, sorted.</h2><p>${featureNote}</p><div class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/playdates.png" alt="Parents meeting at a neighborhood playground for a playdate" /><strong>Playdates without the back-and-forth</strong><p>Find nearby places, check the weather, see weekend events, and make a plan in minutes.</p></div></section></main></div>`;
+  const featureNote = 'One child profile turns nearby discoveries, stories, and small daily steps into ideas that fit your family.';
+  root.innerHTML = `<div class="app-shell auth-shell family-auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">For parents of little ones</p><h1>${APP_NAME}</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><div class="auth-mobile-brand"><img src="/favicon.svg" alt="" /><strong>SproutCue</strong></div><p class="eyebrow">Welcome to your family space</p><h2>${heading}</h2><p>${intro}</p>${useSupabase ? '<div class="social-login-options"><button id="google-login" type="button" class="google-login-button"><svg class="social-logo google-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.79-.07-1.55-.2-2.27H12v4.3h5.38a4.6 4.6 0 0 1-1.99 3.02v2.5h3.22c1.88-1.73 2.99-4.28 2.99-7.55Z"/><path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.45l-3.22-2.5c-.9.6-2.04.95-3.4.95-2.61 0-4.82-1.76-5.61-4.13H3.06v2.58A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.39 13.87A6 6 0 0 1 6.08 12c0-.65.11-1.28.31-1.87V7.55H3.06A10 10 0 0 0 2 12c0 1.61.39 3.14 1.06 4.45l3.33-2.58Z"/><path fill="#EA4335" d="M12 6c1.47 0 2.79.51 3.83 1.51l2.87-2.87C16.96 2.91 14.7 2 12 2a10 10 0 0 0-8.94 5.55l3.33 2.58C7.18 7.76 9.39 6 12 6Z"/></svg>Continue with Google</button><button id="facebook-login" type="button" class="facebook-login-button"><svg class="social-logo facebook-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 8h3V4.5c-.52-.07-1.72-.17-3.27-.17-3.24 0-5.46 1.98-5.46 5.62V13H5v3.91h3.27V24h4.01v-7.09h3.34l.53-3.91h-3.87V10.3c0-1.13.31-2.3 1.72-2.3Z"/></svg>Continue with Facebook</button></div><div class="auth-divider"><span>or use email</span></div>' : ''}<form id="login-form"><label class="input-label" for="login-email">Parent email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required />${useSupabase ? '<label class="input-label" for="login-password">Password</label><input id="login-password" type="password" autocomplete="current-password" placeholder="Your password" minlength="6" />' : ''}<label class="input-label" for="login-name">Parent display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="The Rivera family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>${buttonText}</button>${useSupabase ? '<button id="password-login" type="button" class="password-login-button" disabled>Sign in with password</button>' : ''}</form><p class="muted">${escapeHtml(state.authStatus || state.apiMessage)}</p><div class="auth-parent-note"><span aria-hidden="true">♡</span><p>A grown-up account. Your child never needs an email or login.</p></div><p class="privacy-link"><a href="/privacy" target="_blank" rel="noreferrer">Read the Privacy Policy</a></p></section><section class="panel auth-note family-auth-story"><p class="eyebrow">Little adventures, made personal</p><h2>One family profile.<br />More ways to play.</h2><p>${featureNote}</p><ul><li><span>1</span>Name and age in months</li><li><span>2</span>Story language and favorites</li><li><span>3</span>Little steps they’re practicing</li></ul><div class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/playdates.png" alt="Parents meeting at a neighborhood playground for a playdate" /><strong>Private by default, useful from day one</strong><p>Set visibility and play preferences after sign-in, then adjust them anytime in Family.</p></div></section></main></div>`;
   document.getElementById('login-form').addEventListener('submit', useSupabase ? revealAuthMethods : loginUser);
   document.getElementById('google-login')?.addEventListener('click', signInWithGoogle);
   document.getElementById('facebook-login')?.addEventListener('click', signInWithFacebook);
@@ -447,6 +443,9 @@ function childDraftFromChild(child) {
     favoriteActivities: Array.isArray(child.favoriteActivities)
       ? child.favoriteActivities.join(', ')
       : String(child.favoriteActivities || ''),
+    practicingSteps: Array.isArray(child.practicingSteps)
+      ? child.practicingSteps.join(', ')
+      : String(child.practicingSteps || ''),
   };
 }
 
@@ -463,11 +462,14 @@ function activeDraftChild(draft) {
 }
 
 function normalizeDraftChildren(children) {
-  return children.map((child) => ({
+  return children.slice(0, 1).map((child) => ({
     ...child,
     favoriteActivities: Array.isArray(child.favoriteActivities)
       ? child.favoriteActivities
       : String(child.favoriteActivities || '').split(/[,;\n]/),
+    practicingSteps: Array.isArray(child.practicingSteps)
+      ? child.practicingSteps
+      : String(child.practicingSteps || '').split(/[,;\n]/),
   }));
 }
 
@@ -480,12 +482,14 @@ function updateDraftFromActiveForm(form) {
     id: activeChildId || createChildId(formData.get('childName') || 'child'),
     name: formData.get('childName'),
     birthday: formData.get('birthday'),
+    ageMonths: formData.get('ageMonths'),
     ageLabel: formData.get('ageLabel'),
     homeCity: formData.get('homeCity'),
     favoriteActivities: formData.get('favoriteActivities'),
+    storyLanguage: formData.get('storyLanguage'),
+    practicingSteps: formData.get('practicingSteps'),
   }, activeDraftChild(draft)));
-  const children = draft.children.map((child) => (child.id === updatedChild.id ? updatedChild : child));
-  if (!children.some((child) => child.id === updatedChild.id)) children.push(updatedChild);
+  const children = [updatedChild];
   state.profileDraft = {
     displayName: String(formData.get('displayName') || '').trim(),
     activeChildId: updatedChild.id,
@@ -501,80 +505,6 @@ function childProfileFromDraft(draft) {
   });
 }
 
-function setActiveDraftChild(childId) {
-  const form = document.getElementById('profile-form');
-  const draft = form ? updateDraftFromActiveForm(form) : profileDraftFromUser();
-  state.profileDraft = { ...draft, activeChildId: childId };
-  state.onboardingStatus = '';
-  renderOnboarding();
-}
-
-function addDraftChild() {
-  const form = document.getElementById('profile-form');
-  const draft = form ? updateDraftFromActiveForm(form) : profileDraftFromUser();
-  const child = blankChildDraft();
-  state.profileDraft = {
-    ...draft,
-    activeChildId: child.id,
-    children: [...draft.children, child],
-  };
-  state.onboardingStatus = 'Added another child. Fill in the details, then save.';
-  renderOnboarding();
-}
-
-function removeDraftChild(childId) {
-  const form = document.getElementById('profile-form');
-  const draft = form ? updateDraftFromActiveForm(form) : profileDraftFromUser();
-  if (draft.children.length <= 1) {
-    state.onboardingStatus = 'Keep at least one child on the profile.';
-    renderOnboarding();
-    return;
-  }
-  const children = draft.children.filter((child) => child.id !== childId);
-  state.profileDraft = {
-    ...draft,
-    activeChildId: children[0]?.id || '',
-    children,
-  };
-  state.onboardingStatus = 'Child removed. Save the profile to keep this change.';
-  renderOnboarding();
-}
-
-async function switchActiveChild(childId) {
-  const childProfile = normalizeChildProfile({
-    ...getChildProfileState(state.user),
-    activeChildId: childId,
-  });
-  const activeChild = getChildProfile({ childProfile });
-  state.user = { ...state.user, childProfile };
-  state.parentingResources = [];
-  state.parentingResourcesStatus = '';
-  state.parentingResourcesAgeFilter = '';
-  state.locationStatus = state.user.location
-    ? ''
-    : activeChild.homeCity
-      ? 'Using the selected child home city until a precise location is saved.'
-      : 'No location saved yet. Share current location or enter one below.';
-  state.apiMessage = `Planning for ${activeChild.name || 'selected child'}.`;
-  refreshPlayPlanning(appContext);
-  render();
-
-  try {
-    const { user } = await apiRequest('/profile', {
-      method: 'PUT',
-      body: JSON.stringify({
-        displayName: state.user.displayName,
-        childProfile,
-      }),
-    });
-    applyUserProfile(user);
-    state.apiMessage = `Planning for ${getChildProfile(user).name || 'selected child'}.`;
-  } catch (error) {
-    state.apiMessage = `Could not save selected child: ${error.message}`;
-  }
-  render();
-}
-
 function renderOnboarding() {
   ensureRoot();
   const draft = profileDraftFromUser();
@@ -583,25 +513,50 @@ function renderOnboarding() {
   const step = state.onboardingStep || 1;
   const days = [['mon','M'],['tue','T'],['wed','W'],['thu','T'],['fri','F'],['sat','S'],['sun','S']];
   const interests = [['sandbox','🏖️ Sandbox'],['bikes','🚲 Bikes'],['climbing','🧗 Climbing'],['crafts','🎨 Crafts'],['ball games','⚽ Ball games'],['quiet play','🌿 Quiet play']];
+  const practicingSteps = [['brushing teeth','🪥 Brushing teeth'],['washing hands','🫧 Washing hands'],['potty learning','🚽 Potty learning'],['leaving the playground','👋 Leaving the playground'],['meeting new friends','☺ Meeting friends'],['bedtime','🌙 Bedtime']];
   const selected = (list, value) => list.includes(value) ? ' selected' : '';
   const chips = (items, values, attr = 'data-value') => items.map(([value, label]) => `<button type="button" class="welcome-chip${selected(values, value)}" ${attr}="${escapeAttribute(value)}">${label}</button>`).join('');
   const previewDays = days.map(([value, label]) => `<span class="welcome-preview-day${selected(meta.days, value) ? ' active' : ''}">${label}</span>`).join('');
-  const cardKid = activeChild.name ? `<span class="welcome-kid">🧒 ${escapeHtml(activeChild.name)}${activeChild.ageLabel ? ` · ${escapeHtml(activeChild.ageLabel)}` : ''}</span>` : '<span class="welcome-kid muted-kid">🧒 Add your kid</span>';
+  const cardKid = activeChild.name ? `<span class="welcome-kid">🧒 ${escapeHtml(activeChild.name)}${Number.isInteger(activeChild.ageMonths) ? ` · ${activeChild.ageMonths} months` : ''}</span>` : '<span class="welcome-kid muted-kid">🧒 Add your kid</span>';
   const progress = [1,2,3,4,5].map((item) => `<span class="welcome-progress-dot ${item < step ? 'done' : ''} ${item === step ? 'current' : ''}">${item === 5 ? '✦' : item}</span>`).join('<i></i>');
-  const formField = step === 1 ? `<label class="welcome-label">Your first name<input id="welcome-name" value="${escapeAttribute(draft.displayName)}" placeholder="e.g. Priya" /></label><label class="welcome-label">You are…<span class="welcome-chip-row" id="welcome-rel">${chips([['mom','Mom'],['dad','Dad'],['grandparent','Grandparent'],['caregiver','Caregiver']], meta.relationship ? [meta.relationship] : [])}</span></label><div class="welcome-two-fields"><label class="welcome-label">Kid’s first name<input id="welcome-kid" value="${escapeAttribute(activeChild.name)}" placeholder="Name" /></label><label class="welcome-label">Age<select id="welcome-age"><option value="">Age</option>${[1,2,3,4,5,6,7,'8+'].map((age) => `<option ${String(activeChild.ageLabel) === String(age) ? 'selected' : ''}>${age}</option>`).join('')}</select></label></div><label class="welcome-label">What do they love? <small>(helps match playdates)</small><span class="welcome-chip-row" id="welcome-interests">${chips(interests, meta.interests)}</span></label>`
-    : step === 2 ? `<label class="welcome-label">Neighborhood<input id="welcome-neighborhood" value="${escapeAttribute(meta.neighborhood)}" placeholder="Capitol Hill, Seattle" /></label><label class="welcome-label">How far for a good playdate?<strong class="welcome-radius-read" id="welcome-radius-read">${meta.radius} miles</strong><input id="welcome-radius" type="range" min="1" max="10" value="${meta.radius}" /></label>`
+  const formField = step === 1 ? `<label class="welcome-label">Your first name<input id="welcome-name" value="${escapeAttribute(draft.displayName)}" placeholder="e.g. Priya" required /></label><label class="welcome-label">You are…<span class="welcome-chip-row" id="welcome-rel">${chips([['mom','Mom'],['dad','Dad'],['grandparent','Grandparent'],['caregiver','Caregiver']], meta.relationship ? [meta.relationship] : [])}</span></label><div class="welcome-two-fields"><label class="welcome-label">Kid’s name<input id="welcome-kid" value="${escapeAttribute(activeChild.name)}" placeholder="A nickname is enough" required /></label><label class="welcome-label">Age in months<input id="welcome-age" type="number" min="0" max="120" inputmode="numeric" value="${Number.isInteger(activeChild.ageMonths) ? activeChild.ageMonths : ''}" placeholder="24" required /></label></div><label class="welcome-label">Story language<select id="welcome-story-language">${STORY_LANGUAGE_OPTIONS.map(([value, label]) => `<option value="${value}" ${activeChild.storyLanguage === value ? 'selected' : ''}>${label}</option>`).join('')}</select></label><label class="welcome-label">What do they love?<span class="welcome-chip-row" id="welcome-interests">${chips(interests, meta.interests)}</span></label><label class="welcome-label">Little steps they’re practicing <small>(choose any)</small><span class="welcome-chip-row" id="welcome-practicing">${chips(practicingSteps, meta.practicingSteps)}</span></label>`
+    : step === 2 ? `<label class="welcome-label">Neighborhood<input id="welcome-neighborhood" value="${escapeAttribute(meta.neighborhood)}" placeholder="Capitol Hill, Seattle" required /></label><label class="welcome-label">How far for a good playdate?<strong class="welcome-radius-read" id="welcome-radius-read">${meta.radius} miles</strong><input id="welcome-radius" type="range" min="1" max="10" value="${meta.radius}" /></label>`
     : step === 3 ? `<p class="welcome-notice">Not a commitment — just a shortcut to playdates you could actually make.</p><label class="welcome-label">Days<span class="welcome-chip-row" id="welcome-days">${chips(days, meta.days)}</span></label><label class="welcome-label">Times <small>(optional)</small><span class="welcome-chip-row" id="welcome-times">${chips([['morning','🌅 Mornings'],['afternoon','☀️ Afternoons'],['after-school','🎒 After school']], meta.times)}</span></label>`
     : step === 4 ? `<p class="welcome-privacy-copy">You can change this anytime — even per playdate.</p><div class="welcome-visibility">${[['friends-nearby','Friends + nearby families','Verified families in your radius can see open playdates.','Recommended'],['nearby-only','Nearby families only','Keep your family visible to nearby matches.',''],['invite-only','Invite-only','Only families you invite can find you.','']].map(([value,title,desc,badge]) => `<button type="button" class="welcome-visibility-card${meta.visibility === value ? ' selected' : ''}" data-visibility="${value}"><span class="welcome-radio"></span><span><strong>${title} ${badge ? `<em>${badge}</em>` : ''}</strong><small>${desc}</small></span></button>`).join('')}</div><div class="welcome-verify"><span>📱</span><p><strong>Verify your phone</strong><small>Verified families get 3× more joins — a trust signal other parents look for.</small></p><button type="button" id="welcome-verify">${meta.verified ? '✓ Verified' : 'Verify'}</button></div>`
     : `<p class="welcome-payoff-copy">Your family card is ready to help you find an easy first connection.</p>`;
   const back = step > 1 ? '<button type="button" class="welcome-back" id="welcome-back">← Back</button>' : '';
-  const nextLabel = step === 5 ? 'Go to my map →' : step === 4 ? 'Finish setup' : 'Continue';
+  const nextLabel = step === 5 ? 'Explore my little adventure →' : step === 4 ? 'Finish setup' : 'Continue';
   root.innerHTML = `<main class="welcome-shell"><header class="welcome-header"><div class="welcome-brand"><img src="/favicon.svg" alt="" /><span>SproutCue</span></div><span class="welcome-time">Takes about 2 minutes</span></header><div class="welcome-layout"><section class="welcome-form"><div class="welcome-progress">${progress}<span>Step ${step} of 4${step === 5 ? ' · Done' : ''}</span></div><p class="eyebrow">${step === 5 ? 'Your first connection' : 'Welcome to SproutCue'}</p><h1>${step === 1 ? 'Who’s coming to play?' : step === 2 ? 'Where do you usually play?' : step === 3 ? 'When are you usually free?' : step === 4 ? 'Who can see your playdates?' : `You’re in, ${escapeHtml(draft.displayName || 'friend')}! 🎈`}</h1><p class="welcome-lede">${step === 1 ? 'Other parents see a family card, not a profile. First names and kid ages only — no last names, no photos of kids required, ever.' : step === 2 ? 'We show your neighborhood, never your address. Your radius helps personalize playdates.' : step === 3 ? 'Tell us the windows that tend to work. Skip this if your week is still a moving target.' : step === 4 ? 'Trust settings are yours to control. Friends + nearby is the recommended starting point.' : 'Your profile is ready for nearby playdates.'}</p><form id="welcome-form">${formField}<div class="welcome-actions">${back}<button type="submit" class="welcome-primary">${nextLabel}</button>${step === 3 ? '<button type="button" class="welcome-skip" id="welcome-skip">Skip for now</button>' : ''}</div></form><p class="welcome-status">${escapeHtml(state.onboardingStatus || '')}</p></section><aside class="welcome-preview"><p class="welcome-preview-label">Your family card · live preview</p><div class="welcome-family-card"><div class="welcome-orb"></div><div class="welcome-avatar-stack"><span>${escapeHtml((draft.displayName || '?').slice(0,1).toUpperCase())}</span><span>${escapeHtml((activeChild.name || '?').slice(0,1).toUpperCase())}</span></div><h2>${escapeHtml(draft.displayName || 'Your name')}</h2><p>${escapeHtml(meta.neighborhood || 'Your neighborhood')} · new this week 🌱</p><div>${cardKid}</div><div class="welcome-preview-days">${previewDays}</div>${meta.verified ? '<strong class="welcome-verified">✓ Phone verified</strong>' : ''}</div><p class="welcome-preview-note">This is exactly what another parent sees. First names and kid ages only — nothing more.</p><img class="welcome-art" src="/illustrations/playdates.png" alt="Families meeting at a neighborhood playground" /></aside></div></main>`;
-  document.getElementById('welcome-form')?.addEventListener('submit', (event) => { event.preventDefault(); captureWelcomeStep(); if (step < 5) { state.onboardingStep = step + 1; renderOnboarding(); } else saveWelcomeProfile(); });
+  document.getElementById('welcome-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    captureWelcomeStep();
+    const currentDraft = profileDraftFromUser();
+    const currentChild = activeDraftChild(currentDraft);
+    const currentMeta = onboardingMetaFromUser();
+    if (step === 1 && (!currentDraft.displayName || !currentChild.name || !Number.isInteger(currentChild.ageMonths))) {
+      state.onboardingStatus = 'Add your name, your kid’s name, and their age in months to continue.';
+      renderOnboarding();
+      return;
+    }
+    if (step === 2 && !currentMeta.neighborhood) {
+      state.onboardingStatus = 'Add your neighborhood so we can personalize nearby playdates.';
+      renderOnboarding();
+      return;
+    }
+    state.onboardingStatus = '';
+    if (step < 5) {
+      state.onboardingStep = step + 1;
+      renderOnboarding();
+    } else {
+      saveWelcomeProfile();
+    }
+  });
   document.getElementById('welcome-back')?.addEventListener('click', () => { captureWelcomeStep(); state.onboardingStep = step - 1; renderOnboarding(); });
   document.getElementById('welcome-skip')?.addEventListener('click', () => { captureWelcomeStep(); state.onboardingStep = 4; renderOnboarding(); });
   document.getElementById('welcome-verify')?.addEventListener('click', () => { captureWelcomeStep(); meta.verified = true; state.onboardingMeta = meta; renderOnboarding(); });
   document.querySelectorAll('#welcome-rel .welcome-chip').forEach((button) => button.addEventListener('click', () => { captureWelcomeStep(); meta.relationship = button.dataset.value; state.onboardingMeta = meta; renderOnboarding(); }));
   document.querySelectorAll('#welcome-interests .welcome-chip').forEach((button) => button.addEventListener('click', () => { captureWelcomeStep(); meta.interests = meta.interests.includes(button.dataset.value) ? meta.interests.filter((x) => x !== button.dataset.value) : [...meta.interests, button.dataset.value]; state.onboardingMeta = meta; renderOnboarding(); }));
+  document.querySelectorAll('#welcome-practicing .welcome-chip').forEach((button) => button.addEventListener('click', () => { captureWelcomeStep(); meta.practicingSteps = meta.practicingSteps.includes(button.dataset.value) ? meta.practicingSteps.filter((x) => x !== button.dataset.value) : [...meta.practicingSteps, button.dataset.value]; state.onboardingMeta = meta; renderOnboarding(); }));
   document.querySelectorAll('#welcome-days .welcome-chip, #welcome-times .welcome-chip').forEach((button) => button.addEventListener('click', () => { const key = button.closest('#welcome-days') ? 'days' : 'times'; meta[key] = meta[key].includes(button.dataset.value) ? meta[key].filter((x) => x !== button.dataset.value) : [...meta[key], button.dataset.value]; state.onboardingMeta = meta; renderOnboarding(); }));
   document.querySelectorAll('[data-visibility]').forEach((button) => button.addEventListener('click', () => { meta.visibility = button.dataset.visibility; state.onboardingMeta = meta; renderOnboarding(); }));
   document.getElementById('welcome-radius')?.addEventListener('input', (event) => { meta.radius = Number(event.target.value); state.onboardingMeta = meta; document.getElementById('welcome-radius-read').textContent = `${meta.radius} miles`; });
@@ -613,8 +568,15 @@ function captureWelcomeStep() {
   const name = document.getElementById('welcome-name')?.value?.trim();
   const kid = document.getElementById('welcome-kid')?.value?.trim();
   const age = document.getElementById('welcome-age')?.value;
+  const storyLanguage = document.getElementById('welcome-story-language')?.value;
   if (name !== undefined) draft.displayName = name;
-  if (kid !== undefined) { const child = activeDraftChild(draft); child.name = kid; child.ageLabel = age || child.ageLabel; }
+  if (kid !== undefined) {
+    const child = activeDraftChild(draft);
+    child.name = kid;
+    child.ageMonths = age === '' ? null : Number(age);
+    child.ageLabel = age === '' ? '' : `${age}m`;
+    child.storyLanguage = storyLanguage || child.storyLanguage;
+  }
   meta.neighborhood = document.getElementById('welcome-neighborhood')?.value?.trim() || meta.neighborhood;
   meta.radius = Number(document.getElementById('welcome-radius')?.value || meta.radius);
   state.profileDraft = draft;
@@ -627,9 +589,11 @@ async function saveWelcomeProfile() {
   const meta = onboardingMetaFromUser();
   const draftChild = activeDraftChild(draft);
   if (meta.neighborhood) draftChild.homeCity = meta.neighborhood;
+  draftChild.favoriteActivities = meta.interests;
+  draftChild.practicingSteps = meta.practicingSteps;
   const childProfile = childProfileFromDraft(draft);
   const child = getChildProfile({ childProfile });
-  if (!draft.displayName || !child.name || (!child.ageLabel && !child.birthday)) { state.onboardingStatus = 'Add your name, your kid’s name, and their age to continue.'; state.onboardingStep = 1; renderOnboarding(); return; }
+  if (!draft.displayName || !child.name || !Number.isInteger(child.ageMonths)) { state.onboardingStatus = 'Add your name, your kid’s name, and their age in months to continue.'; state.onboardingStep = 1; renderOnboarding(); return; }
   if (!child.homeCity) { state.onboardingStatus = 'Add your neighborhood so we can personalize nearby playdates.'; state.onboardingStep = 2; renderOnboarding(); return; }
   state.onboardingStatus = 'Saving your family card…'; renderOnboarding();
   try {
@@ -637,7 +601,13 @@ async function saveWelcomeProfile() {
     state.user = profile.user;
     await saveUserSection('play-preferences', { searchRadiusMiles: meta.radius, availabilityDays: meta.days, visibility: meta.visibility });
     if (meta.neighborhood) await saveUserSection('location', { address: meta.neighborhood, label: meta.neighborhood, source: 'onboarding' });
-    state.showProfileSetup = false; state.profileDraft = null; state.onboardingMeta = null; state.onboardingStep = 1; state.onboardingStatus = ''; globalThis.history.replaceState({}, '', '/home'); applyUserProfile(state.user); render();
+    state.showProfileSetup = false;
+    state.profileDraft = null;
+    state.onboardingMeta = null;
+    state.onboardingStep = 1;
+    state.onboardingStatus = '';
+    applyUserProfile(state.user);
+    navigateToTab('home', { replace: true });
   } catch (error) { state.onboardingStatus = `Could not save setup: ${error.message}`; renderOnboarding(); }
 }
 
@@ -691,19 +661,19 @@ async function saveProfileSetup(event) {
   const payload = profilePayloadFromForm(event.currentTarget);
   state.profileDraft = draftFromPayload(payload);
   if (payload.childProfile.children.length === 0) {
-    state.onboardingStatus = 'Add at least one child to personalize the planner.';
+    state.onboardingStatus = 'Add your child to personalize the planner.';
     renderOnboarding();
     return;
   }
   const incompleteChild = payload.childProfile.children.find((child) => !isChildComplete(child));
   if (incompleteChild) {
     state.profileDraft.activeChildId = incompleteChild.id;
-    state.onboardingStatus = `Add a nickname, birthday or age, and home city for ${incompleteChild.name || 'each child'}.`;
+    state.onboardingStatus = `Add a name and age in months for ${incompleteChild.name || 'your child'}.`;
     renderOnboarding();
     return;
   }
 
-  state.onboardingStatus = 'Saving children…';
+  state.onboardingStatus = 'Saving your family profile…';
   renderOnboarding();
   try {
     const { user } = await apiRequest('/profile', {
@@ -713,8 +683,7 @@ async function saveProfileSetup(event) {
     state.showProfileSetup = false;
     state.profileDraft = null;
     applyUserProfile(user);
-    const children = getChildProfiles(user);
-    state.apiMessage = `${children.length} child${children.length === 1 ? '' : 'ren'} saved. Planner personalized.`;
+    state.apiMessage = 'Child profile saved. Planner personalized.';
     render();
   } catch (error) {
     state.onboardingStatus = `Profile save failed: ${error.message}`;
@@ -775,8 +744,9 @@ function applyUserProfile(user) {
 }
 
 function applyFamilyPlanState(state, payload = {}) {
-  state.savedFamilyEvents = Array.isArray(payload.events)
-    ? payload.events.filter((item) => item.kind === 'external_event')
+  const plans = Array.isArray(payload.plans) ? payload.plans : payload.events;
+  state.savedFamilyPlans = Array.isArray(plans)
+    ? plans.filter((item) => ['external_event', 'story_time'].includes(item.kind))
     : [];
 }
 
@@ -852,7 +822,7 @@ async function logoutUser() {
   state.onboardingStatus = '';
   state.showProfileSetup = false;
   state.profileDraft = null;
-  state.savedFamilyEvents = [];
+  state.savedFamilyPlans = [];
   state.magicLinkSent = false;
   removeStoredValue('sproutCueUserId');
   removeStoredValue('sproutCueApplePhotosLink');

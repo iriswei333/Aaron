@@ -1,7 +1,15 @@
 import { apiRequest, downloadCalendar, escapeAttribute, escapeHtml, fetchWithTimeout, icon, readStoredValue, writeStoredValue } from '../shared.js';
 import { childAgeLabel, childDisplayName, getChildProfile, normalizePlayPreferences } from '../../lib/profile-defaults.js';
-import { removePlannedEvent, savePlannedEvent } from '../family-plans.js';
-import { hasGoogleMapsKey, renderGooglePlayMap } from '../google-map.js';
+import { removeFamilyPlan, saveFamilyPlan } from '../family-plans.js';
+import { loadDiscover, loadPlaydatesForPlaygrounds } from '../discover/client.js';
+import {
+  normalizePlaydate,
+  normalizePlayground,
+  normalizeStoryTime,
+  normalizeWeekendEvent,
+  sourceRecord,
+} from '../discover/normalizers.js';
+import { hasGoogleMapsKey, renderGoogleDiscoverMap } from '../google-map.js';
 
 const nearbyPlaces = [
   ['Seattle Center Artists at Play', 'Outdoor playground', '0.6 mi', 'climbing, slides, car/streetcar watching nearby', 'dry or light drizzle'],
@@ -351,6 +359,9 @@ export function resetPlayState(state) {
   state.nearbyPlayOptions = [];
   state.nearbyPlayDates = [];
   state.nearbyPlayDatesRequestKey = '';
+  state.discoverFilter = 'all';
+  state.discoverView = 'map';
+  state.discoverSelectedId = '';
   state.mapZoom = 1;
   state.nearbyStatus = 'Save a location to personalize nearby play options.';
   state.selectedPlaygroundKey = '';
@@ -530,9 +541,13 @@ async function loadNearbyPlayOptions(ctx) {
 
   try {
     const { searchRadiusMiles } = normalizePlayPreferences(state.user?.playPreferences);
-    const payload = await apiRequest(`/playgrounds?latitude=${coords.latitude}&longitude=${coords.longitude}&radiusMiles=${searchRadiusMiles}`);
-    const nearbyOptions = Array.isArray(payload.playgrounds) ? payload.playgrounds : [];
+    const result = await loadDiscover({ location, radiusMiles: searchRadiusMiles, kinds: ['playground', 'playdate'] });
+    const nearbyOptions = result.groups.playgrounds.map(sourceRecord);
+    const payload = result.sources.playgrounds.payload;
     if (requestId !== nearbyRequestId) return;
+    if (result.sources.playgrounds.status === 'error') throw new Error(result.sources.playgrounds.error);
+    state.nearbyPlayDates = result.groups.playdates.map(sourceRecord);
+    state.nearbyPlayDatesRequestKey = nearbyPlayDatesRequestKey(nearbyOptions);
     if (nearbyOptions.length > 0) {
       state.nearbyPlayOptions = nearbyOptions;
       const cacheLabel = payload.cached ? 'cached' : 'updated';
@@ -589,12 +604,11 @@ async function loadFamilyEvents(ctx, options = {}) {
   if (state.tab === 'play' || state.tab === 'home') ctx.renderCurrent();
 
   try {
-    const refreshQuery = options.force ? `?refresh=1&request=${Date.now()}` : '';
-    const locationQuery = `location=${encodeURIComponent(shortLocation(location))}`;
-    const separator = refreshQuery ? '&' : '?';
-    const payload = await apiRequest(`/family-events${refreshQuery}${separator}${locationQuery}`, options.force ? { cache: 'no-store' } : {});
+    const result = await loadDiscover({ location, kinds: ['weekend_event'], forceRefresh: options.force });
+    const payload = result.sources.weekendEvents.payload;
     if (requestId !== familyEventRequestId) return;
-    state.familyEvents = Array.isArray(payload.events) ? payload.events : [];
+    if (result.sources.weekendEvents.status === 'error') throw new Error(result.sources.weekendEvents.error);
+    state.familyEvents = result.groups.weekendEvents.map(sourceRecord);
     state.familyEventsMeta = payload;
     state.familyEventsLoading = false;
     const locationCity = payload.locationCity || shortLocation(location);
@@ -635,14 +649,13 @@ async function loadStoryTimes(ctx, options = {}) {
   state.storyTimesStatus = `Finding story times near ${shortLocation(location)}...`;
   if (state.tab === 'play') ctx.renderCurrent();
   try {
-    const refreshQuery = options.force ? '?refresh=1' : '';
-    const separator = refreshQuery ? '&' : '?';
     const coords = getLocationCoords(location);
     const { searchRadiusMiles } = normalizePlayPreferences(state.user?.playPreferences);
-    const coordinateQuery = coords ? `&latitude=${coords.latitude}&longitude=${coords.longitude}` : '';
-    const payload = await apiRequest(`/story-times${refreshQuery}${separator}location=${encodeURIComponent(shortLocation(location))}${coordinateQuery}`, options.force ? { cache: 'no-store' } : {});
+    const result = await loadDiscover({ location, radiusMiles: searchRadiusMiles, kinds: ['story_time'], forceRefresh: options.force });
+    const payload = result.sources.storyTimes.payload;
     if (requestId !== storyTimeRequestId) return;
-    state.storyTimes = Array.isArray(payload.events) ? payload.events : [];
+    if (result.sources.storyTimes.status === 'error') throw new Error(result.sources.storyTimes.error);
+    state.storyTimes = result.groups.storyTimes.map(sourceRecord);
     state.storyTimesMeta = payload;
     state.storyTimesLoading = false;
     state.storyTimesStatus = state.storyTimes.length
@@ -904,16 +917,8 @@ async function loadNearbyPlayDates(ctx, playgrounds) {
   if (!requestKey || state.nearbyPlayDatesRequestKey === requestKey) return;
   state.nearbyPlayDatesRequestKey = requestKey;
   try {
-    const responses = await Promise.all(playgrounds.slice(0, 12).map(async (playground) => {
-      const payload = await apiRequest(`/playdates?playgroundKey=${encodeURIComponent(playground.key)}`);
-      return Array.isArray(payload.playDates) ? payload.playDates : [];
-    }));
-    const seen = new Set();
-    state.nearbyPlayDates = responses.flat().filter((playDate) => {
-      if (playDate.visibility !== 'public' || playDate.status === 'cancelled' || seen.has(playDate.id)) return false;
-      seen.add(playDate.id);
-      return true;
-    }).sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt));
+    const result = await loadPlaydatesForPlaygrounds(playgrounds);
+    state.nearbyPlayDates = result.items.map(sourceRecord);
   } catch {
     state.nearbyPlayDates = [];
   }
@@ -1258,18 +1263,19 @@ function familyEventId(event) {
 
 function isFamilyEventAttended(event, state) {
   const id = familyEventId(event);
-  return Boolean(event.attended || state.savedFamilyEvents?.some((item) => item.externalId === id && item.status !== 'cancelled'));
+  return Boolean(event.attended || state.savedFamilyPlans?.some((item) => item.kind === 'external_event' && item.externalId === id && item.status !== 'cancelled'));
 }
 
 async function toggleFamilyEventAttendance(ctx, event) {
   const id = familyEventId(event);
   if (!id) return;
-  const existing = (ctx.state.savedFamilyEvents || []).find((item) => item.externalId === id && item.status !== 'cancelled');
-  const previousPlanEvents = ctx.state.savedFamilyEvents || [];
+  const existing = (ctx.state.savedFamilyPlans || []).find((item) => item.kind === 'external_event' && item.externalId === id && item.status !== 'cancelled');
+  const previousPlans = ctx.state.savedFamilyPlans || [];
   const familyEvent = {
     kind: 'external_event',
     title: event.title || 'Family event',
     summary: event.summary || 'Family-friendly weekend option.',
+    dueDate: event.date || null,
     status: 'attending',
     source: event.source || 'parentmap',
     externalId: id,
@@ -1283,19 +1289,19 @@ async function toggleFamilyEventAttendance(ctx, event) {
     },
   };
   ctx.state.apiMessage = existing ? 'Removing event from your family plans…' : 'Saving event to your family plans…';
-  ctx.state.savedFamilyEvents = existing
-    ? previousPlanEvents.filter((item) => item.id !== existing.id)
-    : [...previousPlanEvents, { ...familyEvent, externalId: id }];
+  ctx.state.savedFamilyPlans = existing
+    ? previousPlans.filter((item) => item.id !== existing.id)
+    : [...previousPlans, { ...familyEvent, externalId: id }];
   ctx.renderCurrent();
   try {
-    if (existing) await removePlannedEvent(existing.id);
+    if (existing) await removeFamilyPlan(existing.id);
     else {
-      const response = await savePlannedEvent(familyEvent);
+      const response = await saveFamilyPlan(familyEvent);
       const saved = response.item;
-      ctx.state.savedFamilyEvents = ctx.state.savedFamilyEvents.map((item) => item.externalId === id ? saved : item);
+      ctx.state.savedFamilyPlans = ctx.state.savedFamilyPlans.map((item) => item.kind === 'external_event' && item.externalId === id ? saved : item);
     }
   } catch (error) {
-    ctx.state.savedFamilyEvents = previousPlanEvents;
+    ctx.state.savedFamilyPlans = previousPlans;
     ctx.state.apiMessage = 'Could not update event attendance.';
     ctx.renderCurrent();
   }
@@ -1311,6 +1317,61 @@ function renderFamilyEvents(state) {
   return state.familyEvents.slice(0, 5).map((event) => renderFamilyEventCard(event, state)).join('');
 }
 
+function storyTimeId(event) {
+  return String(event.id || [event.title, event.date, event.timeLabel, event.venue, event.url].filter(Boolean).join('|'))
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 180);
+}
+
+function isStoryTimeSaved(event, state) {
+  const id = storyTimeId(event);
+  return Boolean(state.savedFamilyPlans?.some((item) => item.kind === 'story_time' && item.externalId === id && item.status !== 'cancelled'));
+}
+
+async function toggleStoryTimeSaved(ctx, event) {
+  const id = storyTimeId(event);
+  if (!id) return;
+  const existing = (ctx.state.savedFamilyPlans || []).find((item) => item.kind === 'story_time' && item.externalId === id && item.status !== 'cancelled');
+  const previousPlans = ctx.state.savedFamilyPlans || [];
+  const storyTime = {
+    kind: 'story_time',
+    title: event.title || 'Story time',
+    summary: event.summary || 'Library story time.',
+    dueDate: event.date || null,
+    status: 'planned',
+    source: event.source || 'library',
+    externalId: id,
+    venue: event.venue || '',
+    url: event.url || event.sourceUrl || '',
+    metadata: {
+      date: event.date || '',
+      dateLabel: event.dateLabel || '',
+      timeLabel: event.timeLabel || '',
+      imageUrl: event.imageUrl || '',
+      tags: Array.isArray(event.tags) ? event.tags : [],
+      latitude: event.latitude ?? null,
+      longitude: event.longitude ?? null,
+      sourceLabel: event.sourceLabel || '',
+    },
+  };
+  ctx.state.apiMessage = existing ? 'Removing story time from your family plans…' : 'Saving story time to your family plans…';
+  ctx.state.savedFamilyPlans = existing
+    ? previousPlans.filter((item) => item.id !== existing.id)
+    : [...previousPlans, storyTime];
+  ctx.renderCurrent();
+  try {
+    if (existing) await removeFamilyPlan(existing.id);
+    else {
+      const { item: saved } = await saveFamilyPlan(storyTime);
+      ctx.state.savedFamilyPlans = ctx.state.savedFamilyPlans.map((item) => item.kind === 'story_time' && item.externalId === id ? saved : item);
+    }
+    ctx.state.apiMessage = existing ? 'Story time removed from your family plans.' : 'Story time saved to your family plans.';
+  } catch (error) {
+    ctx.state.savedFamilyPlans = previousPlans;
+    ctx.state.apiMessage = `Could not update story time: ${error.message}`;
+  }
+  ctx.renderCurrent();
+}
+
 function renderStoryTimes(state) {
   if (state.storyTimesLoading) return '<p class="muted">Loading nearby story times...</p>';
   if (!state.storyTimes?.length) return `<p class="muted">${escapeHtml(state.storyTimesStatus || 'No story times found.')}</p>`;
@@ -1319,7 +1380,9 @@ function renderStoryTimes(state) {
     const dateLabel = date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : event.dateLabel || 'Date pending';
     const distanceLabel = Number.isFinite(Number(event.distanceMiles)) ? ` · ${formatDistance(Number(event.distanceMiles))}` : '';
     const detailUrl = event.url || event.sourceUrl;
-    return `<article class="mini-card story-time-card"><div class="story-time-icon" aria-hidden="true">📖</div><div class="story-time-content"><p class="eyebrow">${escapeHtml(dateLabel)}${event.timeLabel ? ` · ${escapeHtml(event.timeLabel)}` : ''}${distanceLabel}</p><h3>${escapeHtml(event.title || 'Story Time')}</h3><small>${escapeHtml(event.venue || event.sourceLabel || 'Library event')}</small></div>${detailUrl ? `<div class="story-time-actions"><a class="secondary-button small-button" href="${escapeAttribute(detailUrl)}" target="_blank" rel="noreferrer">View details</a></div>` : ''}</article>`;
+    const saved = isStoryTimeSaved(event, state);
+    const saveButton = event.resultType === 'search-link' ? '' : `<button type="button" class="secondary-button small-button" data-save-story-time="${escapeAttribute(storyTimeId(event))}" aria-pressed="${saved ? 'true' : 'false'}">${saved ? 'Saved' : 'Save'}</button>`;
+    return `<article class="mini-card story-time-card"><div class="story-time-icon" aria-hidden="true">📖</div><div class="story-time-content"><p class="eyebrow">${escapeHtml(dateLabel)}${event.timeLabel ? ` · ${escapeHtml(event.timeLabel)}` : ''}${distanceLabel}</p><h3>${escapeHtml(event.title || 'Story Time')}</h3><small>${escapeHtml(event.venue || event.sourceLabel || 'Library event')}</small></div><div class="story-time-actions">${detailUrl ? `<a class="secondary-button small-button" href="${escapeAttribute(detailUrl)}" target="_blank" rel="noreferrer">View details</a>` : ''}${saveButton}</div></article>`;
   }).join('');
 }
 
@@ -1329,6 +1392,79 @@ function playgroundRecommendationReason(option, state) {
     ? (indoorWeather ? 'an indoor weather backup' : 'outdoor play today')
     : (indoorWeather ? 'a weather-friendly outdoor option' : 'a backup if plans change');
   return `Recommended for ${weatherFit}; ${option.distance || 'nearby'} from your saved location.`;
+}
+
+const discoverCategories = [
+  ['all', 'All'],
+  ['playground', 'Playgrounds'],
+  ['playdate', 'Playdates'],
+  ['weekend_event', 'Weekend events'],
+  ['story_time', 'Story times'],
+];
+
+function discoverKindLabel(kind) {
+  if (kind === 'playground') return 'Playground';
+  if (kind === 'playdate') return 'Playdate';
+  if (kind === 'weekend_event') return 'Weekend event';
+  return 'Story time';
+}
+
+function discoverKindIcon(kind) {
+  if (kind === 'playground') return '🛝';
+  if (kind === 'playdate') return '☺';
+  if (kind === 'weekend_event') return '🎟️';
+  return '📖';
+}
+
+function discoverScheduleLabel(item) {
+  if (item.schedule?.startsAt) {
+    const start = new Date(item.schedule.startsAt);
+    if (!Number.isNaN(start.getTime())) {
+      return `${start.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} · ${start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+    }
+  }
+  return [item.schedule?.dateLabel || item.schedule?.date, item.schedule?.timeLabel].filter(Boolean).join(' · ');
+}
+
+function discoverActionMarkup(item, state, { detail = false } = {}) {
+  const data = item.detail || {};
+  if (item.kind === 'playground') {
+    return `<button type="button" class="secondary-button small-button" data-view-playground-detail="${escapeAttribute(item.sourceId)}">View details</button><button type="button" class="small-button" data-select-playground="${escapeAttribute(item.sourceId)}"${detail ? ' data-open-create-after-select' : ''}>${detail ? '+ New playdate' : 'Select'}</button>`;
+  }
+  if (item.kind === 'playdate') {
+    if (data.isJoined) return data.participantCount > 1 ? `<button type="button" class="small-button" data-open-chat-playdate="${escapeAttribute(data.id)}">Open chat</button>` : '<span class="discover-saved-label">You’re going</span>';
+    if (data.canJoin) return `<button type="button" class="small-button" data-join-playdate="${escapeAttribute(data.id)}">Join playdate</button>`;
+    return '<span class="discover-saved-label">View details</span>';
+  }
+  if (item.kind === 'weekend_event') {
+    const saved = isFamilyEventAttended(data, state);
+    return `${item.href ? `<a class="secondary-button small-button" href="${escapeAttribute(item.href)}" target="_blank" rel="noreferrer">View details</a>` : ''}<button type="button" class="small-button" data-attend-family-event="${escapeAttribute(familyEventId(data))}" aria-pressed="${saved}">${saved ? 'Saved' : 'Save plan'}</button>`;
+  }
+  const saved = isStoryTimeSaved(data, state);
+  return `${item.href ? `<a class="secondary-button small-button" href="${escapeAttribute(item.href)}" target="_blank" rel="noreferrer">View details</a>` : ''}${data.resultType === 'search-link' ? '' : `<button type="button" class="small-button" data-save-story-time="${escapeAttribute(storyTimeId(data))}" aria-pressed="${saved}">${saved ? 'Saved' : 'Save plan'}</button>`}`;
+}
+
+function renderDiscoverCard(item, state) {
+  const schedule = discoverScheduleLabel(item);
+  const location = item.location?.venue || item.location?.address || 'Nearby';
+  const distance = item.distance?.label || '';
+  const image = item.imageUrl || (item.kind === 'playground'
+    ? '/backgrounds/parenting-playground-default.png'
+    : item.kind === 'story_time' ? '/backgrounds/parenting-home-default.png' : '');
+  return `<article class="discover-result-card kind-${item.kind}">${image ? `<img src="${escapeAttribute(image)}" alt="" loading="lazy" />` : `<span class="discover-result-icon" aria-hidden="true">${discoverKindIcon(item.kind)}</span>`}<div class="discover-result-copy"><small>${escapeHtml(discoverKindLabel(item.kind))}${schedule ? ` · ${escapeHtml(schedule)}` : ''}</small><button type="button" data-select-discover="${escapeAttribute(item.id)}"><strong>${escapeHtml(item.title)}</strong></button><p>${escapeHtml(item.summary || location)}</p><span>${escapeHtml([location, distance].filter(Boolean).join(' · '))}</span></div><div class="discover-result-actions">${discoverActionMarkup(item, state)}</div></article>`;
+}
+
+function renderDiscoverSelection(item, state) {
+  if (!item) return '<div class="discover-map-empty"><span aria-hidden="true">⌖</span><strong>No matching adventures</strong><p>Try another category or update your search location.</p></div>';
+  const schedule = discoverScheduleLabel(item);
+  const location = item.location?.venue || item.location?.address || 'Nearby';
+  return `<div class="discover-selection"><span class="discover-selection-icon" aria-hidden="true">${discoverKindIcon(item.kind)}</span><p class="eyebrow">Selected ${escapeHtml(discoverKindLabel(item.kind))}</p><h2>${escapeHtml(item.title)}</h2><p class="discover-selection-meta">${escapeHtml([schedule, location, item.distance?.label].filter(Boolean).join(' · '))}</p><p>${escapeHtml(item.summary || `A family-friendly ${discoverKindLabel(item.kind).toLowerCase()} near you.`)}</p><div class="discover-selection-actions">${discoverActionMarkup(item, state, { detail: true })}</div><small>Choose an item on the map or switch to the list for more details.</small></div>`;
+}
+
+function discoverMapMarkup(items, selectedId, searchRadiusMiles) {
+  const fallback = `<div id="discover-map-fallback" class="discover-map discover-map-fallback" aria-label="Illustrative map of filtered Discover results"${hasGoogleMapsKey() ? ' hidden' : ''}><div class="map-grid"></div><div class="map-water"></div><div class="map-road road-one"></div><div class="map-road road-two"></div><div class="discover-map-label">Illustrative neighborhood · ${searchRadiusMiles} mile search</div>${items.slice(0, 20).map((item, index) => `<button type="button" class="discover-map-pin kind-${item.kind} ${item.id === selectedId ? 'selected' : ''}" style="--pin-x:${13 + ((index * 29) % 76)}%;--pin-y:${18 + ((index * 37) % 65)}%" data-select-discover="${escapeAttribute(item.id)}" aria-label="Select ${escapeAttribute(item.title)}"><span>${discoverKindIcon(item.kind)}</span><small>${escapeHtml(item.distance?.label || discoverKindLabel(item.kind))}</small></button>`).join('')}<div class="discover-you-marker"><span>⌖</span><small>You</small></div></div>`;
+  if (!hasGoogleMapsKey()) return fallback;
+  return `<div class="discover-map-shell"><div id="google-discover-map" class="discover-map google-discover-map" aria-label="Google map of filtered Discover results"></div>${fallback}</div>`;
 }
 
 export function renderPlay(ctx) {
@@ -1402,16 +1538,46 @@ export function renderPlay(ctx) {
     ? `<p class="muted">Based on today, ${escapeHtml(upcomingHolidays[0].name)} is next.</p>${upcomingHolidays.map((holiday, index) => `<article class="mini-card">${icon(holiday.personalized ? '🎂' : '🎁')}<div><h3>${escapeHtml(holiday.name)}</h3><p><strong>${escapeHtml(holiday.dateLabel)} · ${escapeHtml(holiday.countdown)}</strong></p><p>${escapeHtml(holiday.reminder)}</p>${index === 0 ? `<small>${escapeHtml(holiday.timing)}</small>` : ''}</div></article>`).join('')}`
     : '<p class="muted">No upcoming holidays found.</p>';
   const locationToolMarkup = `<div id="location-tool-backdrop" class="modal-backdrop" hidden><section class="modal-dialog location-tool location-tool-dialog" role="dialog" aria-modal="true" aria-labelledby="location-tool-title"><div class="section-heading"><div><p class="eyebrow">Set your home base</p><h2 id="location-tool-title">Enter an address</h2></div><button id="close-location-tool" type="button" class="icon-button" aria-label="Close location form">×</button></div><p>${escapeHtml(locationStatus)}</p><form id="location-form"><label class="input-label" for="location-address">Address or place</label><input id="location-address" value="${escapeAttribute(location?.address || '')}" placeholder="Home address, city, or favorite play area" /><button type="submit">Update location</button></form><div class="weather-grid"><strong>${escapeHtml(state.weather.label)}</strong><span>Rain: ${escapeHtml(state.weather.precipitation)}</span><span>Wind: ${escapeHtml(state.weather.wind)}</span></div></section></div>`;
-  ctx.layout(`<main class="play-screen playdates-workspace"><aside class="playdates-list-pane"><div class="playdates-list-heading"><div><p class="eyebrow">Playground finder</p><h2>Playdates</h2></div><div class="weather-chip compact-weather"><strong>${escapeHtml(state.weather.temperature)}</strong><span>${escapeHtml(state.weather.label)}</span></div></div><section id="upcoming-playdates" class="play-list-section"><div class="section-heading"><div><p class="eyebrow">Selected playground</p><h3>${escapeHtml(currentPlayground?.name || 'Choose a playground')}</h3><p class="muted">${escapeHtml(state.playDateStatus)}</p></div><div class="playdate-section-actions"><button id="refresh-playdates" type="button" class="secondary-button small-button" ${currentPlayground ? '' : 'disabled'}>Refresh</button><button type="button" class="rail-create playdate-create-button" data-open-create-playdate ${currentPlayground ? '' : 'disabled'}>＋ New playdate</button></div></div><div class="cards-list">${renderPlayDateList(state, currentPlayground)}</div></section><section class="play-list-section"><div class="section-heading"><div><p class="eyebrow">Nearby places</p><h3>Playgrounds nearby</h3></div><span class="result-count">${playOptions.length} found</span></div><div class="cards-list">${playOptionsMarkup}</div></section><section id="daily-story-times" class="play-list-section"><div class="section-heading"><div><p class="eyebrow">Every day</p><h3>Nearby story times</h3><p class="muted">${escapeHtml(state.storyTimesStatus || '')}</p></div><button id="refresh-story-times" type="button" class="secondary-button small-button" ${state.storyTimesLoading ? 'disabled' : ''}>${state.storyTimesLoading ? 'Refreshing…' : 'Refresh'}</button></div>${renderStoryTimes(state)}</section><section id="weekend-family-events" class="play-list-section"><div class="section-heading"><div><p class="eyebrow">This weekend</p><h3>Family events</h3></div><button id="refresh-family-events" type="button" class="secondary-button small-button" ${state.familyEventsLoading ? 'disabled' : ''}>${state.familyEventsLoading ? 'Refreshing…' : 'Refresh'}</button></div>${renderFamilyEvents(state)}</section><section class="play-list-section holiday-list-section"><h3>Holiday planning</h3>${holidayMarkup}</section></aside><section class="playdates-map-pane"><div class="panel map-panel"><div class="section-heading"><div><p class="eyebrow">Around your family</p><h2>Nearby play map</h2><p class="muted">Showing a ${searchRadiusMiles}-mile square around your family.</p></div><div class="map-location-actions"><button id="use-current-location" type="button" class="secondary-button small-button">Use current location</button><button id="open-location-tool" type="button" class="secondary-button small-button">Enter an address</button></div></div><div class="play-map-visual">${playMapChipsMarkup}${mapMarkup}</div><div class="map-legend"><span><i class="legend-dot home-dot"></i>You</span><span><i class="legend-dot play-dot"></i>Playground</span><span><i class="legend-dot indoor-dot"></i>Indoor backup</span><span><i class="legend-dot playdate-dot"></i>Playdate</span></div></div></section>${locationToolMarkup}${createPlayDateFormMarkup}${editingPlayDate ? renderEditPlayDateForm(editingPlayDate, ageLabel) : ''}${playgroundDetailModalMarkup}</main>`);
+  const discoverItems = [
+    ...playOptions.map(normalizePlayground),
+    ...(state.nearbyPlayDates || []).map(normalizePlaydate),
+    ...(state.familyEvents || []).map(normalizeWeekendEvent),
+    ...(state.storyTimes || []).map(normalizeStoryTime),
+  ];
+  const activeDiscoverFilter = state.discoverFilter || 'all';
+  const filteredDiscoverItems = discoverItems.filter((item) => activeDiscoverFilter === 'all' || item.kind === activeDiscoverFilter);
+  const selectedDiscoverItem = filteredDiscoverItems.find((item) => item.id === state.discoverSelectedId) || filteredDiscoverItems[0] || null;
+  if (selectedDiscoverItem && state.discoverSelectedId !== selectedDiscoverItem.id) state.discoverSelectedId = selectedDiscoverItem.id;
+  const discoverView = state.discoverView === 'list' ? 'list' : 'map';
+  const discoverLocationLabel = location?.address || location?.label || childProfile?.homeCity || 'Choose a search location';
+  const discoverResultsMarkup = filteredDiscoverItems.length
+    ? filteredDiscoverItems.slice(0, 30).map((item) => renderDiscoverCard(item, state)).join('')
+    : '<div class="discover-empty"><span aria-hidden="true">⌖</span><strong>No adventures in this category yet</strong><p>Try another category, refresh the providers, or update your location.</p></div>';
+  const discoverContentMarkup = discoverView === 'map'
+    ? `<div class="discover-map-layout">${discoverMapMarkup(filteredDiscoverItems, selectedDiscoverItem?.id || '', searchRadiusMiles)}<aside class="discover-map-selection">${renderDiscoverSelection(selectedDiscoverItem, state)}</aside></div>`
+    : `<div class="discover-results-list">${discoverResultsMarkup}</div>`;
+
+  ctx.layout(`<main class="discover-screen"><header class="discover-heading"><div><p class="eyebrow">Out in the world</p><h1>Find your next adventure</h1><p>Places, playmates, and little discoveries for ${escapeHtml(childName)}.</p></div><div class="home-weather"><span aria-hidden="true">${state.weather.label?.toLowerCase().includes('rain') ? '☔' : '☀️'}</span><strong>${escapeHtml(state.weather.temperature || '--')}</strong><small>${escapeHtml(state.weather.label || 'Weather loading')}</small></div></header><section class="discover-location-panel" aria-label="Discover search location"><div class="discover-location-copy"><span aria-hidden="true">⌖</span><div><p class="eyebrow">Your search location</p><h2>${escapeHtml(discoverLocationLabel)}</h2><p>${escapeHtml(state.nearbyStatus || locationStatus)}</p></div></div><div class="discover-location-buttons"><button id="use-current-location" type="button">⌖ Use my current location</button><button id="open-location-tool" type="button" class="secondary-button">Input address</button></div></section><section class="discover-controls" aria-label="Discover filters and view"><div class="discover-filter-scroll">${discoverCategories.map(([kind, label]) => `<button type="button" class="discover-filter ${activeDiscoverFilter === kind ? 'active' : ''}" data-discover-filter="${kind}" aria-pressed="${activeDiscoverFilter === kind}">${escapeHtml(label)}</button>`).join('')}</div><div class="discover-toolbar"><p><strong>${filteredDiscoverItems.length} ${filteredDiscoverItems.length === 1 ? 'idea' : 'ideas'}</strong> to explore</p><div class="discover-view-switch" role="group" aria-label="Discover view"><button type="button" data-discover-view="map" aria-pressed="${discoverView === 'map'}">◎ Map</button><button type="button" data-discover-view="list" aria-pressed="${discoverView === 'list'}">☷ List</button></div></div></section>${activeDiscoverFilter === 'playdate' && currentPlayground ? `<div class="discover-context-action"><span>Want to invite nearby families?</span><button type="button" data-open-create-playdate>＋ New playdate</button></div>` : ''}${discoverContentMarkup}<footer class="discover-provider-note"><span class="${state.familyEventsLoading || state.storyTimesLoading ? 'loading' : ''}"></span><p>${escapeHtml(state.familyEventsStatus || '')} ${escapeHtml(state.storyTimesStatus || '')}</p><button id="refresh-discover" type="button" class="text-button">Refresh results</button></footer>${locationToolMarkup}${createPlayDateFormMarkup}${editingPlayDate ? renderEditPlayDateForm(editingPlayDate, ageLabel) : ''}${playgroundDetailModalMarkup}</main>`);
 
   if (state.playFocus === 'family-events') {
+    state.discoverFilter = 'weekend_event';
+    state.discoverView = 'list';
     state.playFocus = '';
-    globalThis.requestAnimationFrame?.(() => document.getElementById('weekend-family-events')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    globalThis.requestAnimationFrame?.(() => ctx.renderCurrent());
+  }
+
+  if (state.playFocus === 'story-times') {
+    state.discoverFilter = 'story_time';
+    state.discoverView = 'list';
+    state.playFocus = '';
+    globalThis.requestAnimationFrame?.(() => ctx.renderCurrent());
   }
 
   if (state.playdateFocus === 'playdates') {
+    state.discoverFilter = 'playdate';
+    state.discoverView = 'list';
     state.playdateFocus = '';
-    globalThis.requestAnimationFrame?.(() => document.getElementById('upcoming-playdates')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    globalThis.requestAnimationFrame?.(() => ctx.renderCurrent());
   }
 
   const locationToolBackdrop = document.getElementById('location-tool-backdrop');
@@ -1427,23 +1593,59 @@ export function renderPlay(ctx) {
     if (event.target === locationToolBackdrop) locationToolBackdrop.hidden = true;
   });
   document.getElementById('location-form')?.addEventListener('submit', (event) => saveManualLocation(ctx, event));
-  document.getElementById('use-current-location').addEventListener('click', () => requestCurrentLocation(ctx));
+  document.getElementById('use-current-location')?.addEventListener('click', () => requestCurrentLocation(ctx));
+  document.querySelectorAll('[data-discover-filter]').forEach((button) => button.addEventListener('click', () => {
+    state.discoverFilter = button.dataset.discoverFilter || 'all';
+    state.discoverSelectedId = '';
+    ctx.renderCurrent();
+  }));
+  document.querySelectorAll('[data-discover-view]').forEach((button) => button.addEventListener('click', () => {
+    state.discoverView = button.dataset.discoverView === 'list' ? 'list' : 'map';
+    ctx.renderCurrent();
+  }));
+  document.querySelectorAll('[data-select-discover]').forEach((button) => button.addEventListener('click', () => {
+    const item = discoverItems.find((candidate) => candidate.id === button.dataset.selectDiscover);
+    if (!item) return;
+    state.discoverSelectedId = item.id;
+    if (item.kind === 'playground' && item.sourceId !== state.selectedPlaygroundKey) selectPlayground(ctx, item.sourceId);
+    else ctx.renderCurrent();
+  }));
+  document.getElementById('refresh-discover')?.addEventListener('click', () => refreshPlayPlanning(ctx));
   document.querySelectorAll('[data-playdate-filter]').forEach((button) => button.addEventListener('click', () => {
     state.nearbyPlayDateFilter = button.dataset.playdateFilter || 'all';
     ctx.renderCurrent();
   }));
-  if (hasGoogleMapsKey()) {
+  if (discoverView === 'map' && hasGoogleMapsKey() && document.getElementById('google-discover-map')) {
     const coords = getLocationCoords(location);
-    renderGooglePlayMap({
-      element: document.getElementById('google-play-map'),
-      center: coords ? { lat: coords.latitude, lng: coords.longitude } : null,
-      radiusMeters,
-      playgrounds: playOptions,
-      playdates: filteredNearbyPlayDates,
-      selectedPlaygroundKey: currentPlayground?.key || '',
-      onPlaygroundSelect: (key) => selectPlayground(ctx, key),
-      onPlaydateSelect: (playDate) => selectPlayground(ctx, playDate.playgroundKey),
-    });
+    const googleMapElement = document.getElementById('google-discover-map');
+    const fallbackMapElement = document.getElementById('discover-map-fallback');
+    if (!coords) {
+      googleMapElement.hidden = true;
+      if (fallbackMapElement) fallbackMapElement.hidden = false;
+    } else {
+      renderGoogleDiscoverMap({
+        element: googleMapElement,
+        center: { lat: coords.latitude, lng: coords.longitude },
+        radiusMeters,
+        items: filteredDiscoverItems,
+        selectedId: selectedDiscoverItem?.id || '',
+        searchLocationLabel: state.familyEventsMeta?.locationCity
+          || state.storyTimesMeta?.locationCity
+          || childProfile?.homeCity
+          || location?.address
+          || location?.label
+          || '',
+        onItemSelect: (item) => {
+          state.discoverSelectedId = item.id;
+          if (item.kind === 'playground' && item.sourceId !== state.selectedPlaygroundKey) selectPlayground(ctx, item.sourceId);
+          else ctx.renderCurrent();
+        },
+      }).then((rendered) => {
+        if (rendered) return;
+        googleMapElement.hidden = true;
+        if (fallbackMapElement) fallbackMapElement.hidden = false;
+      });
+    }
   }
   document.querySelectorAll('[data-map-zoom]').forEach((button) => button.addEventListener('click', () => {
     const direction = button.dataset.mapZoom === 'in' ? 0.15 : -0.15;
@@ -1451,7 +1653,17 @@ export function renderPlay(ctx) {
     ctx.renderCurrent();
   }));
   document.querySelectorAll('[data-select-playground]').forEach((button) => {
-    button.addEventListener('click', () => selectPlayground(ctx, button.dataset.selectPlayground));
+    button.addEventListener('click', () => {
+      const shouldOpenCreate = button.hasAttribute('data-open-create-after-select');
+      selectPlayground(ctx, button.dataset.selectPlayground);
+      if (shouldOpenCreate) globalThis.requestAnimationFrame?.(() => {
+        const backdrop = document.getElementById('create-playdate-backdrop');
+        if (backdrop) {
+          backdrop.hidden = false;
+          backdrop.querySelector('input, select, textarea')?.focus();
+        }
+      });
+    });
   });
   document.querySelectorAll('[data-view-playground-detail]').forEach((button) => {
     button.addEventListener('click', () => {
@@ -1498,14 +1710,19 @@ export function renderPlay(ctx) {
   document.getElementById('refresh-family-events')?.addEventListener('click', () => loadFamilyEvents(ctx, { force: true }));
   document.getElementById('refresh-story-times')?.addEventListener('click', () => loadStoryTimes(ctx, { force: true }));
   document.querySelectorAll('[data-join-playdate]').forEach((button) => {
-    button.addEventListener('click', () => joinPlayDate(ctx, button.dataset.joinPlaydate, currentPlayground));
+    button.addEventListener('click', () => {
+      const playDate = [...(state.nearbyPlayDates || []), ...(state.playDates || [])]
+        .find((item) => item.id === button.dataset.joinPlaydate);
+      const playground = playDate?.playgroundKey ? selectedPlayground(playOptions, playDate.playgroundKey) : currentPlayground;
+      joinPlayDate(ctx, button.dataset.joinPlaydate, playground || currentPlayground);
+    });
   });
   document.querySelectorAll('[data-open-chat-playdate]').forEach((button) => {
     button.addEventListener('click', () => {
       state.pendingChatPlayDateId = button.dataset.openChatPlaydate;
       state.activeChatContactId = '';
       state.chatLoaded = false;
-      state.tab = 'chat';
+      state.tab = 'profile';
       ctx.renderCurrent();
     });
   });
@@ -1545,5 +1762,9 @@ export function renderPlay(ctx) {
   document.querySelectorAll('[data-attend-family-event]').forEach((button) => button.addEventListener('click', () => {
     const event = state.familyEvents.find((item) => familyEventId(item) === button.dataset.attendFamilyEvent);
     if (event) toggleFamilyEventAttendance(ctx, event);
+  }));
+  document.querySelectorAll('[data-save-story-time]').forEach((button) => button.addEventListener('click', () => {
+    const event = state.storyTimes.find((item) => storyTimeId(item) === button.dataset.saveStoryTime);
+    if (event) toggleStoryTimeSaved(ctx, event);
   }));
 }

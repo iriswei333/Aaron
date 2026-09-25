@@ -6,10 +6,10 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/[...slug]/page": [
+    "/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/[...slug]/page.js"
+      "static/chunks/app/page.js"
     ],
     "/api/health/route": [
       "static/chunks/webpack.js",
@@ -26,45 +26,46 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/home-background/route.js"
     ],
-    "/api/playgrounds/route": [
+    "/api/family-plans/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/playgrounds/route.js"
-    ],
-    "/api/family-events/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/family-events/route.js"
+      "static/chunks/app/api/family-plans/route.js"
     ],
     "/api/playdates/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/playdates/route.js"
     ],
+    "/api/family-events/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/family-events/route.js"
+    ],
     "/api/story-times/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/story-times/route.js"
-    ],
-    "/api/family-plans/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/family-plans/route.js"
-    ],
-    "/api/social-posters/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/social-posters/route.js"
     ],
     "/api/chat/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/chat/route.js"
     ],
-    "/api/parenting-resources/route": [
+    "/api/play-preferences/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/parenting-resources/route.js"
+      "static/chunks/app/api/play-preferences/route.js"
+    ],
+    "/api/location/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/location/route.js"
+    ]
+  }
+}cation/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/location/route.js"
     ]
   }
 }

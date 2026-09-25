@@ -68,8 +68,10 @@ function eventFamilyKey(value) {
   // rejecting “Salmon SEEson at North Creek Trail Park” also rejects its
   // “Salmon SEEson at Issaquah Creek” variant.
   const spacedFamily = /\s+at\s+/i.test(title) ? title.split(/\s+at\s+/i)[0] : '';
+  const colonFamily = /\s*:\s*/.test(title) ? title.split(/\s*:\s*/)[0] : '';
+  const compactSeriesMatch = title.match(/^(.{8,}storystroll)/);
   const compactMatch = title.match(/^(.{8,})at[a-z0-9\u4e00-\u9fff]{5,}$/);
-  const family = normalizeFeedbackText(spacedFamily || compactMatch?.[1] || '');
+  const family = normalizeFeedbackText(spacedFamily || colonFamily || compactSeriesMatch?.[1] || compactMatch?.[1] || '');
   return family.length >= 8 ? family : '';
 }
 

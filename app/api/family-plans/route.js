@@ -3,18 +3,19 @@ import { mutateStore, readStore } from '../../../lib/backend.js';
 import { randomUUID } from 'node:crypto';
 
 export const runtime = 'nodejs';
+const FAMILY_PLAN_KINDS = ['external_event', 'story_time'];
 
 function cleanText(value, fallback = '') {
   return String(value ?? fallback).trim();
 }
 
-function normalizeEvent(input = {}) {
+export function normalizeFamilyPlan(input = {}) {
   const kind = cleanText(input.kind, 'external_event');
-  if (kind !== 'external_event') throw new Error('Only weekend events can be saved in family plans.');
+  if (!FAMILY_PLAN_KINDS.includes(kind)) throw new Error('Family plan kind must be external_event or story_time.');
   const status = cleanText(input.status, 'planned');
-  if (!['planned', 'attending', 'completed', 'cancelled'].includes(status)) throw new Error('Invalid family event status.');
+  if (!['planned', 'attending', 'completed', 'cancelled'].includes(status)) throw new Error('Invalid family plan status.');
   const title = cleanText(input.title);
-  if (!title) throw new Error('Family event title is required.');
+  if (!title) throw new Error('Family plan title is required.');
   return {
     child_id: input.childId ? cleanText(input.childId) : null,
     kind,
@@ -32,7 +33,18 @@ function normalizeEvent(input = {}) {
   };
 }
 
-function serializeEvent(row) {
+function planTimestamp(item) {
+  const value = item.startsAt || item.dueDate || item.metadata?.date;
+  if (!value) return Number.POSITIVE_INFINITY;
+  const timestamp = new Date(item.startsAt || `${item.dueDate || item.metadata.date}T12:00:00`).getTime();
+  return Number.isFinite(timestamp) ? timestamp : Number.POSITIVE_INFINITY;
+}
+
+export function sortFamilyPlans(plans) {
+  return [...plans].sort((a, b) => planTimestamp(a) - planTimestamp(b));
+}
+
+export function serializeFamilyPlan(row) {
   return {
     id: row.id,
     childId: row.child_id,
@@ -53,27 +65,27 @@ function serializeEvent(row) {
   };
 }
 
-async function readEvents(current) {
+async function readPlans(current) {
   if (current.mode !== 'supabase') {
     const store = await readStore();
-    return store.familyEvents
-      .filter((item) => item.profile_id === current.localUserId && item.kind === 'external_event')
-      .map(serializeEvent);
+    return sortFamilyPlans(store.familyEvents
+      .filter((item) => item.profile_id === current.localUserId && FAMILY_PLAN_KINDS.includes(item.kind))
+      .map(serializeFamilyPlan));
   }
   const { data, error } = await current.supabase
     .from('family_events')
     .select('*')
-    .eq('kind', 'external_event')
-    .order('starts_at', { ascending: true, nullsFirst: false });
+    .in('kind', FAMILY_PLAN_KINDS);
   if (error) throw new Error(error.message);
-  return (data || []).map(serializeEvent);
+  return sortFamilyPlans((data || []).map(serializeFamilyPlan));
 }
 
 export async function GET(request) {
   try {
     const current = await getCurrentProfile(request);
     if (!current.user) return profileErrorResponse(current);
-    return Response.json({ events: await readEvents(current), authMode: current.mode });
+    const plans = await readPlans(current);
+    return Response.json({ plans, events: plans, authMode: current.mode });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
@@ -83,12 +95,20 @@ export async function POST(request) {
   try {
     const current = await getCurrentProfile(request);
     if (!current.user) return profileErrorResponse(current);
-    const value = normalizeEvent((await request.json()).item);
+    const value = normalizeFamilyPlan((await request.json()).item);
     if (current.mode !== 'supabase') {
       const now = new Date().toISOString();
       const data = { ...value, id: randomUUID(), profile_id: current.localUserId, created_at: now, updated_at: now };
-      await mutateStore((store) => { store.familyEvents.push(data); });
-      return Response.json({ item: serializeEvent(data) }, { status: 201 });
+      await mutateStore((store) => {
+        const duplicate = value.external_id && store.familyEvents.some((item) => (
+          item.profile_id === current.localUserId
+          && item.source === value.source
+          && item.external_id === value.external_id
+        ));
+        if (duplicate) throw new Error('This family plan is already saved.');
+        store.familyEvents.push(data);
+      });
+      return Response.json({ item: serializeFamilyPlan(data) }, { status: 201 });
     }
     const { data, error } = await current.supabase
       .from('family_events')
@@ -96,7 +116,7 @@ export async function POST(request) {
       .select('*')
       .single();
     if (error) throw new Error(error.message);
-    return Response.json({ item: serializeEvent(data) }, { status: 201 });
+    return Response.json({ item: serializeFamilyPlan(data) }, { status: 201 });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 400 });
   }
@@ -107,8 +127,8 @@ export async function PATCH(request) {
     const current = await getCurrentProfile(request);
     if (!current.user) return profileErrorResponse(current);
     const body = await request.json();
-    if (!body.id) throw new Error('Family event id is required.');
-    const value = normalizeEvent(body.item);
+    if (!body.id) throw new Error('Family plan id is required.');
+    const value = normalizeFamilyPlan(body.item);
     if (current.mode !== 'supabase') {
       const now = new Date().toISOString();
       let data = null;
@@ -118,19 +138,18 @@ export async function PATCH(request) {
         store.familyEvents[index] = { ...store.familyEvents[index], ...value, updated_at: now };
         data = store.familyEvents[index];
       });
-      if (!data) throw new Error('Family event not found.');
-      return Response.json({ item: serializeEvent(data) });
+      if (!data) throw new Error('Family plan not found.');
+      return Response.json({ item: serializeFamilyPlan(data) });
     }
     const { data, error } = await current.supabase
       .from('family_events')
       .update(value)
       .eq('id', body.id)
       .eq('profile_id', current.authUser.id)
-      .eq('kind', 'external_event')
       .select('*')
       .single();
     if (error) throw new Error(error.message);
-    return Response.json({ item: serializeEvent(data) });
+    return Response.json({ item: serializeFamilyPlan(data) });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 400 });
   }
@@ -141,7 +160,7 @@ export async function DELETE(request) {
     const current = await getCurrentProfile(request);
     if (!current.user) return profileErrorResponse(current);
     const id = new URL(request.url).searchParams.get('id');
-    if (!id) throw new Error('Family event id is required.');
+    if (!id) throw new Error('Family plan id is required.');
     if (current.mode !== 'supabase') {
       await mutateStore((store) => {
         const index = store.familyEvents.findIndex((item) => item.id === id && item.profile_id === current.localUserId);
@@ -153,8 +172,7 @@ export async function DELETE(request) {
       .from('family_events')
       .delete()
       .eq('id', id)
-      .eq('profile_id', current.authUser.id)
-      .eq('kind', 'external_event');
+      .eq('profile_id', current.authUser.id);
     if (error) throw new Error(error.message);
     return Response.json({ ok: true });
   } catch (error) {
