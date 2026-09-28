@@ -36,6 +36,22 @@ For a no-image test:
 npm run social:weekly -- --dry-run
 ```
 
+ParentMap venue-distance filtering is enabled by default with a 15-mile radius:
+
+```bash
+npm run social:weekly -- --dry-run
+```
+
+The agent opens each ParentMap event page, reads the venue from `tribe-block__venue__meta`, geocodes its full address, and prefers events inside the distance limit. Events with no venue or an address that cannot be geocoded remain ineligible. If no geocoded event is inside the radius, the agent ranks all geocoded ParentMap candidates by recommendation score and selects the highest-scoring event; equal scores are resolved in favor of the nearest venue. DuckDuckGo and Seattle's Child results are not used in this mode because they do not provide the required ParentMap venue block. Forced partnership events remain eligible independently of ParentMap. Override the radius with `--max-distance-miles`, for example `--max-distance-miles 25`.
+
+To restore the original normal search behavior, including Seattle's Child and DuckDuckGo fallback results, disable the default filter:
+
+```bash
+npm run social:weekly -- --normal-event-search --dry-run
+```
+
+`--no-venue-distance-filter` is an equivalent opt-out. The older `--venue-distance-filter` flag remains harmless for command compatibility, although filtering is now already enabled by default. Google Places is used when `GOOGLE_PLACES_API_KEY` is configured; otherwise the agent falls back to OpenStreetMap Nominatim.
+
 For a test run that writes one weekly roundup and generates only one sample poster:
 
 ```bash
@@ -56,7 +72,7 @@ npm run social:weekly -- --reject-event "Seattle|2026-09-05|Event name|Event loc
 
 The rejected-event registry is saved in `event-feedback.json` in the output directory. New records preserve the readable event title, store a normalized title for punctuation-insensitive matching, and save the fourth pipe-separated field as the reason, such as `duplicated events in the history posters` or `event location is too far from recommended city`. Titles with a location or content suffix such as `Event Series at Venue A` or `Downtown Issaquah Story Stroll: Watercress` also create a global event-family exclusion for the shared series, so another location or edition will not be selected. Older compact normalized records remain supported. Repeat `--reject-event` for multiple events; the normal event scoring and no-duplicate selection still apply to the remaining results.
 
-Use the `--regenerate City,YYYY-MM-DD` flag more than once for multiple posters. Each request searches that city/day again and selects a different eligible event from the results. When an alternate event is found, the matching `weekly-YYYY-MM-DD-roundup.md` file is regenerated too. The roundup includes only the up-to-eight events represented by the poster set, lists each event’s city, name, and location without exact event times, uses one sentence of highlights per event, and is capped at 670 words. Add `--feedback "..."` to include the critique in the replacement prompt. Regeneration intentionally overwrites only the requested poster; all other existing posters remain skipped.
+Use the `--regenerate City,YYYY-MM-DD` flag more than once for multiple posters. Each request searches that city/day again and selects a different eligible event from the results. When an alternate event is found, the matching `weekly-YYYY-MM-DD-roundup.md` file is regenerated too. The roundup includes only the up-to-eight events represented by the poster set, lists each event’s city, name, venue, and detailed address without exact event times, uses one sentence of highlights per event, and is capped at 670 words. Add `--feedback "..."` to include the critique in the replacement prompt. Regeneration intentionally overwrites only the requested poster; all other existing posters remain skipped.
 
 Generated manifests, prompts, and poster images are saved under `output/social-posts/` by default. Posters use a fixed 1024×1536 (2:3) reference-inspired template: navy top ribbon, rounded orange event card, cream weekend banner, family illustration, three event-specific feature tiles, navy date/time/location bar, green Mandarin call-to-action, and SproutCue footer pill. The feature tiles are derived from the event title, theme, highlights, description, and trend keywords rather than fixed generic copy. Only event content and a subtle city illustration vary. Event selection applies trend recommendations: regional state fairs receive a geographic boost; fall festivals, pumpkin events, harvest events, and Mid-Autumn Moon Festival/Moon Festival events receive seasonal boosts in fall; and story-time events receive an early-learning boost plus an age-fit boost when they welcome toddlers, preschoolers, or all ages. Matching keywords and recommendation reasons are written to the manifest and roundup. Poster selection uses a per-city quota: Seattle and Bellevue can receive two posters, while other cities default to one; each city’s quota is ranked by recommendation score rather than assuming Saturday first. Before generating images, the agent checks that directory and skips any poster whose expected `{city}-{date}.png` file already exists; the weekly limit is filled with other missing posters when available.
 

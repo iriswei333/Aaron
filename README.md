@@ -4,7 +4,7 @@ A small Next.js daily planner for parents of young kids. The app keeps separate 
 
 ## Weekly social-post agent
 
-The social-post generator runs outside the web app. It checks the existing ParentMap weekend-event logic separately for Saturday and Sunday in Seattle, Bellevue, Tacoma, Kirkland, Lynnwood, and Edmonds. It reads matched event detail descriptions, then uses the OpenAI API to translate and generate one short Mandarin highlight of 2–3 sentences per event when `OPENAI_API_KEY` is available. If ParentMap has no parsed event for a day, it tries DuckDuckGo web search and labels that source separately. It selects up to two highlights per region, writes Mandarin captions and source metadata, generates a Mandarin roundup Markdown post, and generates at most 8 fixed-format vertical PNG posters per week.
+The social-post generator runs outside the web app. It checks the existing ParentMap weekend-event logic separately for Saturday and Sunday in Seattle, Bellevue, Tacoma, Kirkland, Lynnwood, and Edmonds. It reads matched event detail descriptions, then uses the OpenAI API to translate and generate one short Mandarin highlight of 2–3 sentences per event when `OPENAI_API_KEY` is available. It selects up to two highlights per region, writes Mandarin captions and source metadata, generates a Mandarin roundup Markdown post, and generates at most 8 fixed-format vertical PNG posters per week. ParentMap venue-distance filtering is enabled by default with a 15-mile radius. Events with no detail-page venue or an address that cannot be geocoded are skipped. If no candidate is within 15 miles, the agent picks the highest recommendation score across geocoded candidates and uses nearest distance to break a score tie. Use `--max-distance-miles N` to override the radius, or `--normal-event-search` to disable venue-distance filtering and restore the original ParentMap, Seattle's Child, and DuckDuckGo behavior.
 
 ```bash
 npm run social:weekly -- --dry-run
@@ -20,7 +20,7 @@ npm run social:weekly -- --reject-event "Seattle|2026-09-05|Event name|Event loc
 npm run social:weekly -- --from-roundup output/social-posts/weekly-2026-09-19-roundup.md
 ```
 
-Image generation requires `OPENAI_API_KEY`. The command uses the bundled GPT Image CLI; set `IMAGE_GEN=/path/to/image_gen.py` if the default Codex skill path is different. Existing `{city}-{date}.png` files in the output directory are skipped, so rerunning the agent only generates missing posters. Use `--reject-event "City|YYYY-MM-DD|Event name|Reason for rejection"` to persistently exclude an unsuitable event from future picks for that city/day and save the reason; the registry is stored in `event-feedback.json`. The weekly roundup contains only the up-to-eight events represented by the poster set, lists each event’s city, name, and location without exact event times, uses one sentence of highlights per event, includes a Mandarin invitation to create a family card and discover nearby playdates, playgrounds, storytimes, and weekend events, and is capped at 670 words. If a poster is not good enough, pass `--regenerate City,YYYY-MM-DD` to search that same city/day again, select a different eligible event, and replace that poster; the weekly roundup is regenerated as well when an alternate event is found. Repeat the flag for multiple posters. Add `--feedback "..."` to include the critique in the replacement prompt. Use `--sample` to write one weekly roundup and generate only one missing sample poster. A weekly run is saved as `weekly-YYYY-MM-DD.json`, with prompts in the matching `.jsonl` file and generated posters in the same output directory. Use cron, launchd, or GitHub Actions to run it weekly.
+Image generation requires `OPENAI_API_KEY`. The command uses the bundled GPT Image CLI; set `IMAGE_GEN=/path/to/image_gen.py` if the default Codex skill path is different. Existing `{city}-{date}.png` files in the output directory are skipped, so rerunning the agent only generates missing posters. Use `--reject-event "City|YYYY-MM-DD|Event name|Reason for rejection"` to persistently exclude an unsuitable event from future picks for that city/day and save the reason; the registry is stored in `event-feedback.json`. The weekly roundup contains only the up-to-eight events represented by the poster set, lists each event’s city, name, venue, and detailed address without exact event times, uses one sentence of highlights per event, includes a Mandarin invitation to create a family card and discover nearby playdates, playgrounds, storytimes, and weekend events, and is capped at 670 words. If a poster is not good enough, pass `--regenerate City,YYYY-MM-DD` to search that same city/day again, select a different eligible event, and replace that poster; the weekly roundup is regenerated as well when an alternate event is found. Repeat the flag for multiple posters. Add `--feedback "..."` to include the critique in the replacement prompt. Use `--sample` to write one weekly roundup and generate only one missing sample poster. A weekly run is saved as `weekly-YYYY-MM-DD.json`, with prompts in the matching `.jsonl` file and generated posters in the same output directory. Use cron, launchd, or GitHub Actions to run it weekly.
 
 The event recommender boosts geographically relevant state fairs and seasonal fall festival, pumpkin, harvest, and Mid-Autumn/Moon Festival events; matching keywords and recommendation reasons are included in the manifest and roundup. Official partnership events can be force-injected for an exact city/date from `lib/social-partnership-events.js` and take priority over ordinary search results. To generate posters from an existing roundup without searching for events again, use `--from-roundup path/to/weekly-YYYY-MM-DD-roundup.md`; the agent loads the companion JSON manifest for the full event facts.
 
@@ -154,18 +154,18 @@ The app stores a few browser-local values such as the login email and selected H
 - `DELETE /api/account/delete` deletes the signed-in parent’s SproutCue profile data and associated app records.
 - `POST /api/auth/login` keeps the local JSON fallback working when Supabase is not configured.
 - `POST /api/auth/logout` clears the local fallback profile cookie.
-- `GET /api/family-assets/picture-book-templates` returns the active reusable career-book template.
+- `GET /api/family-assets/picture-book-templates` lists active reusable picture-book templates. Add `?slug=career-recognition-v1` or `?slug=kindergarten-transition-zh-v1` to retrieve one template and its ordered pages.
 - `POST /api/family-assets/picture-books` accepts 2–5 `photos` image files (JPEG, PNG, or WebP) and creates a private family-owned picture-book asset. Optional `childId`, `childName`, and `templateSlug` are stored with the asset.
 - `GET /api/family-assets/picture-books` lists the signed-in family's picture-book assets.
-- `GET /api/family-assets/picture-books/:bookId` reads one family asset and its page statuses.
-- `POST /api/family-assets/picture-books/:bookId/pages/:pageKey` generates one page from the submitted reference photos. Generate one page at a time so clients can show progress and retry individual pages.
-- `GET /api/family-assets/picture-books/:bookId/assets/:pageKey` streams a private generated PNG to the owning family.
+- `GET /api/family-assets/picture-books?bookAssetId=...` reads one family asset and its page statuses.
+- `POST /api/family-assets/picture-book-pages` with `{ "bookAssetId": "...", "pageKey": "cover" }` generates one page from the submitted reference photos. Generate one page at a time so clients can show progress and retry individual pages.
+- `GET /api/family-assets/picture-book-assets?bookAssetId=...&pageKey=...` streams a private generated PNG to the owning family.
 
 The sign-in page links to the in-app privacy policy at `/privacy`. Replace its placeholders before production launch.
 
 ## Personalized picture-book API
 
-The picture-book API is a server-side image-generation workflow. It keeps `OPENAI_API_KEY` on the server and uses `gpt-image-2.5-sunburst` by default for reference-photo editing. Set these environment variables before generating an asset:
+The picture-book API is a server-side image-generation workflow. It keeps `OPENAI_API_KEY` on the server and uses `gpt-image-2.5-sunburst` by default for reference-photo editing. The built-in templates are `career-recognition-v1` (10 square pages), `kindergarten-transition-zh-v1` (a 19-page Mandarin-English, 2:1 landscape story), and `kindergarten-transition-zh-v2` (the corresponding girl-main-character version). Set these environment variables before generating an asset:
 
 ```bash
 OPENAI_API_KEY=your_server_side_api_key
@@ -186,13 +186,13 @@ curl -X POST http://127.0.0.1:3000/api/family-assets/picture-books \
   -F "photos=@front.jpg" \
   -F "photos=@three-quarter.jpg"
 
-curl -X POST http://127.0.0.1:3000/api/family-assets/picture-books/BOOK_ID/pages/cover \
+curl -X POST http://127.0.0.1:3000/api/family-assets/picture-book-pages \
   -H "Content-Type: application/json" \
   -H "x-sproutcue-local-user-id: YOUR_LOCAL_PROFILE_ID" \
-  --data '{}'
+  --data '{"bookAssetId":"BOOK_ASSET_ID","pageKey":"cover"}'
 ```
 
-The built-in template assigns a distinct angle and expression to each career. The cover, doctor, firefighter, police officer, astronaut, chef, teacher, pilot, scientist and race-car-driver pages are generated separately, making quality review and page-level retries practical.
+Each built-in template has its own page plan and prompt specification. The career book assigns a distinct angle and expression to every career; the kindergarten book uses a consistent 2:1 story-spread layout and a different child action, angle and emotion for each scene. Pages are generated separately, making quality review and page-level retries practical.
 
 ## Project Structure
 

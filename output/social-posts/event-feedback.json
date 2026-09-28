@@ -52,7 +52,7 @@
     "date": "2026-09-26",
     "title": "Ai Weiwei: Circle of Animals/Zodiac Heads",
     "normalizedTitle": "aiweiweicircleofanimalszodiacheads",
-    "family": "",
+    "family": "aiweiwei",
     "reason": "too many relevent events"
   },
   {
@@ -84,7 +84,7 @@
     "date": "2026-09-26",
     "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
     "normalizedTitle": "downtownissaquahstorystrollwatercress",
-    "family": "",
+    "family": "downtownissaquahstorystroll",
     "reason": "duplicated event"
   },
   {
@@ -92,7 +92,7 @@
     "date": "2026-09-26",
     "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
     "normalizedTitle": "downtownissaquahstorystrollwatercress",
-    "family": "",
+    "family": "downtownissaquahstorystroll",
     "reason": "duplicated event"
   },
   {
@@ -100,7 +100,63 @@
     "date": "2026-09-27",
     "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
     "normalizedTitle": "downtownissaquahstorystrollwatercress",
-    "family": "",
+    "family": "downtownissaquahstorystroll",
     "reason": "duplicated event"
+  },
+  {
+    "city": "lynnwood",
+    "date": "2026-10-03",
+    "title": "Craven Farm Fall Festival",
+    "normalizedTitle": "cravenfarmfallfestival",
+    "family": "",
+    "reason": "too many relevent events"
+  },
+  {
+    "city": "bellevue",
+    "date": "2026-10-03",
+    "title": "Pumpkin Farm and Puzzle Patch",
+    "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+    "family": "",
+    "reason": "too many relevent events"
+  },
+  {
+    "city": "bellevue",
+    "date": "2026-10-04",
+    "title": "Pumpkin Farm and Puzzle Patch",
+    "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+    "family": "",
+    "reason": "too many relevent events"
+  },
+  {
+    "city": "kirkland",
+    "date": "2026-10-03",
+    "title": "Pumpkin Farm and Puzzle Patch",
+    "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+    "family": "",
+    "reason": "too many relevent events"
+  },
+  {
+    "city": "kirkland",
+    "date": "2026-10-04",
+    "title": "Pumpkin Farm and Puzzle Patch",
+    "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+    "family": "",
+    "reason": "too many relevent events"
+  },
+  {
+    "city": "kirkland",
+    "date": "2026-10-03",
+    "title": "Issaquah Salmon Days",
+    "normalizedTitle": "issaquahsalmondays",
+    "family": "",
+    "reason": "too many relevent events"
+  },
+  {
+    "city": "kirkland",
+    "date": "2026-10-03",
+    "title": "Renton parkrun",
+    "normalizedTitle": "rentonparkrun",
+    "family": "",
+    "reason": "too many relevent events"
   }
 ]

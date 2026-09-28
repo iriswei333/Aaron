@@ -37,24 +37,30 @@ const TAB_PATHS = {
   profile: '/family',
 };
 
-const PATH_TABS = { ...Object.fromEntries(Object.entries(TAB_PATHS).map(([tab, path]) => [path, tab])), '/chat': 'profile' };
+const PATH_TABS = { ...Object.fromEntries(Object.entries(TAB_PATHS).map(([tab, path]) => [path, tab])), '/chat': 'profile', '/picture-books': 'studio' };
 
 function tabFromLocation() {
   const pathname = globalThis.location?.pathname?.replace(/\/$/, '') || '';
   return PATH_TABS[pathname] || 'home';
 }
 
+function studioViewFromLocation() {
+  if (globalThis.location?.pathname?.replace(/\/$/, '') === '/picture-books') return 'library';
+  return new URLSearchParams(globalThis.location?.search || '').get('create') === 'picture-book' ? 'create' : 'landing';
+}
+
 function navigateToTab(tab, { replace = false } = {}) {
   if (tab === 'chat') tab = 'profile';
   const path = TAB_PATHS[tab] || TAB_PATHS.home;
   const currentPath = globalThis.location?.pathname?.replace(/\/$/, '') || '';
-  if (currentPath !== path) {
+  if (currentPath !== path || (tab === 'studio' && globalThis.location?.search)) {
     const method = replace ? 'replaceState' : 'pushState';
     globalThis.history[method]({}, '', path);
   }
   if (tab === 'profile') {
     state.chatLoaded = false;
   }
+  if (tab === 'studio') state.studioView = 'landing';
   state.tab = tab;
   render();
 }
@@ -130,6 +136,14 @@ const state = {
   pictureBookStatus: '',
   pictureBookPreviewUrl: '',
   pictureBookPreviewTitle: '',
+  pictureBookTemplates: [],
+  pictureBookTemplatesLoaded: false,
+  pictureBookTemplatesLoading: false,
+  pictureBookTemplateSlug: 'career-recognition-v1',
+  pictureBookGeneratingBookId: '',
+  showPictureBookChooser: false,
+  studioFeatureNotice: '',
+  studioView: studioViewFromLocation(),
 };
 
 const tabRenderers = {
@@ -903,6 +917,7 @@ function startApp() {
     consumeAuthRedirectStatus();
     globalThis.addEventListener('popstate', () => {
       state.tab = tabFromLocation();
+      state.studioView = studioViewFromLocation();
       render();
     });
     render();

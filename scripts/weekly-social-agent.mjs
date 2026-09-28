@@ -3,7 +3,12 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { spawn } from 'node:child_process';
-import { DEFAULT_SOCIAL_REGIONS, generateWeeklySocialPosts, makeWeeklyRoundup } from '../lib/social-post-agent.js';
+import {
+  DEFAULT_EVENT_DISTANCE_MILES,
+  DEFAULT_SOCIAL_REGIONS,
+  generateWeeklySocialPosts,
+  makeWeeklyRoundup,
+} from '../lib/social-post-agent.js';
 
 const projectRoot = resolve(new URL('..', import.meta.url).pathname);
 const imageGen = process.env.IMAGE_GEN || join(process.env.CODEX_HOME || join(homedir(), '.codex'), 'skills/.system/imagegen/scripts/image_gen.py');
@@ -92,6 +97,12 @@ const regenerationRequests = argValues('--regenerate');
 const rejectedEventRequests = argValues('--reject-event');
 const feedback = argValue('--feedback');
 const sourceRoundupPath = argValue('--from-roundup');
+const venueDistanceFilter = !process.argv.includes('--no-venue-distance-filter')
+  && !process.argv.includes('--normal-event-search');
+const requestedDistanceMiles = Number(argValue('--max-distance-miles', String(DEFAULT_EVENT_DISTANCE_MILES)));
+const maxDistanceMiles = Number.isFinite(requestedDistanceMiles) && requestedDistanceMiles > 0
+  ? requestedDistanceMiles
+  : DEFAULT_EVENT_DISTANCE_MILES;
 const outputDir = resolve(argValue('--output', join(projectRoot, 'output/social-posts')));
 const defaultRegionList = DEFAULT_SOCIAL_REGIONS.map((item) => item.city).join(',');
 const regions = argValue('--regions', defaultRegionList)
@@ -312,7 +323,13 @@ async function main() {
   const excludedEventSlots = new Set(rejectedEvents.flatMap(rejectedEventKeys));
   const run = sourceRoundupPath
     ? await loadRunFromRoundup(sourceRoundupPath)
-    : await generateWeeklySocialPosts({ regions, alternateSlots: regenerationTargets, excludedEventSlots });
+    : await generateWeeklySocialPosts({
+      regions,
+      alternateSlots: regenerationTargets,
+      excludedEventSlots,
+      venueDistanceFilter,
+      maxDistanceMiles,
+    });
   const existingPosterNames = await readExistingPosterNames(outputDir);
   const posterLimit = sampleRun ? 1 : MAX_WEEKLY_POSTERS;
   const posterSet = selectPosterSet(run.posts, posterLimit, run.weekKey, regenerationTargets);
@@ -362,6 +379,7 @@ async function main() {
 
   console.log(`Weekend: ${run.startDate}–${run.endDate}`);
   if (sourceRoundupPath) console.log(`Source roundup: ${sourceRoundupPath} (event search skipped).`);
+  else console.log(`Event search mode: ${venueDistanceFilter ? `ParentMap venues within ${maxDistanceMiles} miles` : 'normal'}.`);
   console.log(`Matched ${run.posts.length} of ${run.regions.length * 2} Saturday/Sunday slots.`);
   const skippedExistingCount = posterSet.filter((post) => existingPosterNames.has(posterFilename(post, run.weekKey))
     && !regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)).length;
