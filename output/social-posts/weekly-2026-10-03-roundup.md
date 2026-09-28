@@ -9,30 +9,30 @@
 1. Seattle：Rainier Valley Co-op Preschool Fall Festival and Open House
    地点：Rainier Valley Cooperative Preschool · 5514 15th Ave S, Seattle, WA, 98108, United States
    趋势关键词：fall festival
-   亮点：秋季嘉年华暨开放日，欢迎新老家庭参与。
+   亮点：🎉 可以体验节庆与社区主题活动。
 
 2. Seattle：Spooky Science at the Burke Museum
    地点：Burke Museum · 4303 Memorial Way NE, Seattle, WA, 98195, United States
-   亮点：动手拼接动物身体部位，还能做只蝙蝠手工带回家。
+   亮点：挑战动物解剖拼图，做只小蝙蝠带回家，并在毛绒玩具上练习动物准备技能。
 
-3. Bellevue：Remlinger Farms Fall Harvest Festival
-   地点：Remlinger Farms · 32610 NE 32nd St, Carnation, WA, 98014-6104, United States
-   趋势关键词：harvest
-   亮点：秋季丰收节进行中，南瓜村与自摘田同步开放。
-
-4. Bellevue：October Weekends at Jubilee Harvest Festival
+3. Bellevue：October Weekends at Jubilee Harvest Festival
    地点：Jubilee Farm · 229 W Snoqualmie River Rd NE, Carnation, WA, 98014-8002, United States
    趋势关键词：harvest
-   亮点：免费拖拉机或马车带你去南瓜田，挑各色南瓜并在谷仓洗净带走。
+   亮点：🌿 可以体验户外与运动主题活动。
+
+4. Bellevue：Autumn Moon Night Market
+   地点：Bellevue · 450 110th Avenue NE Bellevue, WA 98004
+   亮点：汇集50+本地手作与创意摊位，独特好物与美食一站淘齐。
 
 5. Tacoma：Picha Farms Fall Festival
    地点：Picha Farms · 6502 52nd ST E, Puyallup, WA, 98371, United States
    趋势关键词：fall festival
-   亮点：秋日农场节等你来玩，和孩子一起享受轻松有趣的亲子时光。
+   亮点：🌿 可以体验户外与运动主题活动。
 
-6. Kirkland：Issaquah Salmon Days
-   地点：Historic Shell Station & Downtown Issaquah · 232 Front St N, Issaquah, WA, 98027-3232, United States
-   亮点：以鲑鱼洄游为主题的年度社区节庆，带你认识历史孵化场与流域生态。
+6. Kirkland：Remlinger Farms Fall Harvest Festival
+   地点：Remlinger Farms · 32610 NE 32nd St, Carnation, WA, 98014-6104, United States
+   趋势关键词：harvest
+   亮点：🌿 可以体验户外与运动主题活动。
 
 7. Lynnwood：Thomas Family Farm Fall Festival Fun Park
    地点：Thomas Family Farm · 9010 Marsh Rd, SNOHOMISH, WA, 98296, United States
@@ -42,7 +42,7 @@
 8. Edmonds：Stocker Farms Fall Festival
    地点：Stocker Farms · 8705 Marsh Rd, Snohomish, WA, 98296, United States
    趋势关键词：fall festival
-   亮点：超过30项亲子农场玩法，玉米迷宫、自摘南瓜、巨型弹跳枕、滑索、猪赛跑、奶牛小火车等一网打尽。
+   亮点：玉米迷宫、南瓜自摘和拍照打卡一应俱全，30+项农场项目玩不完。
 
 收藏这份周末清单，带上家人一起出门玩吧！
 

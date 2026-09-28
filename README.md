@@ -6,6 +6,8 @@ A small Next.js daily planner for parents of young kids. The app keeps separate 
 
 The social-post generator runs outside the web app. It checks the existing ParentMap weekend-event logic separately for Saturday and Sunday in Seattle, Bellevue, Tacoma, Kirkland, Lynnwood, and Edmonds. It reads matched event detail descriptions, then uses the OpenAI API to translate and generate one short Mandarin highlight of 2–3 sentences per event when `OPENAI_API_KEY` is available. It selects up to two highlights per region, writes Mandarin captions and source metadata, generates a Mandarin roundup Markdown post, and generates at most 8 fixed-format vertical PNG posters per week. ParentMap venue-distance filtering is enabled by default with a 15-mile radius. Events with no detail-page venue or an address that cannot be geocoded are skipped. If no candidate is within 15 miles, the agent picks the highest recommendation score across geocoded candidates and uses nearest distance to break a score tie. Use `--max-distance-miles N` to override the radius, or `--normal-event-search` to disable venue-distance filtering and restore the original ParentMap, Seattle's Child, and DuckDuckGo behavior.
 
+To bypass search and generate one specific event from its official page, provide `--force-event-url URL --city CITY --date YYYY-MM-DD`. This mode supports arbitrary dates, extracts event facts from the page, and creates only the requested city/date slot. Add `--skip-images` when only the manifest, roundup, and prompt files are needed. Add `--save-partnership` to also append a sanitized, deduplicated record to `lib/social-partnership-events.js`.
+
 ```bash
 npm run social:weekly -- --dry-run
 npm run social:weekly -- --regions Seattle,Bellevue --output output/social-posts

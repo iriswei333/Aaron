@@ -6,9 +6,12 @@ import { spawn } from 'node:child_process';
 import {
   DEFAULT_EVENT_DISTANCE_MILES,
   DEFAULT_SOCIAL_REGIONS,
+  fetchForcedEventFromUrl,
   generateWeeklySocialPosts,
   makeWeeklyRoundup,
 } from '../lib/social-post-agent.js';
+import { getForcedPartnershipEvents } from '../lib/social-partnership-events.js';
+import { savePartnershipEvent } from '../lib/social-partnership-events-file.js';
 
 const projectRoot = resolve(new URL('..', import.meta.url).pathname);
 const imageGen = process.env.IMAGE_GEN || join(process.env.CODEX_HOME || join(homedir(), '.codex'), 'skills/.system/imagegen/scripts/image_gen.py');
@@ -97,6 +100,10 @@ const regenerationRequests = argValues('--regenerate');
 const rejectedEventRequests = argValues('--reject-event');
 const feedback = argValue('--feedback');
 const sourceRoundupPath = argValue('--from-roundup');
+const forceEventUrlInput = argValue('--force-event-url');
+const forcedCity = argValue('--city').trim();
+const forcedDate = argValue('--date').trim();
+const savePartnership = process.argv.includes('--save-partnership');
 const venueDistanceFilter = !process.argv.includes('--no-venue-distance-filter')
   && !process.argv.includes('--normal-event-search');
 const requestedDistanceMiles = Number(argValue('--max-distance-miles', String(DEFAULT_EVENT_DISTANCE_MILES)));
@@ -105,11 +112,26 @@ const maxDistanceMiles = Number.isFinite(requestedDistanceMiles) && requestedDis
   : DEFAULT_EVENT_DISTANCE_MILES;
 const outputDir = resolve(argValue('--output', join(projectRoot, 'output/social-posts')));
 const defaultRegionList = DEFAULT_SOCIAL_REGIONS.map((item) => item.city).join(',');
-const regions = argValue('--regions', defaultRegionList)
+const configuredRegions = argValue('--regions', defaultRegionList)
   .split(',')
   .map((city) => city.trim())
   .filter(Boolean)
   .map((city) => ({ city, label: city }));
+
+function normalizedForcedEventUrl(value) {
+  const markdownUrl = String(value || '').trim().match(/^\[(https?:\/\/[^\]]+)\]\(https?:\/\/[^)]+\)$/i)?.[1];
+  const candidate = markdownUrl || String(value || '').trim();
+  if (!candidate) return '';
+  const parsed = new URL(candidate);
+  if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('--force-event-url must use http:// or https://.');
+  return parsed.href;
+}
+
+function validForcedDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T12:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
 
 function eventFeatureTiles(post) {
   const text = [post.title, post.theme, post.description, ...(post.highlights || []), ...(post.matchingKeywords || [])]
@@ -311,6 +333,30 @@ function runImageBatch(jobs, promptPath, outputDir, force = false) {
 }
 
 async function main() {
+  const hasForcedArguments = Boolean(forceEventUrlInput || forcedCity || forcedDate);
+  if (savePartnership && !hasForcedArguments) {
+    throw new Error('--save-partnership requires --force-event-url, --city, and --date.');
+  }
+  if (hasForcedArguments && !(forceEventUrlInput && forcedCity && forcedDate)) {
+    throw new Error('--force-event-url, --city, and --date must be provided together.');
+  }
+  if (forcedDate && !validForcedDate(forcedDate)) throw new Error('--date must use a valid YYYY-MM-DD date.');
+  if (hasForcedArguments && sourceRoundupPath) throw new Error('--force-event-url cannot be combined with --from-roundup.');
+  if (hasForcedArguments && regenerationRequests.length) throw new Error('--force-event-url cannot be combined with --regenerate.');
+  const forceEventUrl = normalizedForcedEventUrl(forceEventUrlInput);
+  const forcedInputEvents = forceEventUrl
+    ? [await fetchForcedEventFromUrl({ url: forceEventUrl, city: forcedCity, date: forcedDate })]
+    : [];
+  let partnershipSaved = false;
+  if (savePartnership && forcedInputEvents.length) {
+    const duplicate = getForcedPartnershipEvents({ city: forcedCity, date: forcedDate })
+      .some((event) => new URL(event.url || event.sourceUrl).href === forceEventUrl);
+    if (!duplicate) {
+      await savePartnershipEvent(join(projectRoot, 'lib/social-partnership-events.js'), forcedInputEvents[0]);
+      partnershipSaved = true;
+    }
+  }
+  const regions = forcedInputEvents.length ? [{ city: forcedCity, label: forcedCity }] : configuredRegions;
   const regenerationTargets = new Set(regenerationRequests.map(parseRegenerationRequest).map(regenerationKey));
   await mkdir(outputDir, { recursive: true });
   const rejectedEventsPath = join(outputDir, 'event-feedback.json');
@@ -327,13 +373,16 @@ async function main() {
       regions,
       alternateSlots: regenerationTargets,
       excludedEventSlots,
+      forcedInputEvents,
+      dates: forcedInputEvents.length ? [forcedDate] : [],
       venueDistanceFilter,
       maxDistanceMiles,
     });
   const existingPosterNames = await readExistingPosterNames(outputDir);
   const posterLimit = sampleRun ? 1 : MAX_WEEKLY_POSTERS;
   const posterSet = selectPosterSet(run.posts, posterLimit, run.weekKey, regenerationTargets);
-  const posterPosts = posterSet.filter((post) => regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)
+  const posterPosts = posterSet.filter((post) => forcedInputEvents.length
+    || regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)
     || !existingPosterNames.has(posterFilename(post, run.weekKey)));
   const roundupPosterPosts = posterSet;
   const roundup = makeWeeklyRoundup(roundupPosterPosts, run.startDate, run.endDate);
@@ -349,7 +398,7 @@ async function main() {
     imageGenCommand: imageGen,
     posterLimit,
     existingPosterCount: existingPosterNames.size,
-    skippedExistingPosterCount: posterSet.filter((post) => existingPosterNames.has(posterFilename(post, run.weekKey))
+    skippedExistingPosterCount: forcedInputEvents.length ? 0 : posterSet.filter((post) => existingPosterNames.has(posterFilename(post, run.weekKey))
       && !regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)).length,
     regenerationRequests,
     feedback,
@@ -377,11 +426,15 @@ async function main() {
   }));
   await writeFile(promptPath, jobs.map((job) => JSON.stringify(job)).join('\n') + (jobs.length ? '\n' : ''));
 
-  console.log(`Weekend: ${run.startDate}–${run.endDate}`);
+  console.log(forcedInputEvents.length ? `Event date: ${run.startDate}` : `Weekend: ${run.startDate}–${run.endDate}`);
   if (sourceRoundupPath) console.log(`Source roundup: ${sourceRoundupPath} (event search skipped).`);
+  else if (forcedInputEvents.length) console.log(`Event search mode: forced URL for ${forcedCity} on ${forcedDate}.`);
   else console.log(`Event search mode: ${venueDistanceFilter ? `ParentMap venues within ${maxDistanceMiles} miles` : 'normal'}.`);
-  console.log(`Matched ${run.posts.length} of ${run.regions.length * 2} Saturday/Sunday slots.`);
-  const skippedExistingCount = posterSet.filter((post) => existingPosterNames.has(posterFilename(post, run.weekKey))
+  if (savePartnership) console.log(partnershipSaved
+    ? 'Saved forced event to lib/social-partnership-events.js.'
+    : 'Partnership event already exists; source file was unchanged.');
+  console.log(`Matched ${run.posts.length} of ${run.slotCount || run.regions.length * 2} event slots.`);
+  const skippedExistingCount = forcedInputEvents.length ? 0 : posterSet.filter((post) => existingPosterNames.has(posterFilename(post, run.weekKey))
     && !regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)).length;
   console.log(`Poster jobs: ${jobs.length} of ${run.posts.length} matched events (${sampleRun ? 'sample limit: 1' : `weekly limit: ${MAX_WEEKLY_POSTERS}`}; skipped ${skippedExistingCount} existing).`);
   if (regenerationRequests.length) console.log(`Regenerating: ${regenerationRequests.join('; ')}`);
@@ -396,7 +449,7 @@ async function main() {
     return;
   }
   try {
-    await runImageBatch(jobs, promptPath, outputDir, matchedRegenerationTargets.size > 0);
+    await runImageBatch(jobs, promptPath, outputDir, matchedRegenerationTargets.size > 0 || forcedInputEvents.length > 0);
     console.log(`Generated ${jobs.length} poster image${jobs.length === 1 ? '' : 's'} in ${outputDir}`);
   } catch (error) {
     console.error(error.stderr || error.message);

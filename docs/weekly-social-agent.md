@@ -52,6 +52,32 @@ npm run social:weekly -- --normal-event-search --dry-run
 
 `--no-venue-distance-filter` is an equivalent opt-out. The older `--venue-distance-filter` flag remains harmless for command compatibility, although filtering is now already enabled by default. Google Places is used when `GOOGLE_PLACES_API_KEY` is configured; otherwise the agent falls back to OpenStreetMap Nominatim.
 
+## Force one event from a URL
+
+Use `--force-event-url`, `--city`, and `--date` together to generate a specific event instead of running normal event search:
+
+```bash
+npm run social:weekly -- \
+  --force-event-url "https://redmondtowncenter.com/events/917-exotics-car-show" \
+  --city Bellevue \
+  --date 2026-10-03
+```
+
+The date may be outside the automatically calculated weekend. The agent reads the supplied page, creates one event slot for the requested city and date, and writes the usual manifest, roundup, prompt, and poster. If that city/date poster already exists, forced mode replaces it. Add `--skip-images` to create only the text artifacts, or `--dry-run` for a no-image test. All three forced-event arguments are required. A forced URL cannot be combined with `--from-roundup` or `--regenerate`.
+
+Add `--save-partnership` to persist the extracted event in `lib/social-partnership-events.js` as well as run the forced generation:
+
+```bash
+npm run social:weekly -- \
+  --force-event-url "https://bellevuewa.gov/events/autumn-moon-night-market" \
+  --city Bellevue \
+  --date 2026-10-03 \
+  --save-partnership \
+  --skip-images
+```
+
+The saved record is sanitized to the supported partnership fields and marked as a forced partnership recommendation. Running the same URL, city, and date again does not create a duplicate entry. Review the extracted title, time, venue, address, and description in the file after saving because third-party page markup can change.
+
 For a test run that writes one weekly roundup and generates only one sample poster:
 
 ```bash

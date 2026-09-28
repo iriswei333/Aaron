@@ -1,10 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import { parseParentMapEventVenue } from '../lib/family-events.js';
+import { getForcedPartnershipEvents } from '../lib/social-partnership-events.js';
+import { appendPartnershipEventSource, partnershipEventRecord } from '../lib/social-partnership-events-file.js';
 import {
   DEFAULT_EVENT_DISTANCE_MILES,
   distanceMiles,
   filterParentMapEventsByDistance,
+  generateWeeklySocialPosts,
   makeWeeklyRoundup,
+  parseForcedEventPage,
   rankLocationFallbackCandidates,
 } from '../lib/social-post-agent.js';
 
@@ -115,5 +119,99 @@ describe('ParentMap venue distance filtering', () => {
 
     expect(roundup.caption).toContain('地点：Seattle Aquarium · 1483 Alaskan Way Pier 59, Seattle, WA, 98101-2015, United States');
     expect(roundup.posts[0].venueAddress).toBe('1483 Alaskan Way Pier 59, Seattle, WA, 98101-2015, United States');
+  });
+});
+
+describe('Forced partnership events', () => {
+  it('returns configured events only for their exact city and date', () => {
+    expect(getForcedPartnershipEvents({ city: 'Seattle', date: '2026-09-26' })).toEqual([
+      expect.objectContaining({
+        title: 'Mid-Autumn Festival',
+        forcedRecommendation: true,
+      }),
+    ]);
+    expect(getForcedPartnershipEvents({ city: 'Bellevue', date: '2026-09-26' })).toEqual([]);
+  });
+});
+
+describe('Command-line forced URL events', () => {
+  const forcedUrl = 'https://redmondtowncenter.com/events/917-exotics-car-show';
+  const pageHtml = `
+    <html><body>
+      <h2>Exotics Car Show</h2>
+      <h3>Details</h3>
+      <p>When</p><p>Saturdays, 9-11am</p>
+      <p>Where</p><p>Redmond Town Center</p>
+      <p>Spring-Fall: Saturdays 9-11AM</p>
+      <p>Weather Dependent</p>
+      <p>Join us for a weekly gathering of exotic and rare cars for owners and spectators.</p>
+      <h3>Specialty Shows</h3>
+      <p>Redmond Town Center 7345 164th Avenue NE, Suite I115 Redmond, WA 98052</p>
+    </body></html>`;
+
+  it('extracts forced event facts from a generic official event page', () => {
+    expect(parseForcedEventPage(pageHtml, {
+      url: forcedUrl,
+      city: 'Bellevue',
+      date: '2026-10-03',
+    })).toMatchObject({
+      city: 'Bellevue',
+      date: '2026-10-03',
+      title: 'Exotics Car Show',
+      timeLabel: '9–11 a.m.',
+      venue: 'Redmond Town Center',
+      venueAddress: '7345 164th Avenue NE, Suite I115 Redmond, WA 98052',
+      url: forcedUrl,
+      forcedRecommendation: true,
+      cliForcedEvent: true,
+    });
+  });
+
+  it('generates only the requested city and date without running normal event search', async () => {
+    const forcedEvent = parseForcedEventPage(pageHtml, {
+      url: forcedUrl,
+      city: 'Bellevue',
+      date: '2026-10-03',
+    });
+    const run = await generateWeeklySocialPosts({
+      regions: [{ city: 'Bellevue', label: 'Bellevue' }],
+      dates: ['2026-10-03'],
+      forcedInputEvents: [forcedEvent],
+    });
+
+    expect(run).toMatchObject({
+      startDate: '2026-10-03',
+      endDate: '2026-10-03',
+      searchMode: 'forced-url',
+      slotCount: 1,
+    });
+    expect(run.posts).toHaveLength(1);
+    expect(run.posts[0]).toMatchObject({
+      city: 'Bellevue',
+      date: '2026-10-03',
+      title: 'Exotics Car Show',
+      eventUrl: forcedUrl,
+    });
+  });
+
+  it('serializes a forced URL event into the partnership configuration safely', () => {
+    const event = parseForcedEventPage(pageHtml, {
+      url: forcedUrl,
+      city: 'Bellevue',
+      date: '2026-10-03',
+    });
+    const record = partnershipEventRecord(event);
+    const updated = appendPartnershipEventSource('const PARTNERSHIP_EVENTS = [\n];\n', event);
+
+    expect(record).toMatchObject({
+      city: 'Bellevue',
+      source: 'partnership',
+      recommendationType: 'partnership',
+      forcedRecommendation: true,
+    });
+    expect(record).not.toHaveProperty('cliForcedEvent');
+    expect(updated).toContain('"title": "Exotics Car Show"');
+    expect(updated).toContain('"url": "https://redmondtowncenter.com/events/917-exotics-car-show"');
+    expect(updated.trimEnd()).toMatch(/},\n\];$/);
   });
 });
