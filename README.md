@@ -157,7 +157,7 @@ The app stores a few browser-local values such as the login email and selected H
 - `POST /api/auth/login` keeps the local JSON fallback working when Supabase is not configured.
 - `POST /api/auth/logout` clears the local fallback profile cookie.
 - `GET /api/family-assets/picture-book-templates` lists active reusable picture-book templates. Add `?slug=career-recognition-v1` or `?slug=kindergarten-transition-zh-v1` to retrieve one template and its ordered pages.
-- `POST /api/family-assets/picture-books` accepts 2–5 `photos` image files (JPEG, PNG, or WebP) and creates a private family-owned picture-book asset. Optional `childId`, `childName`, and `templateSlug` are stored with the asset.
+- `POST /api/family-assets/picture-books` accepts 2–5 `photos` image files (JPEG, PNG, WebP, HEIC, or HEIF) and creates a private family-owned picture-book asset. HEIC and HEIF uploads are converted privately to a 2048 px maximum JPEG before storage and generation. Optional `childId`, `childName`, and `templateSlug` are stored with the asset.
 - `GET /api/family-assets/picture-books` lists the signed-in family's picture-book assets.
 - `GET /api/family-assets/picture-books?bookAssetId=...` reads one family asset and its page statuses.
 - `POST /api/family-assets/picture-book-pages` with `{ "bookAssetId": "...", "pageKey": "cover" }` generates one page from the submitted reference photos. Generate one page at a time so clients can show progress and retry individual pages.
