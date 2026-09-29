@@ -2,8 +2,17 @@ import { apiRequest, escapeAttribute, escapeHtml, readFirstStoredValue } from '.
 import { childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
 
 const DEFAULT_TEMPLATE = 'career-recognition-v1';
-const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
-const MAX_TOTAL_PHOTO_BYTES = 50 * 1024 * 1024;
+const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
+const MAX_TOTAL_PHOTO_BYTES = 90 * 1024 * 1024;
+
+function pictureBookCreateError(response, result, photos) {
+  if (response.status === 413) {
+    const totalMb = (photos.reduce((total, photo) => total + photo.size, 0) / (1024 * 1024)).toFixed(1);
+    return `Your ${photos.length} selected photos total ${totalMb} MB, and the upload was too large for the server. Try two photos first, then add smaller photos. HEIC files convert after upload, so choose smaller originals or set iPhone Camera → Formats → Most Compatible for future photos.`;
+  }
+  if (response.status === 415) return 'Those photos use a format we cannot read. Choose JPEG, PNG, WebP, HEIC, or HEIF photos.';
+  return result.error || result.help || `Request failed with ${response.status}`;
+}
 
 function statusLabel(status) {
   return ({ pending: 'Ready to create', generating: 'Making this page…', ready: 'Ready to view', failed: 'Try again', draft: 'Draft', archived: 'Archived' })[status] || 'Ready to create';
@@ -59,12 +68,12 @@ async function createBook(ctx, form) {
     return;
   }
   if (photos.some((photo) => photo.size > MAX_PHOTO_BYTES)) {
-    state.pictureBookStatus = 'Each reference photo must be 10 MB or smaller.';
+    state.pictureBookStatus = 'Each reference photo must be 20 MB or smaller.';
     ctx.renderCurrent();
     return;
   }
   if (photos.reduce((total, photo) => total + photo.size, 0) > MAX_TOTAL_PHOTO_BYTES) {
-    state.pictureBookStatus = 'Your selected photos are over the 50 MB combined limit. Choose smaller photos or fewer photos.';
+    state.pictureBookStatus = 'Your selected photos are over the 90 MB combined limit. Choose smaller photos or fewer photos.';
     ctx.renderCurrent();
     return;
   }
@@ -77,7 +86,7 @@ async function createBook(ctx, form) {
   try {
     const response = await fetch('/api/family-assets/picture-books', { method: 'POST', body: data, headers: localHeaders() });
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.error || `Request failed with ${response.status}`);
+    if (!response.ok) throw new Error(pictureBookCreateError(response, result, photos));
     state.pictureBookStatus = 'Book created. You can make the whole book or work one page at a time.';
     state.pictureBooks = [result.book, ...state.pictureBooks];
     state.pictureBooksLoaded = true;
@@ -238,7 +247,7 @@ function studioCreate(state, childName) {
   const templates = state.pictureBookTemplates || [];
   const selected = templates.find((template) => template.slug === state.pictureBookTemplateSlug) || templates[0];
   const options = templates.map((template) => `<option value="${escapeAttribute(template.slug)}" ${template.slug === selected?.slug ? 'selected' : ''}>${escapeHtml(template.name)}${template.pageCount ? ` · ${template.pageCount} pages` : ''}</option>`).join('');
-  return `<main class="studio-page studio-subpage"><button type="button" class="studio-back" data-studio-view="landing">← Back to Play Studio</button><header class="studio-subpage-heading"><div><p class="eyebrow">A book starring them</p><h1>Start a picture book</h1><p>${escapeHtml(selected?.description || 'Choose a private picture-book template for your family.')}</p></div><button type="button" class="secondary-button" data-studio-view="library">View existing books</button></header><section class="studio-create"><div><span class="studio-create-icon" aria-hidden="true">${selected?.slug?.includes('kindergarten') ? '🎒' : '🌈'}</span><h2>${escapeHtml(selected?.name || 'Loading templates…')}</h2><p>Use 2–5 clear photos from different angles to help keep ${escapeHtml(childName)} recognizable across the story.</p></div><form id="picture-book-form" class="studio-form"><label>Picture-book template<select name="templateSlug" ${state.pictureBookTemplatesLoading ? 'disabled' : ''}>${options || '<option>Loading templates…</option>'}</select></label><label>Child’s name<input name="childName" maxlength="80" value="${escapeAttribute(childName)}" /></label><label>Reference photos<input name="photos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" multiple required /><small>JPEG, PNG, WebP, or HEIC · 2–5 photos · up to 10 MB each · HEIC converts privately to JPEG</small></label><button type="submit" ${selected ? '' : 'disabled'}>Create private book <span aria-hidden="true">→</span></button></form></section>${state.pictureBookStatus ? `<p class="studio-message" role="status">${escapeHtml(state.pictureBookStatus)}</p>` : ''}</main>`;
+  return `<main class="studio-page studio-subpage"><button type="button" class="studio-back" data-studio-view="landing">← Back to Play Studio</button><header class="studio-subpage-heading"><div><p class="eyebrow">A book starring them</p><h1>Start a picture book</h1><p>${escapeHtml(selected?.description || 'Choose a private picture-book template for your family.')}</p></div><button type="button" class="secondary-button" data-studio-view="library">View existing books</button></header><section class="studio-create"><div><span class="studio-create-icon" aria-hidden="true">${selected?.slug?.includes('kindergarten') ? '🎒' : '🌈'}</span><h2>${escapeHtml(selected?.name || 'Loading templates…')}</h2><p>Use 2–5 clear photos from different angles to help keep ${escapeHtml(childName)} recognizable across the story.</p></div><form id="picture-book-form" class="studio-form"><label>Picture-book template<select name="templateSlug" ${state.pictureBookTemplatesLoading ? 'disabled' : ''}>${options || '<option>Loading templates…</option>'}</select></label><label>Child’s name<input name="childName" maxlength="80" value="${escapeAttribute(childName)}" /></label><label>Reference photos<input name="photos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" multiple required /><small>JPEG, PNG, WebP, or HEIC · 2–5 photos · up to 20 MB each · 90 MB combined · HEIC converts privately to JPEG</small></label><button type="submit" ${selected ? '' : 'disabled'}>Create private book <span aria-hidden="true">→</span></button></form></section>${state.pictureBookStatus ? `<p class="studio-message" role="status">${escapeHtml(state.pictureBookStatus)}</p>` : ''}</main>`;
 }
 
 function studioLibrary(state) {

@@ -3,6 +3,18 @@ import { getCurrentProfile, profileErrorResponse } from '../../../../lib/profile
 
 export const runtime = 'nodejs';
 
+function uploadFailure(error) {
+  const message = error instanceof Error ? error.message : 'Picture-book upload failed.';
+  if (/request body|payload|body.*(?:exceed|large)|too large/i.test(message)) {
+    return Response.json({
+      error: 'The picture-book upload is too large to process.',
+      code: 'PICTURE_BOOK_UPLOAD_TOO_LARGE',
+      help: 'Choose fewer or smaller photos and try again. HEIC files are converted after upload, so the original upload must fit within the request limit.',
+    }, { status: 413 });
+  }
+  return Response.json({ error: message, code: 'PICTURE_BOOK_UPLOAD_FAILED' }, { status: 400 });
+}
+
 export async function GET(request) {
   try {
     const current = await getCurrentProfile(request);
@@ -29,7 +41,7 @@ export async function POST(request) {
     const book = await createFamilyPictureBook(current, await request.formData());
     return Response.json({ book: serializeFamilyPictureBook(book) }, { status: 201 });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 400 });
+    return uploadFailure(error);
   }
 }
 
