@@ -104,10 +104,19 @@ function discoverMarkerLabel(kind) {
   return '▤';
 }
 
-function discoverGeocodeQuery(item, searchLocationLabel = '') {
+export function discoverGeocodeQuery(item, searchLocationLabel = '') {
   if (!['weekend_event', 'story_time'].includes(item?.kind)) return '';
-  const place = String(item?.location?.address || item?.location?.venue || '').trim();
+  const address = String(item?.location?.address || '').trim();
+  const venue = String(item?.location?.venue || '').trim();
+  const place = address || venue;
   if (!place) return '';
+  if (item.kind === 'story_time') {
+    if (address) return address;
+    const sourceId = String(item?.source?.id || item?.detail?.source || '').toLowerCase();
+    if (sourceId === 'kcls') return `${venue}, King County Library System, WA, USA`;
+    if (sourceId === 'spl') return `${venue}, Seattle Public Library, Seattle, WA, USA`;
+    return venue;
+  }
   const searchArea = String(searchLocationLabel || '').trim();
   if (!searchArea || place.toLocaleLowerCase().includes(searchArea.toLocaleLowerCase())) return place;
   return `${place}, ${searchArea}`;
@@ -242,10 +251,10 @@ export async function renderGoogleDiscoverMap({ element, center, radiusMeters = 
       onClick: () => {},
     }));
 
-    await loadServerDiscoverLocations(items.slice(0, 40), searchLocationLabel, center, radiusMeters);
+    await loadServerDiscoverLocations(items, searchLocationLabel, center, radiusMeters);
     if (renderToken !== activeDiscoverRenderToken || activeMapElement !== element) return true;
     const geocoder = GeocoderConstructor ? new GeocoderConstructor() : null;
-    const locatedItems = await Promise.allSettled(items.slice(0, 40).map(async (item) => ({
+    const locatedItems = await Promise.allSettled(items.map(async (item) => ({
       item,
       position: await geocodeDiscoverItem({ maps, geocoder, item, searchLocationLabel }),
     })));
@@ -259,7 +268,7 @@ export async function renderGoogleDiscoverMap({ element, center, radiusMeters = 
       const { item, position } = result.value;
       if (!position) return;
       const maximumEventDistance = Math.max(radiusMeters * 4, 50000);
-      if (['weekend_event', 'story_time'].includes(item.kind)
+      if (item.kind === 'weekend_event'
         && distanceInMeters(center, position) > maximumEventDistance) return;
       locatedItemCount += 1;
       visibleBounds?.extend(position);

@@ -110,12 +110,10 @@ export function createDiscoverClient(request = apiRequest) {
       } else sources.weekendEvents = skippedState('A location is required to load weekend events.');
     }
     if (requested.has('story_time')) {
-      if (locationLabel) {
-        tasks.push({
-          source: 'storyTimes',
-          promise: request(`/story-times${queryString({ refresh: forceRefresh ? 1 : undefined, location: locationLabel, latitude: hasCoordinates ? latitude : undefined, longitude: hasCoordinates ? longitude : undefined, start: startDate, end: endDate })}`, options),
-        });
-      } else sources.storyTimes = skippedState('A location is required to load story times.');
+      tasks.push({
+        source: 'storyTimes',
+        promise: request(`/story-times${queryString({ refresh: forceRefresh ? 1 : undefined, start: startDate, end: endDate })}`, options),
+      });
     }
 
     const results = await Promise.allSettled(tasks.map((task) => task.promise));

@@ -2,11 +2,237 @@
   "id": "weekly-2026-10-03",
   "weekKey": "2026-10-03",
   "startDate": "2026-10-03",
-  "endDate": "2026-10-03",
+  "endDate": "2026-10-04",
   "regions": [
-    "Kirkland"
+    "Seattle",
+    "Bellevue",
+    "Tacoma",
+    "Kirkland",
+    "Lynnwood",
+    "Edmonds"
   ],
   "posts": [
+    {
+      "id": "social-seattle-2026-10-03-rainier-valley-co-op-preschool-fall-festival-and-open-house",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "Rainier Valley Co-op Preschool Fall Festival and Open House",
+      "theme": "Festivals + Community",
+      "headline": "Seattle · 星期六亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "欢迎在园家庭、校友与感兴趣的家长参加秋季嘉年华与开放日。Jon Pontrello带来滑棒吉他、班卓琴、卡祖笛与勺子等趣味现场音乐，还有鲜榨苹果汁、南瓜彩绘、农夫市集、幼儿友好小食与装扮及冬季装备义卖。鼓励装扮出席。"
+      ],
+      "description": "Rainier Valley Coop Preschool presents: Fall Festival and Open House October 3rd, 10am-12pm 5514 15th Ave S, Seattle, 98108 Everyone’s welcome: current families, alumni and curious about coop families! Featuring live music by Jon Pontrello — a musical adventurer who blends slide guitar, banjo, kazoo, and spoons into playful concerts for the whole family Fresh-pressed apple cider Pumpkin painting Farmers market Costumes & winter gear rummage sale Preschool-friendly snacks Costumes encouraged!",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Rainier Valley Co-op Preschool Fall Festival and Open House\n免费入场，Oct 3 · 10 a.m.–12 p.m. · Rainier Valley Cooperative Preschool\n\nAt Rainier Valley Cooperative Preschool. Festivals + Community, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-03",
+      "dateLabel": "Saturday, Oct. 3",
+      "timeLabel": "10 a.m.–12 p.m.",
+      "venue": "Rainier Valley Cooperative Preschool",
+      "venueAddress": "5514 15th Ave S, Seattle, WA, 98108, United States",
+      "latitude": 47.5529339,
+      "longitude": -122.3131879,
+      "distanceMiles": 3.78,
+      "parentMapDescription": "Rainier Valley Coop Preschool presents: Fall Festival and Open House October 3rd, 10am-12pm 5514 15th Ave S, Seattle, 98108 Everyone’s welcome: current families, alumni and curious about coop families! Featuring live music by Jon Pontrello — a musical adventurer who blends slide guitar, banjo, kazoo, and spoons into playful concerts for the whole family Fresh-pressed apple cider Pumpkin painting Farmers market Costumes & winter gear rummage sale Preschool-friendly snacks Costumes encouraged!",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/09/Fall-Festival-819x1024.png",
+      "eventUrl": "https://www.parentmap.com/calendar/rainier-valley-co-op-preschool-fall-festival-and-open-house/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-03&page=1&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "fall festival"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-seattle-2026-10-04-spooky-science-at-the-burke-museum",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "Spooky Science at the Burke Museum",
+      "theme": "Education + Learning",
+      "headline": "Seattle · 星期日亲子精选",
+      "bannerText": "一起发现身边的小惊喜！",
+      "highlights": [
+        "拼接动物身体部位、动手做只蝙蝠手工带回家，还能用玩偶练习标本准备。直面远古猛兽，了解为何有些矿物会发出诡异荧光，并探索华盛顿州洞穴的地质之谜。"
+      ],
+      "description": "Check out these Spooky Science activities in our Experience Alcoves! Floor 2 Biology Experience Alcove Animal Anatomy Test your animal anatomy skills by puzzling together body parts, craft a bat to take home, and practice your animal preparation skills on our stuffed animals. Floor 3 Paleontology Experience Alcove Caverns and Creatures Come face-to-face with one of the most terrifying creatures of the past, learn what gives some minerals a spooky glow, and uncover the geologic mysteries of Washington caves.",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Spooky Science at the Burke Museum\nOct 4 · 10 a.m.–5 p.m. · Burke Museum\n\nAt Burke Museum. Education + Learning, Play + Recreation.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-04",
+      "dateLabel": "Sunday, Oct. 4",
+      "timeLabel": "10 a.m.–5 p.m.",
+      "venue": "Burke Museum",
+      "venueAddress": "4303 Memorial Way NE, Seattle, WA, 98195, United States",
+      "latitude": 47.6605211,
+      "longitude": -122.3115605,
+      "distanceMiles": 3.87,
+      "parentMapDescription": "Check out these Spooky Science activities in our Experience Alcoves! Floor 2 Biology Experience Alcove Animal Anatomy Test your animal anatomy skills by puzzling together body parts, craft a bat to take home, and practice your animal preparation skills on our stuffed animals. Floor 3 Paleontology Experience Alcove Caverns and Creatures Come face-to-face with one of the most terrifying creatures of the past, learn what gives some minerals a spooky glow, and uncover the geologic mysteries of Washington caves.",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775188500095-image001-3-b3db4e7d9afc-1024x517.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/spooky-science-burke-museum/2026-10-04/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-04&page=1&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-bellevue-2026-10-03-autumn-moon-night-market",
+      "region": "Bellevue",
+      "city": "Bellevue",
+      "title": "Autumn Moon Night Market",
+      "theme": "Community event",
+      "headline": "Bellevue · 星期六亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "50+本地手作与创客齐聚，独一无二的好物和美味小吃等你淘。Mak Fai 狮子舞现场表演，节庆氛围十足。免费入场，适合全家同乐。"
+      ],
+      "description": "🏮🌙 AUTUMN MOON NIGHT MARKET IS COMING TO BELLEVUE! Enjoy local food & bites, local vendors, and a Mak Fai lion dance at 5pm. 🌙🏮Join us Saturday, October 3 from 2–7 PM at The Spring District for an unforgettable evening of local shopping, great food, culture and community!✨ 50+ local artisans & makers🍜 Delicious food & bites🛍️ One-of-a-kind finds🦁 Mak Fai Lion Dance LIVE at 5 PM!👨‍👩‍👧‍👦 FREE + all ages welcome!",
+      "caption": "这个周末去Bellevue玩什么？🌿\n\n推荐：Autumn Moon Night Market\nOct 3 · 2–7 p.m. · Bellevue\n\n🏮🌙 AUTUMN MOON NIGHT MARKET IS COMING TO BELLEVUE! Enjoy local food & bites, local vendors, and a Mak Fai lion dance at 5pm. 🌙🏮Join us Saturday, October 3 from 2–7 PM at The Spring District for an unforgettable evening of local shopping, great food, culture and community!✨ 50+ local artisans & makers🍜 Delicious food & bites🛍️ One-of-a-kind finds🦁 Mak Fai Lion Dance LIVE at 5 PM!👨‍👩‍👧‍👦 FREE + all ages welcome!\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：Bellevuewa official website",
+      "date": "2026-10-03",
+      "dateLabel": "Saturday, Oct 3",
+      "timeLabel": "2–7 p.m.",
+      "venue": "Bellevue",
+      "venueAddress": "450 110th Avenue NE Bellevue, WA 98004",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "",
+      "eventUrl": "https://bellevuewa.gov/events/autumn-moon-night-market",
+      "sourceUrl": "https://bellevuewa.gov/events/autumn-moon-night-market",
+      "source": "partnership",
+      "sourceLabel": "Bellevuewa official website",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-bellevue-2026-10-04-red-barn-farm-fall-festival",
+      "region": "Bellevue",
+      "city": "Bellevue",
+      "title": "Red Barn Farm Fall Festival",
+      "theme": "Play + Recreation",
+      "headline": "Bellevue · 星期日亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "🌿 可以体验户外与运动主题活动。💛 适合安排周末亲子时光。"
+      ],
+      "description": "Fall is just around the corner, and that means it’s time for our favorite tradition of the year! Join us at The Red Barn Farm in Redmond, WA for our 8th Annual Fall Festival, a family-friendly celebration full of autumn charm, exciting activities, and memories waiting to be made. When: Every October weekend: Saturdays & Sundays! Where: 5703 208th Ave NE, Redmond, WA 98053 Duration: 3 Hours | Last entry at 3:00 PM (activities end at 4 PM) Ticket Pricing Adults: $12 Children (Ages 1–17): $20 (includes 1 feed bag to feed the animals!) Infants (Under 1): Free Add-Ons U-Pick Flowers: $25-35 (includes vase + fill it with flowers of your choice) U-Pick Pumpkins: Traditional varieties at $0.58/lb | Specialty varieties at $0.89/lb Extra Feed Bags: can be purchased on site with all proceeds donated to our non-profit Gem Mining: This year, our nonprofit is excited to host a gem mining fundraiser! Discover crystals, shark teeth, fossils, gems, and more at this activity booth! Tickets (in the form of donations) will be available for purchase on-site. S’mores What’s Included Your ticket includes access to all our favorite fall activities: Face Painting Adult Axe Throwing (Ages 13+) & Rubber Axe Throwing for kids Barrel Train Rides Petting Zoo Animal Feed Bags Chicken Poop Bingo Rubber Duck Races at Playground Giant Bubble Station Cow Roping (practice, not real!) Fall Crafts in the Barn Mini ",
+      "caption": "这个周末去Bellevue玩什么？🌿\n\n推荐：Red Barn Farm Fall Festival\nOct 4 · 10 a.m.–4 p.m. · The Red Barn Farm\n\nAt The Red Barn Farm. Play + Recreation, Festivals + Community, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-04",
+      "dateLabel": "Sunday, Oct. 4",
+      "timeLabel": "10 a.m.–4 p.m.",
+      "venue": "The Red Barn Farm",
+      "venueAddress": "5703 208th Ave NE, Redmond, WA, 98053, United States",
+      "latitude": 47.6584269,
+      "longitude": -122.0629861,
+      "distanceMiles": 7.26,
+      "parentMapDescription": "Fall is just around the corner, and that means it’s time for our favorite tradition of the year! Join us at The Red Barn Farm in Redmond, WA for our 8th Annual Fall Festival, a family-friendly celebration full of autumn charm, exciting activities, and memories waiting to be made. When: Every October weekend: Saturdays & Sundays! Where: 5703 208th Ave NE, Redmond, WA 98053 Duration: 3 Hours | Last entry at 3:00 PM (activities end at 4 PM) Ticket Pricing Adults: $12 Children (Ages 1–17): $20 (includes 1 feed bag to feed the animals!) Infants (Under 1): Free Add-Ons U-Pick Flowers: $25-35 (includes vase + fill it with flowers of your choice) U-Pick Pumpkins: Traditional varieties at $0.58/lb | Specialty varieties at $0.89/lb Extra Feed Bags: can be purchased on site with all proceeds donated to our non-profit Gem Mining: This year, our nonprofit is excited to host a gem mining fundraiser! Discover crystals, shark teeth, fossils, gems, and more at this activity booth! Tickets (in the form of donations) will be available for purchase on-site. S’mores What’s Included Your ticket includes access to all our favorite fall activities: Face Painting Adult Axe Throwing (Ages 13+) & Rubber Axe Throwing for kids Barrel Train Rides Petting Zoo Animal Feed Bags Chicken Poop Bingo Rubber Duck Races at Playground Giant Bubble Station Cow Roping (practice, not real!) Fall Crafts in the Barn Mini ",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/09/Screenshot-2026-09-29-121508.png",
+      "eventUrl": "https://www.parentmap.com/calendar/red-barn-farm-fall-festival/2026-10-04/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-04&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "fall festival"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-tacoma-2026-10-03-storywalk-at-alderwood-park-c-sar-s-cerulean-surprise",
+      "region": "Tacoma",
+      "city": "Tacoma",
+      "title": "Storywalk at Alderwood Park: César’s Cerulean Surprise",
+      "theme": "Education + Learning",
+      "headline": "Tacoma · 星期六亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "📚 可以体验教育与探索主题活动。💛 适合安排周末亲子时光。"
+      ],
+      "description": "Walk along and read the Storywalk at Alderwood Park during the park’s open hours. The September/October title is César’s Cerulean Surprise by Jenny Lacika. César asks to borrow his sister Gabi’s cerulean crayon, but Gabi does not know what cerulean is and decides to identify the color by asking yes-no questions. It’s a window into an all-too-familiar sibling dynamic, a slice of life many readers can identify with. Along with the subtle math hints, both Gabi and César sprinkle in Spanish words. Further explanation can be found in an author’s note, along with interactive tips for adults, showing how to encourage the math connections during reading.",
+      "caption": "这个周末去Tacoma玩什么？🌿\n\n推荐：Storywalk at Alderwood Park: César’s Cerulean Surprise\n免费入场，Oct 3 · 8 a.m.–5:30 p.m. · Alderwood Park – Tacoma\n\nAt Alderwood Park – Tacoma. Education + Learning, Play + Recreation.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-03",
+      "dateLabel": "Saturday, Oct. 3",
+      "timeLabel": "8 a.m.–5:30 p.m.",
+      "venue": "Alderwood Park – Tacoma",
+      "venueAddress": "208 Browns Point Blvd, Tacoma, WA, 98422, United States",
+      "latitude": 47.3010869,
+      "longitude": -122.4213228,
+      "distanceMiles": 3.5,
+      "parentMapDescription": "Walk along and read the Storywalk at Alderwood Park during the park’s open hours. The September/October title is César’s Cerulean Surprise by Jenny Lacika. César asks to borrow his sister Gabi’s cerulean crayon, but Gabi does not know what cerulean is and decides to identify the color by asking yes-no questions. It’s a window into an all-too-familiar sibling dynamic, a slice of life many readers can identify with. Along with the subtle math hints, both Gabi and César sprinkle in Spanish words. Further explanation can be found in an author’s note, along with interactive tips for adults, showing how to encourage the math connections during reading.",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/08/storywalk__web-1024x512.png",
+      "eventUrl": "https://www.parentmap.com/calendar/storywalk-at-alderwood-park-cesars-cerulean-surprise/2026-10-03/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-03&page=1&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "story time"
+      ],
+      "recommendationReasons": [
+        "welcoming early-learning topic for young children",
+        "age fit for toddlers and preschoolers"
+      ],
+      "recommendationScore": 18,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-tacoma-2026-10-04-picha-farms-fall-festival",
+      "region": "Tacoma",
+      "city": "Tacoma",
+      "title": "Picha Farms Fall Festival",
+      "theme": "Play + Recreation",
+      "headline": "Tacoma · 星期日亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "🌿 可以体验户外与运动主题活动。💛 适合安排周末亲子时光。"
+      ],
+      "description": "Picha Farms is ready for you to come and enjoy some fall family fun on the farm. Here are the fun fall activities you get to experience: Check the Facebook page for updates.",
+      "caption": "这个周末去Tacoma玩什么？🌿\n\n推荐：Picha Farms Fall Festival\nOct 4 · 10 a.m.–6 p.m. · Picha Farms\n\nAt Picha Farms. Play + Recreation, Festivals + Community, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-04",
+      "dateLabel": "Sunday, Oct. 4",
+      "timeLabel": "10 a.m.–6 p.m.",
+      "venue": "Picha Farms",
+      "venueAddress": "6502 52nd ST E, Puyallup, WA, 98371, United States",
+      "latitude": 47.2096584,
+      "longitude": -122.3435963,
+      "distanceMiles": 5.59,
+      "parentMapDescription": "Picha Farms is ready for you to come and enjoy some fall family fun on the farm. Here are the fun fall activities you get to experience: Check the Facebook page for updates.",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775188293524-screenshot-2022-09-10-1341102-ab67441a3f8a.png",
+      "eventUrl": "https://www.parentmap.com/calendar/picha-farms-fall-festival/2026-10-04/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-04&page=3&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "fall festival"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
     {
       "id": "social-kirkland-2026-10-03-redmond-town-center-exotics-car-show",
       "region": "Kirkland",
@@ -16,10 +242,10 @@
       "headline": "Kirkland · 星期六亲子精选",
       "bannerText": "亲子时光，从今天开始！",
       "highlights": [
-        "全美最大的每周车聚，近距离欣赏各类超跑与稀有车型，亲子拍照过瘾。活动受天气影响，出发前记得查看更新。"
+        "全美最大的每周汽车聚会，云集各类超跑与珍稀车型。可近距离欣赏与拍照交流，感受引擎轰鸣的魅力。活动受天气影响，请留意当天更新。"
       ],
       "description": "Exotics at Redmond Town Center &#8211; Opening Day April 4th! Spring-Fall: Saturdays 9-11 AM Weather Dependent Join us for the largest weekly car gathering in the US, comprised of the [&hellip;]",
-      "caption": "这个周末去Kirkland玩什么？🌿\n\n推荐：Redmond Town Center Exotics Car Show\n2026-10-03 · 9–11 a.m. · Redmond Town Center\n\nExotics at Redmond Town Center &#8211; Opening Day April 4th! Spring-Fall: Saturdays 9-11 AM Weather Dependent Join us for the largest weekly car gathering in the US, comprised of the [&hellip;]\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：Experienceredmond official website",
+      "caption": "这个周末去Kirkland玩什么？🌿\n\n推荐：Redmond Town Center Exotics Car Show\nOct 3 · 9–11 a.m. · Redmond Town Center\n\nExotics at Redmond Town Center &#8211; Opening Day April 4th! Spring-Fall: Saturdays 9-11 AM Weather Dependent Join us for the largest weekly car gathering in the US, comprised of the [&hellip;]\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：Experienceredmond official website",
       "date": "2026-10-03",
       "dateLabel": "Saturday, Oct 3",
       "timeLabel": "9–11 a.m.",
@@ -32,7 +258,7 @@
       "imageUrl": "https://experienceredmond.com/wp-content/uploads/2023/07/279055135_10159180313102639_1443726874718971461_n.jpeg",
       "eventUrl": "https://experienceredmond.com/event/exotics-at-rtc/2026-10-03",
       "sourceUrl": "https://experienceredmond.com/event/exotics-at-rtc/2026-10-03",
-      "source": "forced-url",
+      "source": "partnership",
       "sourceLabel": "Experienceredmond official website",
       "matchingKeywords": [],
       "recommendationReasons": [],
@@ -40,53 +266,467 @@
       "author": "SproutCue",
       "status": "draft",
       "highlightSource": "openai"
+    },
+    {
+      "id": "social-kirkland-2026-10-04-remlinger-farms-fall-harvest-festival",
+      "region": "Kirkland",
+      "city": "Kirkland",
+      "title": "Remlinger Farms Fall Harvest Festival",
+      "theme": "Play + Recreation",
+      "headline": "Kirkland · 星期日亲子精选",
+      "bannerText": "带上家人，一起去玩！",
+      "highlights": [
+        "30多项游乐与景点，一条腕带全包，想玩几遍都行。南瓜村与自采田同步开放，亲子秋日好去处。打开 RideFinder 查看身高要求和本周末运营清单。"
+      ],
+      "description": "Opening weekend is Saturday, September 26. From October on we add Fridays — three full days a week of harvest, right through Sunday, November 1. Pumpkin Village and the U-Pick fields are open every day we are. Every open day runs 10 a.m. – 6 p.m. — gates close at six, every date on the list. Thirty-plus rides and attractions, all covered by one wristband — ride them once or ride them eleven times. Open the RideFinder for height requirements and this weekend’s operating list.",
+      "caption": "这个周末去Kirkland玩什么？🌿\n\n推荐：Remlinger Farms Fall Harvest Festival\nOct 4 · 10 a.m.–6 p.m. · Remlinger Farms\n\nAt Remlinger Farms. Play + Recreation, Festivals + Community, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-04",
+      "dateLabel": "Sunday, Oct. 4",
+      "timeLabel": "10 a.m.–6 p.m.",
+      "venue": "Remlinger Farms",
+      "venueAddress": "32610 NE 32nd St, Carnation, WA, 98014-6104, United States",
+      "latitude": 47.6394597,
+      "longitude": -121.9018759,
+      "distanceMiles": 14.39,
+      "parentMapDescription": "Opening weekend is Saturday, September 26. From October on we add Fridays — three full days a week of harvest, right through Sunday, November 1. Pumpkin Village and the U-Pick fields are open every day we are. Every open day runs 10 a.m. – 6 p.m. — gates close at six, every date on the list. Thirty-plus rides and attractions, all covered by one wristband — ride them once or ride them eleven times. Open the RideFinder for height requirements and this weekend’s operating list.",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775187473799-rides4-74f3aa8a2eb0.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/remlinger-farms-fall-harvest-festival-0/2026-10-04/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-04&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "harvest"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 18,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-lynnwood-2026-10-03-thomas-family-farm-fall-festival-fun-park",
+      "region": "Lynnwood",
+      "city": "Lynnwood",
+      "title": "Thomas Family Farm Fall Festival Fun Park",
+      "theme": "Play + Recreation",
+      "headline": "Lynnwood · 星期六亲子精选",
+      "bannerText": "把周末过成美好回忆！",
+      "highlights": [
+        "🌿 可以体验户外与运动主题活动。💛 适合安排周末亲子时光。"
+      ],
+      "description": "Welcome to Fun Park @ Thomas Family Farm. Open every Saturday and Sunday 10am-6pm in October. Fun Park will keep everyone entertained, big and little alike. Sports toss, tire climb, duck races, playground and more! A Fall Family Farm event wouldn’t be complete without a Pumpkin Patch & Corn Maze. We have 149 different varieties of pumpkins with over 140,000 to choose from! We have modified our corn maze to meet COVID policies. We increased path sizes to 8ft wide and decreased the distance to 2.1 miles. There is a halfway point where you can leave early once you reach that point. It will be muddy, wear sturdy footwear.",
+      "caption": "这个周末去Lynnwood玩什么？🌿\n\n推荐：Thomas Family Farm Fall Festival Fun Park\nOct 3 · 10 a.m.–6 p.m. · Thomas Family Farm\n\nAt Thomas Family Farm. Play + Recreation.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-03",
+      "dateLabel": "Saturday, Oct. 3",
+      "timeLabel": "10 a.m.–6 p.m.",
+      "venue": "Thomas Family Farm",
+      "venueAddress": "9010 Marsh Rd, SNOHOMISH, WA, 98296, United States",
+      "latitude": 47.8988596,
+      "longitude": -122.1110571,
+      "distanceMiles": 10.89,
+      "parentMapDescription": "Welcome to Fun Park @ Thomas Family Farm. Open every Saturday and Sunday 10am-6pm in October. Fun Park will keep everyone entertained, big and little alike. Sports toss, tire climb, duck races, playground and more! A Fall Family Farm event wouldn’t be complete without a Pumpkin Patch & Corn Maze. We have 149 different varieties of pumpkins with over 140,000 to choose from! We have modified our corn maze to meet COVID policies. We increased path sizes to 8ft wide and decreased the distance to 2.1 miles. There is a halfway point where you can leave early once you reach that point. It will be muddy, wear sturdy footwear.",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775184945589-screenshot-2022-09-09-201933-7568ca8ab248.png",
+      "eventUrl": "https://www.parentmap.com/calendar/thomas-family-farm-fall-festival-s3/2026-10-03/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-03&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "fall festival"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-lynnwood-2026-10-04-craven-farm-fall-festival",
+      "region": "Lynnwood",
+      "city": "Lynnwood",
+      "title": "Craven Farm Fall Festival",
+      "theme": "Play + Recreation",
+      "headline": "Lynnwood · 星期日亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "🌿 可以体验户外与运动主题活动。💛 适合安排周末亲子时光。"
+      ],
+      "description": "Named Washington State’s best pumpkin patch by “Readers Digest” in 2019, and more recently among the best pumpkin farms in the country (!), this farm is justifiably very popular, especially with younger kids. As the Snohomish Valley’s Original Pumpkin Patch, Craven Farm is a decades old tradition for many families. Continue your family tradition or start a new one this fall at Craven Farm! At Craven Farm, we’re dedicated to creating an enjoyable and memorable fall experience for everyone who visits us. Our farm offers an extensive range of activities to suit all age groups, including apple cannons and slingers, fair foods, espresso, and donuts. Our unique attractions like cow trains, wagon rides, multiple acres of themed corn mazes, jump pad & animals are sure to keep you entertained for hours on end. Visit us today and make some unforgettable memories with us this fall! Check out our huge list of pumpkin extravaganzas happening this year.",
+      "caption": "这个周末去Lynnwood玩什么？🌿\n\n推荐：Craven Farm Fall Festival\nOct 4 · 10 a.m.–6 p.m. · Craven Farm\n\nAt Craven Farm. Play + Recreation, Festivals + Community, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-04",
+      "dateLabel": "Sunday, Oct. 4",
+      "timeLabel": "10 a.m.–6 p.m.",
+      "venue": "Craven Farm",
+      "venueAddress": "13817 Shorts School Rd, Snohomish, WA, 98290-6907, United States",
+      "latitude": 47.8718861,
+      "longitude": -122.0757239,
+      "distanceMiles": 11.65,
+      "parentMapDescription": "Named Washington State’s best pumpkin patch by “Readers Digest” in 2019, and more recently among the best pumpkin farms in the country (!), this farm is justifiably very popular, especially with younger kids. As the Snohomish Valley’s Original Pumpkin Patch, Craven Farm is a decades old tradition for many families. Continue your family tradition or start a new one this fall at Craven Farm! At Craven Farm, we’re dedicated to creating an enjoyable and memorable fall experience for everyone who visits us. Our farm offers an extensive range of activities to suit all age groups, including apple cannons and slingers, fair foods, espresso, and donuts. Our unique attractions like cow trains, wagon rides, multiple acres of themed corn mazes, jump pad & animals are sure to keep you entertained for hours on end. Visit us today and make some unforgettable memories with us this fall! Check out our huge list of pumpkin extravaganzas happening this year.",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775187588608-craven-farm-pumpkin-patchjpg-ea0a337f1a6e.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/craven-farm-fall-festival-0/2026-10-04/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-04&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "fall festival"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-edmonds-2026-10-03-stocker-farms-fall-festival",
+      "region": "Edmonds",
+      "city": "Edmonds",
+      "title": "Stocker Farms Fall Festival",
+      "theme": "Festivals + Community",
+      "headline": "Edmonds · 星期六亲子精选",
+      "bannerText": "带上家人，一起去玩！",
+      "highlights": [
+        "玉米迷宫+自摘南瓜，30+农场项目任你玩。小猪赛跑、滑索、巨型滑梯和奶牛小火车适合全家。周末限定干草车、糖果炮和南瓜炮，拍照打卡别错过。"
+      ],
+      "description": "Plan your visit now to our Fall Festival to get the perfect photo op, U-Pick ‘Em Pumpkins, and explore our iconic Corn Maze! You’ll find something for everyone in our 30+ farm fun attractions! General Attractions: Some of our top attractions include: Entry into the U-Pick Pumpkin Patch, Corn Maze, Two Giant Jumping Pillows (weather permitting), Pumpkin Barn, One Mega Slide Ride, Zip Lines, Pig Races, Children’s Climbing Wall, Tractor Slide, Cow Train, Sport Ball Arcade, Corn Hole, Photo-Ops, Bubble Barn, Trike Track, Children’s Pumpkin Barn & More! Attractions Only Available on Weekends: Hay Ride, Candy Cannon & Pumpkin Cannon. Tickets and pricing . Image sourced from event website.",
+      "caption": "这个周末去Edmonds玩什么？🌿\n\n推荐：Stocker Farms Fall Festival\nOct 3 · 10 a.m.–6 p.m. · Stocker Farms\n\nAt Stocker Farms. Festivals + Community, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-03",
+      "dateLabel": "Saturday, Oct. 3",
+      "timeLabel": "10 a.m.–6 p.m.",
+      "venue": "Stocker Farms",
+      "venueAddress": "8705 Marsh Rd, Snohomish, WA, 98296, United States",
+      "latitude": 47.899066,
+      "longitude": -122.1149144,
+      "distanceMiles": 13.62,
+      "parentMapDescription": "Plan your visit now to our Fall Festival to get the perfect photo op, U-Pick ‘Em Pumpkins, and explore our iconic Corn Maze! You’ll find something for everyone in our 30+ farm fun attractions! General Attractions: Some of our top attractions include: Entry into the U-Pick Pumpkin Patch, Corn Maze, Two Giant Jumping Pillows (weather permitting), Pumpkin Barn, One Mega Slide Ride, Zip Lines, Pig Races, Children’s Climbing Wall, Tractor Slide, Cow Train, Sport Ball Arcade, Corn Hole, Photo-Ops, Bubble Barn, Trike Track, Children’s Pumpkin Barn & More! Attractions Only Available on Weekends: Hay Ride, Candy Cannon & Pumpkin Cannon. Tickets and pricing . Image sourced from event website.",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775185746733-screenshot-2022-09-09-135814-932cbc26b76c.png",
+      "eventUrl": "https://www.parentmap.com/calendar/stocker-farms-fall-festival/2026-10-03/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-03&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "fall festival"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-edmonds-2026-10-04-harvest-festival-at-swans-trail-farms",
+      "region": "Edmonds",
+      "city": "Edmonds",
+      "title": "Harvest Festival at Swans Trail Farms",
+      "theme": "Play + Recreation",
+      "headline": "Edmonds · 星期日亲子精选",
+      "bannerText": "把周末过成美好回忆！",
+      "highlights": [
+        "🌿 可以体验户外与运动主题活动。💛 适合安排周末亲子时光。"
+      ],
+      "description": "Get ready for fall fun at Swans Trail Farms, just 30 minutes from Seattle! Harvest Festival is open daily from 10 AM–6 PM, with U-Pick apples and pumpkins, family-friendly attractions, farm-fresh food, and plenty of fall memories to make. Don’t miss our magical pumpkin garden, a favorite spot for fall photos! Enjoy the full experience of the Harvest Festival with over 30+ farm fun attractions! Wander through the legendary Washington State Corn Maze, a 12-acre masterpiece meticulously shaped like our state. You’ll navigate 4.5 miles of paths, discovering over 700 state roads and landmarks. Afterward, warm up with our famous apple cider donuts and fresh-pressed cider, or visit our Cidery for a hard cider made with apples from our own orchard. With friendly farm animals and a charming Country Store full Image sourced from event website.",
+      "caption": "这个周末去Edmonds玩什么？🌿\n\n推荐：Harvest Festival at Swans Trail Farms\nOct 4 · 10 a.m.–6 p.m. · Swan’s Trail Farms\n\nAt Swan’s Trail Farms. Play + Recreation, Festivals + Community, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-04",
+      "dateLabel": "Sunday, Oct. 4",
+      "timeLabel": "10 a.m.–6 p.m.",
+      "venue": "Swan’s Trail Farms",
+      "venueAddress": "7301 Rivershore Rd., Snohomish, WA, 98290, United States",
+      "latitude": 47.9261315,
+      "longitude": -122.1585243,
+      "distanceMiles": 12.9,
+      "parentMapDescription": "Get ready for fall fun at Swans Trail Farms, just 30 minutes from Seattle! Harvest Festival is open daily from 10 AM–6 PM, with U-Pick apples and pumpkins, family-friendly attractions, farm-fresh food, and plenty of fall memories to make. Don’t miss our magical pumpkin garden, a favorite spot for fall photos! Enjoy the full experience of the Harvest Festival with over 30+ farm fun attractions! Wander through the legendary Washington State Corn Maze, a 12-acre masterpiece meticulously shaped like our state. You’ll navigate 4.5 miles of paths, discovering over 700 state roads and landmarks. Afterward, warm up with our famous apple cider donuts and fresh-pressed cider, or visit our Cidery for a hard cider made with apples from our own orchard. With friendly farm animals and a charming Country Store full Image sourced from event website.",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775190565890-wagon-ride--102b1d0eace0.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/harvest-festival-swans-trail-farms/2026-10-04/",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-04&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "harvest"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 18,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
     }
   ],
   "roundup": {
-    "title": "本周末亲子活动精选｜1城1场",
-    "caption": "这个周末，1 个城市都有适合家庭的活动！🌿\n\n本周亮点包括「Redmond Town Center Exotics Car Show」，适合安排轻松又充实的亲子时光。\n\n我们整理了 1 场地区亮点：\n\n1. Kirkland：Redmond Town Center Exotics Car Show\n   地点：Redmond Town Center · 7525 166th Ave NE, Redmond, Washington, 98052\n   亮点：全美最大的每周车聚，近距离欣赏各类超跑与稀有车型，亲子拍照过瘾。\n\n收藏这份周末清单，带上家人一起出门玩吧！\n\n想让周末更轻松？来 SproutCue 找附近的 playdate、游乐场、故事时间和周末活动吧！🛝📚 创建你的家庭卡片，认识附近愿意一起玩的家庭，一起发现更多亲子时光！💛\n\n资料整理：SproutCue\n活动日期：2026-10-03–2026-10-03",
+    "title": "本周末亲子活动精选｜6城8场",
+    "caption": "这个周末，6 个城市都有适合家庭的活动！🌿\n\n本周亮点包括「Rainier Valley Co-op Preschool Fall Festival and Open House」和「Spooky Science at the Burke Museum」，适合安排轻松又充实的亲子时光。从户外探索到社区活动，各个城市都有值得带孩子一起体验的选择。\n\n我们整理了 8 场地区亮点：\n\n1. Seattle：Rainier Valley Co-op Preschool Fall Festival and Open House\n   地点：Rainier Valley Cooperative Preschool · 5514 15th Ave S, Seattle, WA, 98108, United States\n   趋势关键词：fall festival\n   亮点：欢迎在园家庭、校友与感兴趣的家长参加秋季嘉年华与开放日。\n\n2. Seattle：Spooky Science at the Burke Museum\n   地点：Burke Museum · 4303 Memorial Way NE, Seattle, WA, 98195, United States\n   亮点：拼接动物身体部位、动手做只蝙蝠手工带回家，还能用玩偶练习标本准备。\n\n3. Bellevue：Red Barn Farm Fall Festival\n   地点：The Red Barn Farm · 5703 208th Ave NE, Redmond, WA, 98053, United States\n   趋势关键词：fall festival\n   亮点：🌿 可以体验户外与运动主题活动。\n\n4. Bellevue：Autumn Moon Night Market\n   地点：Bellevue · 450 110th Avenue NE Bellevue, WA 98004\n   亮点：50+本地手作与创客齐聚，独一无二的好物和美味小吃等你淘。\n\n5. Tacoma：Picha Farms Fall Festival\n   地点：Picha Farms · 6502 52nd ST E, Puyallup, WA, 98371, United States\n   趋势关键词：fall festival\n   亮点：🌿 可以体验户外与运动主题活动。\n\n6. Kirkland：Remlinger Farms Fall Harvest Festival\n   地点：Remlinger Farms · 32610 NE 32nd St, Carnation, WA, 98014-6104, United States\n   趋势关键词：harvest\n   亮点：30多项游乐与景点，一条腕带全包，想玩几遍都行。\n\n7. Lynnwood：Thomas Family Farm Fall Festival Fun Park\n   地点：Thomas Family Farm · 9010 Marsh Rd, SNOHOMISH, WA, 98296, United States\n   趋势关键词：fall festival\n   亮点：🌿 可以体验户外与运动主题活动。\n\n8. Edmonds：Stocker Farms Fall Festival\n   地点：Stocker Farms · 8705 Marsh Rd, Snohomish, WA, 98296, United States\n   趋势关键词：fall festival\n   亮点：玉米迷宫+自摘南瓜，30+农场项目任你玩。\n\n收藏这份周末清单，带上家人一起出门玩吧！\n\n想让周末更轻松？来 SproutCue 找附近的 playdate、游乐场、故事时间和周末活动吧！🛝📚 创建你的家庭卡片，认识附近愿意一起玩的家庭，一起发现更多亲子时光！💛\n\n资料整理：SproutCue\n活动日期：2026-10-03–2026-10-04",
     "posts": [
       {
-        "city": "Kirkland",
-        "title": "Redmond Town Center Exotics Car Show",
+        "city": "Seattle",
+        "title": "Rainier Valley Co-op Preschool Fall Festival and Open House",
         "date": "2026-10-03",
-        "dateLabel": "Saturday, Oct 3",
-        "timeLabel": "9–11 a.m.",
-        "venue": "Redmond Town Center",
-        "venueAddress": "7525 166th Ave NE, Redmond, Washington, 98052",
+        "dateLabel": "Saturday, Oct. 3",
+        "timeLabel": "10 a.m.–12 p.m.",
+        "venue": "Rainier Valley Cooperative Preschool",
+        "venueAddress": "5514 15th Ave S, Seattle, WA, 98108, United States",
         "highlights": [
-          "全美最大的每周车聚，近距离欣赏各类超跑与稀有车型，亲子拍照过瘾。活动受天气影响，出发前记得查看更新。"
+          "欢迎在园家庭、校友与感兴趣的家长参加秋季嘉年华与开放日。Jon Pontrello带来滑棒吉他、班卓琴、卡祖笛与勺子等趣味现场音乐，还有鲜榨苹果汁、南瓜彩绘、农夫市集、幼儿友好小食与装扮及冬季装备义卖。鼓励装扮出席。"
+        ],
+        "matchingKeywords": [
+          "fall festival"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/rainier-valley-co-op-preschool-fall-festival-and-open-house/"
+      },
+      {
+        "city": "Seattle",
+        "title": "Spooky Science at the Burke Museum",
+        "date": "2026-10-04",
+        "dateLabel": "Sunday, Oct. 4",
+        "timeLabel": "10 a.m.–5 p.m.",
+        "venue": "Burke Museum",
+        "venueAddress": "4303 Memorial Way NE, Seattle, WA, 98195, United States",
+        "highlights": [
+          "拼接动物身体部位、动手做只蝙蝠手工带回家，还能用玩偶练习标本准备。直面远古猛兽，了解为何有些矿物会发出诡异荧光，并探索华盛顿州洞穴的地质之谜。"
         ],
         "matchingKeywords": [],
         "recommendationReasons": [],
-        "sourceLabel": "Experienceredmond official website",
-        "eventUrl": "https://experienceredmond.com/event/exotics-at-rtc/2026-10-03"
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/spooky-science-burke-museum/2026-10-04/"
+      },
+      {
+        "city": "Bellevue",
+        "title": "Red Barn Farm Fall Festival",
+        "date": "2026-10-04",
+        "dateLabel": "Sunday, Oct. 4",
+        "timeLabel": "10 a.m.–4 p.m.",
+        "venue": "The Red Barn Farm",
+        "venueAddress": "5703 208th Ave NE, Redmond, WA, 98053, United States",
+        "highlights": [
+          "🌿 可以体验户外与运动主题活动。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [
+          "fall festival"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/red-barn-farm-fall-festival/2026-10-04/"
+      },
+      {
+        "city": "Bellevue",
+        "title": "Autumn Moon Night Market",
+        "date": "2026-10-03",
+        "dateLabel": "Saturday, Oct 3",
+        "timeLabel": "2–7 p.m.",
+        "venue": "Bellevue",
+        "venueAddress": "450 110th Avenue NE Bellevue, WA 98004",
+        "highlights": [
+          "50+本地手作与创客齐聚，独一无二的好物和美味小吃等你淘。Mak Fai 狮子舞现场表演，节庆氛围十足。免费入场，适合全家同乐。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "Bellevuewa official website",
+        "eventUrl": "https://bellevuewa.gov/events/autumn-moon-night-market"
+      },
+      {
+        "city": "Tacoma",
+        "title": "Picha Farms Fall Festival",
+        "date": "2026-10-04",
+        "dateLabel": "Sunday, Oct. 4",
+        "timeLabel": "10 a.m.–6 p.m.",
+        "venue": "Picha Farms",
+        "venueAddress": "6502 52nd ST E, Puyallup, WA, 98371, United States",
+        "highlights": [
+          "🌿 可以体验户外与运动主题活动。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [
+          "fall festival"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/picha-farms-fall-festival/2026-10-04/"
+      },
+      {
+        "city": "Kirkland",
+        "title": "Remlinger Farms Fall Harvest Festival",
+        "date": "2026-10-04",
+        "dateLabel": "Sunday, Oct. 4",
+        "timeLabel": "10 a.m.–6 p.m.",
+        "venue": "Remlinger Farms",
+        "venueAddress": "32610 NE 32nd St, Carnation, WA, 98014-6104, United States",
+        "highlights": [
+          "30多项游乐与景点，一条腕带全包，想玩几遍都行。南瓜村与自采田同步开放，亲子秋日好去处。打开 RideFinder 查看身高要求和本周末运营清单。"
+        ],
+        "matchingKeywords": [
+          "harvest"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/remlinger-farms-fall-harvest-festival-0/2026-10-04/"
+      },
+      {
+        "city": "Lynnwood",
+        "title": "Thomas Family Farm Fall Festival Fun Park",
+        "date": "2026-10-03",
+        "dateLabel": "Saturday, Oct. 3",
+        "timeLabel": "10 a.m.–6 p.m.",
+        "venue": "Thomas Family Farm",
+        "venueAddress": "9010 Marsh Rd, SNOHOMISH, WA, 98296, United States",
+        "highlights": [
+          "🌿 可以体验户外与运动主题活动。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [
+          "fall festival"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/thomas-family-farm-fall-festival-s3/2026-10-03/"
+      },
+      {
+        "city": "Edmonds",
+        "title": "Stocker Farms Fall Festival",
+        "date": "2026-10-03",
+        "dateLabel": "Saturday, Oct. 3",
+        "timeLabel": "10 a.m.–6 p.m.",
+        "venue": "Stocker Farms",
+        "venueAddress": "8705 Marsh Rd, Snohomish, WA, 98296, United States",
+        "highlights": [
+          "玉米迷宫+自摘南瓜，30+农场项目任你玩。小猪赛跑、滑索、巨型滑梯和奶牛小火车适合全家。周末限定干草车、糖果炮和南瓜炮，拍照打卡别错过。"
+        ],
+        "matchingKeywords": [
+          "fall festival"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/stocker-farms-fall-festival/2026-10-03/"
       }
     ],
     "startDate": "2026-10-03",
-    "endDate": "2026-10-03",
+    "endDate": "2026-10-04",
     "author": "SproutCue"
   },
   "source": "mixed",
-  "searchMode": "forced-url",
+  "searchMode": "parentmap-venue-distance",
   "maxDistanceMiles": 15,
-  "slotCount": 1,
-  "generatedAt": "2026-09-29T03:14:44.486Z",
+  "slotCount": 12,
+  "generatedAt": "2026-09-30T02:28:31.679Z",
   "statuses": [
+    {
+      "city": "Seattle",
+      "day": "2026-10-03",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected. Venue is 3.78 miles from Seattle.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-03&page=1&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Seattle",
+      "day": "2026-10-04",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected. Venue is 3.87 miles from Seattle.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-04&page=1&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Bellevue",
+      "day": "2026-10-03",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Bellevuewa official website result selected.",
+      "sourceUrl": "https://bellevuewa.gov/events/autumn-moon-night-market"
+    },
+    {
+      "city": "Bellevue",
+      "day": "2026-10-04",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected. Venue is 7.26 miles from Bellevue.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-04&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Tacoma",
+      "day": "2026-10-03",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected. Venue is 3.5 miles from Tacoma.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-03&page=1&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Tacoma",
+      "day": "2026-10-04",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected. Venue is 5.59 miles from Tacoma.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-04&page=3&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
     {
       "city": "Kirkland",
       "day": "2026-10-03",
       "matched": true,
       "fallback": false,
-      "providerStatus": "Command-line forced URL result selected.",
+      "providerStatus": "Experienceredmond official website result selected.",
       "sourceUrl": "https://experienceredmond.com/event/exotics-at-rtc/2026-10-03"
+    },
+    {
+      "city": "Kirkland",
+      "day": "2026-10-04",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected. Venue is 14.39 miles from Kirkland.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-04&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Lynnwood",
+      "day": "2026-10-03",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected. Venue is 10.89 miles from Lynnwood.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-03&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Lynnwood",
+      "day": "2026-10-04",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected. Venue is 11.65 miles from Lynnwood.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-04&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Edmonds",
+      "day": "2026-10-03",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected. Venue is 13.62 miles from Edmonds.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-03&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+    },
+    {
+      "city": "Edmonds",
+      "day": "2026-10-04",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "ParentMap result selected. Venue is 12.9 miles from Edmonds.",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-04&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
     }
   ],
   "imageDirectory": "/Users/iriswei/Documents/AaronDaily/output/social-posts",
   "imageGenCommand": "/Users/iriswei/.codex/skills/.system/imagegen/scripts/image_gen.py",
   "posterLimit": 8,
-  "existingPosterCount": 30,
-  "skippedExistingPosterCount": 0,
+  "existingPosterCount": 31,
+  "skippedExistingPosterCount": 8,
   "regenerationRequests": [],
   "feedback": "",
   "rejectedEvents": [
@@ -253,17 +893,34 @@
   ],
   "unmatchedRegenerationRequests": [],
   "sampleRun": false,
-  "posterPostIds": [
-    "social-kirkland-2026-10-03-redmond-town-center-exotics-car-show"
-  ],
+  "posterPostIds": [],
   "posterSetPostIds": [
-    "social-kirkland-2026-10-03-redmond-town-center-exotics-car-show"
+    "social-seattle-2026-10-03-rainier-valley-co-op-preschool-fall-festival-and-open-house",
+    "social-seattle-2026-10-04-spooky-science-at-the-burke-museum",
+    "social-bellevue-2026-10-04-red-barn-farm-fall-festival",
+    "social-bellevue-2026-10-03-autumn-moon-night-market",
+    "social-tacoma-2026-10-04-picha-farms-fall-festival",
+    "social-kirkland-2026-10-04-remlinger-farms-fall-harvest-festival",
+    "social-lynnwood-2026-10-03-thomas-family-farm-fall-festival-fun-park",
+    "social-edmonds-2026-10-03-stocker-farms-fall-festival"
   ],
   "posterLimitByCity": {
-    "Kirkland": 1
+    "Seattle": 2,
+    "Bellevue": 2,
+    "Tacoma": 1,
+    "Kirkland": 1,
+    "Lynnwood": 1,
+    "Edmonds": 1
   },
   "roundupPostIds": [
-    "social-kirkland-2026-10-03-redmond-town-center-exotics-car-show"
+    "social-seattle-2026-10-03-rainier-valley-co-op-preschool-fall-festival-and-open-house",
+    "social-seattle-2026-10-04-spooky-science-at-the-burke-museum",
+    "social-bellevue-2026-10-04-red-barn-farm-fall-festival",
+    "social-bellevue-2026-10-03-autumn-moon-night-market",
+    "social-tacoma-2026-10-04-picha-farms-fall-festival",
+    "social-kirkland-2026-10-04-remlinger-farms-fall-harvest-festival",
+    "social-lynnwood-2026-10-03-thomas-family-farm-fall-festival-fun-park",
+    "social-edmonds-2026-10-03-stocker-farms-fall-festival"
   ],
   "roundupWordLimit": 670
 }

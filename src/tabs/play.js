@@ -384,7 +384,7 @@ export function resetPlayState(state) {
   state.familyEventsLoading = false;
   state.familyEventsRequestKey = '';
   state.storyTimes = [];
-  state.storyTimesStatus = 'Save a location to find nearby story times.';
+  state.storyTimesStatus = 'Loading story times from Seattle and King County libraries.';
   state.storyTimesMeta = null;
   state.storyTimesLoading = false;
   state.storyTimesRequestKey = '';
@@ -632,26 +632,22 @@ async function loadFamilyEvents(ctx, options = {}) {
 }
 
 function storyTimeRequestKey(state) {
-  const location = getUserLocation(state);
-  return `${state.user?.id || ''}|${shortLocation(location).toLowerCase()}`;
+  return `${state.user?.id || ''}|all-libraries`;
 }
 
 async function loadStoryTimes(ctx, options = {}) {
   const { state } = ctx;
   if (!state.user) return;
   const location = getUserLocation(state);
-  if (!location) { state.storyTimes = []; state.storyTimesMeta = null; state.storyTimesStatus = 'Save a location to find nearby story times.'; if (state.tab === 'play') ctx.renderCurrent(); return; }
   const requestKey = storyTimeRequestKey(state);
   if (!options.force && state.storyTimesRequestKey === requestKey && state.storyTimesMeta) return;
   const requestId = ++storyTimeRequestId;
   state.storyTimesRequestKey = requestKey;
   state.storyTimesLoading = true;
-  state.storyTimesStatus = `Finding story times near ${shortLocation(location)}...`;
+  state.storyTimesStatus = 'Finding story times from Seattle and King County libraries...';
   if (state.tab === 'play') ctx.renderCurrent();
   try {
-    const coords = getLocationCoords(location);
-    const { searchRadiusMiles } = normalizePlayPreferences(state.user?.playPreferences);
-    const result = await loadDiscover({ location, radiusMiles: searchRadiusMiles, kinds: ['story_time'], forceRefresh: options.force });
+    const result = await loadDiscover({ location, kinds: ['story_time'], forceRefresh: options.force });
     const payload = result.sources.storyTimes.payload;
     if (requestId !== storyTimeRequestId) return;
     if (result.sources.storyTimes.status === 'error') throw new Error(result.sources.storyTimes.error);
@@ -659,7 +655,7 @@ async function loadStoryTimes(ctx, options = {}) {
     state.storyTimesMeta = payload;
     state.storyTimesLoading = false;
     state.storyTimesStatus = state.storyTimes.length
-      ? `Showing ${state.storyTimes.length} ${payload.cached ? 'cached' : 'updated'} story time${state.storyTimes.length === 1 ? '' : 's'} from ${payload.sourceLabel || 'library calendars'}${coords ? ` within ${searchRadiusMiles} miles` : ''}.`
+      ? `Showing all ${state.storyTimes.length} ${payload.cached ? 'cached' : 'updated'} story time${state.storyTimes.length === 1 ? '' : 's'} from ${payload.sourceLabel || 'library calendars'}.`
       : `No story times found for the next week. Open the source calendar for the latest schedule.`;
   } catch (error) {
     if (requestId !== storyTimeRequestId) return;

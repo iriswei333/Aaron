@@ -1,9 +1,16 @@
 import { apiRequest, escapeAttribute, escapeHtml, icon, writeStoredValue } from '../shared.js';
-import { childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
+import { childAgeLabel, childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
 
 const DEFAULT_ALBUM_LINK = 'photos-redirect://';
 const DEFAULT_HOME_BACKGROUND_KEY = 'morning-table';
 const HOME_BACKGROUND_STORAGE_KEY = 'sproutCueHomeBackgroundKey';
+const DEFAULT_PLAYDATE_PLAN_IMAGE = '/backgrounds/parenting-playground-default.png';
+const DEFAULT_EVENT_PLAN_IMAGE = '/backgrounds/parenting-home-default.png';
+const TODAY_STORY_GOALS = [
+  { id: 'making-friends', icon: '☺', label: 'Making friends', detail: 'Practice saying hello and joining play.' },
+  { id: 'washing-hands', icon: '🫧', label: 'Washing hands', detail: 'Practice the after-playground clean-up routine.' },
+  { id: 'leaving-playground', icon: '👋', label: 'Leaving the playground', detail: 'Practice one more turn, goodbye, and going home.' },
+];
 
 const defaultBackgrounds = [
   {
@@ -43,6 +50,13 @@ export function resetHomeState(state) {
   state.homeSocialPoster = null;
   state.homeSocialPosterStatus = '';
   state.homeSocialPosterLoading = false;
+  state.showTodayStory = false;
+  state.todayStoryGoal = 'making-friends';
+  state.todayStoryGenerating = false;
+  state.todayStorySaving = false;
+  state.todayStoryStatus = '';
+  state.todayStoryResult = null;
+  state.todayStorySaved = false;
 }
 
 async function loadHomeSocialPoster(ctx) {
@@ -294,9 +308,18 @@ function homePlanTimestamp(item) {
 
 function upcomingHomePlans(state) {
   const now = Date.now();
+  const playgrounds = state.nearbyPlayOptions || [];
   const playDates = (state.profilePlayDates || [])
     .filter((item) => item.status !== 'cancelled' && new Date(item.endsAt || item.startsAt).getTime() >= now)
-    .map((item) => ({ ...item, homeKind: 'playdate' }));
+    .map((item) => {
+      const playground = playgrounds.find((option) => option.key === item.playgroundKey)
+        || playgrounds.find((option) => option.name === item.playgroundName);
+      return {
+        ...item,
+        homeKind: 'playdate',
+        imageUrl: item.playgroundImageUrl || item.imageUrl || playground?.imageUrl || '',
+      };
+    });
   const familyPlans = selectedHomeFamilyPlans(state).map((item) => ({ ...item, homeKind: item.kind }));
   return [...playDates, ...familyPlans].sort((a, b) => homePlanTimestamp(a) - homePlanTimestamp(b));
 }
@@ -310,6 +333,8 @@ function homePlanView(plan) {
       title: plan.playgroundName || 'Neighborhood playdate',
       when: `${timing.date} · ${timing.time}`,
       where: plan.playgroundAddress || 'Nearby playground',
+      detail: [plan.playgroundType, plan.ageRange, plan.notes].filter(Boolean).join(' · '),
+      image: plan.imageUrl || DEFAULT_PLAYDATE_PLAN_IMAGE,
       focus: 'playdates',
     };
   }
@@ -325,6 +350,8 @@ function homePlanView(plan) {
     title: plan.title || (isStoryTime ? 'Story time' : 'Family event'),
     when: `${dateLabel} · ${plan.metadata?.timeLabel || plan.timeLabel || 'Time TBD'}`,
     where: plan.venue || plan.summary || 'Family-friendly place nearby',
+    detail: plan.summary || plan.metadata?.sourceLabel || plan.source || '',
+    image: plan.imageUrl || DEFAULT_EVENT_PLAN_IMAGE,
     focus: isStoryTime ? 'story-times' : 'family-events',
   };
 }
@@ -333,7 +360,10 @@ function renderTodayPlans(plans) {
   if (!plans.length) return '';
   const featured = homePlanView(plans[0]);
   const remaining = plans.slice(1, 4);
-  return `<section class="today-plans" aria-labelledby="today-plans-title"><div class="today-section-title"><div><p class="eyebrow">Something to look forward to</p><h2 id="today-plans-title">Your family’s plans</h2><p>Playdates, events, and story times in one calm list.</p></div><button type="button" class="text-button" data-home-tab="play">View all →</button></div><button type="button" class="today-plan-feature" data-home-tab="play" data-home-focus="${featured.focus}"><span class="today-plan-icon" aria-hidden="true">${featured.icon}</span><span class="today-plan-copy"><small>${escapeHtml(featured.type)} · ${escapeHtml(featured.when)}</small><strong>${escapeHtml(featured.title)}</strong><span>${escapeHtml(featured.where)}</span></span><b aria-hidden="true">→</b></button>${remaining.length ? `<div class="today-plan-list">${remaining.map((plan) => { const view = homePlanView(plan); return `<button type="button" class="today-plan-row" data-home-tab="play" data-home-focus="${view.focus}"><span aria-hidden="true">${view.icon}</span><span><small>${escapeHtml(view.type)} · ${escapeHtml(view.when)}</small><strong>${escapeHtml(view.title)}</strong></span><b aria-hidden="true">→</b></button>`; }).join('')}</div>` : ''}</section>`;
+  const remainingMarkup = remaining.length
+    ? `<div class="today-plan-list">${remaining.map((plan) => { const view = homePlanView(plan); return `<button type="button" class="today-plan-row" data-home-tab="play" data-home-focus="${view.focus}"><span aria-hidden="true">${view.icon}</span><span><small>${escapeHtml(view.type)} · ${escapeHtml(view.when)}</small><strong>${escapeHtml(view.title)}</strong><em>${escapeHtml(view.where)}</em></span><b aria-hidden="true">→</b></button>`; }).join('')}</div>`
+    : '<div class="today-plan-list-empty"><span aria-hidden="true">＋</span><strong>Room for another little adventure</strong><small>Find a playdate, weekend event, or story time to add here.</small></div>';
+  return `<section class="today-plans" aria-labelledby="today-plans-title"><div class="today-section-title"><div><p class="eyebrow">Something to look forward to</p><h2 id="today-plans-title">Your family’s plans</h2><p>Playdates, events, and story times in one calm place.</p></div><button type="button" class="text-button" data-home-tab="play">View all →</button></div><div class="today-plan-layout"><aside class="today-plan-sidebar" aria-label="More upcoming plans"><div class="today-plan-sidebar-heading"><p class="eyebrow">Coming up next</p><h3>More family plans</h3></div>${remainingMarkup}<button type="button" class="secondary-button today-plan-explore" data-home-tab="play">Explore more plans</button></aside><button type="button" class="today-plan-feature" style="--today-plan-image: url('${escapeAttribute(featured.image)}')" data-home-tab="play" data-home-focus="${featured.focus}" aria-label="Open ${escapeAttribute(featured.title)}"><span class="today-plan-badge">${featured.icon} Your next plan</span><span class="today-plan-copy"><small>${escapeHtml(featured.type)} · ${escapeHtml(featured.when)}</small><strong>${escapeHtml(featured.title)}</strong><span>${escapeHtml(featured.where)}</span>${featured.detail && featured.detail !== featured.where ? `<span class="today-plan-detail">${escapeHtml(featured.detail)}</span>` : ''}<span class="today-plan-open">View plan <b aria-hidden="true">↗</b></span></span></button></div></section>`;
 }
 
 function todayRecommendation(state, childName) {
@@ -373,6 +403,75 @@ function renderHomeEventCards(state) {
   }).join('')}</div>`;
 }
 
+function resetTodayStory(state, { close = false } = {}) {
+  state.todayStoryGenerating = false;
+  state.todayStorySaving = false;
+  state.todayStoryStatus = '';
+  state.todayStoryResult = null;
+  state.todayStorySaved = false;
+  if (close) state.showTodayStory = false;
+}
+
+async function generateTodayStory(ctx) {
+  const { state } = ctx;
+  state.todayStoryGenerating = true;
+  state.todayStoryStatus = 'Writing a two-minute playground story…';
+  state.todayStoryResult = null;
+  state.todayStorySaved = false;
+  ctx.renderCurrent();
+  try {
+    const result = await apiRequest('/family-assets/practice-stories/playground', {
+      method: 'POST',
+      body: JSON.stringify({ goalId: state.todayStoryGoal }),
+    });
+    state.todayStoryResult = result.story;
+    state.todayStoryStatus = 'Story ready. Read it together or save it for later.';
+  } catch (error) {
+    state.todayStoryStatus = `Could not create the story: ${error.message}`;
+  }
+  state.todayStoryGenerating = false;
+  ctx.renderCurrent();
+}
+
+async function saveTodayStory(ctx) {
+  const { state } = ctx;
+  if (!state.todayStoryResult || state.todayStorySaved) return;
+  state.todayStorySaving = true;
+  state.todayStoryStatus = 'Saving to Family AI Assets…';
+  ctx.renderCurrent();
+  try {
+    const result = await apiRequest('/family-assets/practice-stories/playground', {
+      method: 'PUT',
+      body: JSON.stringify({ story: state.todayStoryResult }),
+    });
+    state.todayStorySaved = true;
+    state.todayStoryStatus = 'Saved to Family AI Assets.';
+    state.practiceStoryAssets = [result.asset, ...(state.practiceStoryAssets || []).filter((asset) => asset.id !== result.asset.id)];
+    state.practiceStoryAssetsLoaded = true;
+    state.familyAssetsLoaded = false;
+  } catch (error) {
+    state.todayStoryStatus = `Could not save the story: ${error.message}`;
+  }
+  state.todayStorySaving = false;
+  ctx.renderCurrent();
+}
+
+function todayAdventureMarkup(recommendation, childName) {
+  return `<section class="today-adventure-grid" aria-labelledby="today-adventure-title"><article class="today-adventure-card" style="--today-adventure-image: url('${escapeAttribute(recommendation.image)}')"><div class="today-adventure-copy"><span class="today-adventure-badge">Your next little adventure</span><h2 id="today-adventure-title">${escapeHtml(recommendation.title)}</h2><p>${escapeHtml(recommendation.description)}</p><small>${escapeHtml(recommendation.detail)}</small><button type="button" data-home-tab="play"${recommendation.focus ? ` data-home-focus="${recommendation.focus}"` : ''}>Explore this adventure <span aria-hidden="true">↗</span></button></div></article><aside class="today-journey-card"><p class="eyebrow">More than a place to go</p><h2>Make a little day of it</h2><ol><li><span>1</span><div><strong>Get ready together</strong><p>Talk about one thing ${escapeHtml(childName)} might see or try.</p></div></li><li><span>2</span><div><strong>Bring one familiar toy</strong><p>Use it to start a simple game while you explore.</p></div></li><li><span>3</span><div><strong>Keep one small memory</strong><p>Name a favorite moment on the way home.</p></div></li></ol><button type="button" class="secondary-button" data-open-today-story>Find a getting-ready story</button></aside></section>`;
+}
+
+function todayStoryModal(state, childProfile) {
+  if (!state.showTodayStory) return '';
+  const childName = childDisplayName(childProfile);
+  const age = childAgeLabel(childProfile) || 'age saved in profile';
+  const result = state.todayStoryResult;
+  const story = result?.story;
+  const options = TODAY_STORY_GOALS.map((goal) => `<button type="button" class="today-story-goal ${state.todayStoryGoal === goal.id ? 'selected' : ''}" data-today-story-goal="${goal.id}" aria-pressed="${state.todayStoryGoal === goal.id}" ${state.todayStoryGenerating ? 'disabled' : ''}><span aria-hidden="true">${goal.icon}</span><strong>${escapeHtml(goal.label)}</strong><small>${escapeHtml(goal.detail)}</small></button>`).join('');
+  const chooser = `<form id="today-story-form" class="today-story-form"><div class="today-story-goals">${options}</div><button type="submit" ${state.todayStoryGenerating ? 'disabled' : ''}>${state.todayStoryGenerating ? 'Creating the story…' : `Create ${escapeHtml(childName)}’s story`} <span aria-hidden="true">→</span></button></form>`;
+  const preview = story ? `<section class="today-story-preview"><div class="today-story-preview-heading"><div><p class="eyebrow">About 2 minutes · ${escapeHtml(result.goal || '')}</p><h2>${escapeHtml(story.title)}</h2><p>${escapeHtml(story.summary)}</p></div></div><div class="today-story-scenes">${(story.scenes || []).map((scene, index) => `<article><span>${index + 1}</span><div><h3>${escapeHtml(scene.heading)}</h3><p>${escapeHtml(scene.storyText)}</p><small>Try together: ${escapeHtml(scene.practiceCue)}</small></div></article>`).join('')}</div>${story.celebration ? `<blockquote>${escapeHtml(story.celebration)}</blockquote>` : ''}<div class="today-story-actions"><button type="button" class="secondary-button" data-new-today-story>Choose another goal</button><button type="button" data-save-today-story ${state.todayStorySaving || state.todayStorySaved ? 'disabled' : ''}>${state.todayStorySaved ? '✓ Saved to family assets' : state.todayStorySaving ? 'Saving…' : 'Save to family assets'}</button></div></section>` : chooser;
+  return `<div class="modal-backdrop today-story-backdrop" data-close-today-story tabindex="-1"><section class="modal-dialog today-story-dialog" role="dialog" aria-modal="true" aria-labelledby="today-story-title"><button type="button" class="icon-button today-story-close" data-close-today-story aria-label="Close story maker">×</button><header><p class="eyebrow">Playground practice story</p><h2 id="today-story-title">Get ${escapeHtml(childName)} ready through a story</h2><p>Choose one moment to practice. The story uses ${escapeHtml(childName)}’s name and age from the family profile.</p><span>${escapeHtml(childName)} · ${escapeHtml(age)}</span></header>${preview}${state.todayStoryStatus ? `<p class="studio-message" role="status">${escapeHtml(state.todayStoryStatus)}</p>` : ''}</section></div>`;
+}
+
 export function renderHome(ctx) {
   const { state } = ctx;
   const childProfile = getChildProfile(state.user);
@@ -382,7 +481,8 @@ export function renderHome(ctx) {
   const plans = upcomingHomePlans(state);
   const recommendation = todayRecommendation(state, childName);
   const locationLabel = state.user?.location?.address || state.user?.location?.label || 'Set your neighborhood';
-  ctx.layout(`<main class="home-layout today-page">${renderTodayPlans(plans)}<header class="today-greeting"><div><button type="button" class="today-location-pill" data-home-tab="profile">⌖ ${escapeHtml(locationLabel)}</button><p class="eyebrow">Little adventures, together</p><h1>What shall we do<br />with ${escapeHtml(childName)} today?</h1><p>A nearby adventure. A new way to play.<br />A little less planning for you, ${escapeHtml(parent)}.</p></div><div class="home-weather"><span aria-hidden="true">${weather.label?.toLowerCase().includes('rain') ? '☔' : '☀️'}</span><strong>${escapeHtml(weather.temperature || '--')}</strong><small>${escapeHtml(weather.label || 'Weather loading')}</small></div></header><section class="today-intents" aria-label="Choose what your family needs"><button type="button" class="today-intent active" data-home-tab="play"><span aria-hidden="true">☀</span><strong>Go somewhere</strong><small>Places and events nearby</small></button><button type="button" class="today-intent" data-home-tab="play" data-home-focus="playdates"><span aria-hidden="true">☺</span><strong>Meet playmates</strong><small>Find a nearby playdate</small></button><button type="button" class="today-intent" data-home-tab="studio"><span aria-hidden="true">✦</span><strong>Play at home</strong><small>Make something together</small></button></section><section class="today-adventure-grid" aria-labelledby="today-adventure-title"><article class="today-adventure-card" style="--today-adventure-image: url('${escapeAttribute(recommendation.image)}')"><div class="today-adventure-copy"><span class="today-adventure-badge">Your next little adventure</span><h2 id="today-adventure-title">${escapeHtml(recommendation.title)}</h2><p>${escapeHtml(recommendation.description)}</p><small>${escapeHtml(recommendation.detail)}</small><button type="button" data-home-tab="play"${recommendation.focus ? ` data-home-focus="${recommendation.focus}"` : ''}>Explore this adventure <span aria-hidden="true">↗</span></button></div></article><aside class="today-journey-card"><p class="eyebrow">More than a place to go</p><h2>Make a little day of it</h2><ol><li><span>1</span><div><strong>Get ready together</strong><p>Talk about one thing ${escapeHtml(childName)} might see or try.</p></div></li><li><span>2</span><div><strong>Bring one familiar toy</strong><p>Use it to start a simple game while you explore.</p></div></li><li><span>3</span><div><strong>Keep one small memory</strong><p>Name a favorite moment on the way home.</p></div></li></ol><button type="button" class="secondary-button" data-home-tab="play" data-home-focus="story-times">Find a getting-ready story</button></aside></section></main>`);
+  const todayFeature = plans.length ? renderTodayPlans(plans) : todayAdventureMarkup(recommendation, childName);
+  ctx.layout(`<main class="home-layout today-page"><header class="today-greeting"><div><button type="button" class="today-location-pill" data-home-tab="profile">⌖ ${escapeHtml(locationLabel)}</button><p class="eyebrow">Little adventures, together</p><h1>What shall we do<br />with ${escapeHtml(childName)} today?</h1><p>A nearby adventure. A new way to play.<br />A little less planning for you, ${escapeHtml(parent)}.</p></div><div class="home-weather"><span aria-hidden="true">${weather.label?.toLowerCase().includes('rain') ? '☔' : '☀️'}</span><strong>${escapeHtml(weather.temperature || '--')}</strong><small>${escapeHtml(weather.label || 'Weather loading')}</small></div></header><section class="today-intents" aria-label="Choose what your family needs"><button type="button" class="today-intent active" data-home-tab="play"><span aria-hidden="true">☀</span><strong>Go somewhere</strong><small>Places and events nearby</small></button><button type="button" class="today-intent" data-home-tab="play" data-home-focus="playdates"><span aria-hidden="true">☺</span><strong>Meet playmates</strong><small>Find a nearby playdate</small></button><button type="button" class="today-intent" data-home-tab="studio"><span aria-hidden="true">✦</span><strong>Play at home</strong><small>Make something together</small></button></section>${todayFeature}</main>${todayStoryModal(state, childProfile)}`);
   document.getElementById('close-background-picker')?.addEventListener('click', () => {
     state.showHomeBackgroundPicker = false;
     ctx.renderCurrent();
@@ -411,4 +511,37 @@ export function renderHome(ctx) {
     state.tab = 'profile';
     ctx.renderCurrent();
   }));
+  document.querySelector('[data-open-today-story]')?.addEventListener('click', () => {
+    state.showTodayStory = true;
+    state.todayStoryStatus = '';
+    ctx.renderCurrent();
+  });
+  document.querySelectorAll('[data-close-today-story]').forEach((element) => element.addEventListener('click', (event) => {
+    if (event.currentTarget.classList.contains('today-story-backdrop') && event.target !== event.currentTarget) return;
+    resetTodayStory(state, { close: true });
+    ctx.renderCurrent();
+  }));
+  document.querySelectorAll('[data-today-story-goal]').forEach((button) => button.addEventListener('click', () => {
+    state.todayStoryGoal = button.dataset.todayStoryGoal;
+    state.todayStoryStatus = '';
+    ctx.renderCurrent();
+  }));
+  document.getElementById('today-story-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    generateTodayStory(ctx);
+  });
+  document.querySelector('[data-new-today-story]')?.addEventListener('click', () => {
+    resetTodayStory(state);
+    ctx.renderCurrent();
+  });
+  document.querySelector('[data-save-today-story]')?.addEventListener('click', () => saveTodayStory(ctx));
+  const todayStoryBackdrop = document.querySelector('.today-story-backdrop');
+  if (todayStoryBackdrop) {
+    todayStoryBackdrop.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      resetTodayStory(state, { close: true });
+      ctx.renderCurrent();
+    });
+    todayStoryBackdrop.querySelector('.today-story-close')?.focus();
+  }
 }

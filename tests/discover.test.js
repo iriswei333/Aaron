@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createDiscoverClient } from '../src/discover/client.js';
+import { discoverGeocodeQuery } from '../src/google-map.js';
 import {
   normalizePlaydate,
   normalizePlayground,
@@ -21,6 +22,33 @@ describe('Discover normalizers', () => {
 
   it('does not make a search link saveable', () => {
     expect(normalizeWeekendEvent({ id: 'search-1', resultType: 'search-link' }).actions).toEqual(['open_external']);
+  });
+});
+
+describe('Discover map geocoding', () => {
+  it('anchors KCLS venue-only story times to King County, Washington', () => {
+    const item = normalizeStoryTime({
+      id: 'kidsquest-skyway',
+      title: 'KidsQuest Little Labs: Stories That Count',
+      venue: 'Skyway',
+      source: 'kcls',
+      sourceLabel: 'King County Library System',
+    });
+
+    expect(discoverGeocodeQuery(item, 'Seattle'))
+      .toBe('Skyway, King County Library System, WA, USA');
+  });
+
+  it('uses a structured story-time address without adding provider context', () => {
+    const item = normalizeStoryTime({
+      id: 'kidsquest-skyway-addressed',
+      venue: 'Skyway',
+      address: '12601 76th Avenue S, Seattle, WA 98178, US',
+      source: 'kcls',
+    });
+
+    expect(discoverGeocodeQuery(item, 'Bellevue'))
+      .toBe('12601 76th Avenue S, Seattle, WA 98178, US');
   });
 });
 
@@ -60,5 +88,19 @@ describe('Discover client', () => {
       kinds: ['playground', 'playdate'],
     });
     expect(result.groups.playdates.map((item) => item.sourceId)).toEqual(['shared']);
+  });
+
+  it('loads story times without a saved location', async () => {
+    const request = vi.fn(async (path) => {
+      if (path.startsWith('/story-times')) return { events: [{ id: 'story-1', title: 'Library Story Time' }] };
+      throw new Error(`Unexpected request: ${path}`);
+    });
+    const { loadDiscover } = createDiscoverClient(request);
+
+    const result = await loadDiscover({ kinds: ['story_time'] });
+
+    expect(result.groups.storyTimes.map((item) => item.title)).toEqual(['Library Story Time']);
+    expect(result.sources.storyTimes.status).toBe('ready');
+    expect(request).toHaveBeenCalledWith('/story-times', {});
   });
 });

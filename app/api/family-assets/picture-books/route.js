@@ -36,7 +36,7 @@ export async function POST(request) {
     const current = await getCurrentProfile(request);
     if (!current.user) return profileErrorResponse(current);
     if (!(request.headers.get('content-type') || '').includes('multipart/form-data')) {
-      return Response.json({ error: 'Use multipart/form-data with 2–5 photos fields named photos.' }, { status: 400 });
+      return Response.json({ error: 'Use multipart/form-data with 2–5 uploaded photos and/or savedPhotoIds.' }, { status: 400 });
     }
     const book = await createFamilyPictureBook(current, await request.formData());
     return Response.json({ book: serializeFamilyPictureBook(book) }, { status: 201 });
