@@ -3,6 +3,9 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { spawn } from 'node:child_process';
+import { createClient } from '@supabase/supabase-js';
+import { writeLocalFamilyEventCache, writeSupabaseFamilyEventCache } from '../lib/backend.js';
+import { familyEventCacheEntriesFromSocialRun } from '../lib/family-events.js';
 import {
   DEFAULT_EVENT_DISTANCE_MILES,
   DEFAULT_SOCIAL_REGIONS,
@@ -332,6 +335,22 @@ function runImageBatch(jobs, promptPath, outputDir, force = false) {
   });
 }
 
+async function writeSocialRunToFamilyEventCache(run) {
+  const entries = familyEventCacheEntriesFromSocialRun(run);
+  if (!entries.length) return { count: 0, target: 'none' };
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  if (supabaseUrl && serviceRoleKey) {
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    await Promise.all(entries.map((entry) => writeSupabaseFamilyEventCache(supabase, entry)));
+    return { count: entries.length, target: 'Supabase family_event_cache' };
+  }
+  await Promise.all(entries.map((entry) => writeLocalFamilyEventCache(entry)));
+  return { count: entries.length, target: 'local family-event cache' };
+}
+
 async function main() {
   const hasForcedArguments = Boolean(forceEventUrlInput || forcedCity || forcedDate);
   if (savePartnership && !hasForcedArguments) {
@@ -378,6 +397,12 @@ async function main() {
       venueDistanceFilter,
       maxDistanceMiles,
     });
+  let cacheWrite = { count: 0, target: 'none' };
+  try {
+    cacheWrite = await writeSocialRunToFamilyEventCache(run);
+  } catch (error) {
+    console.warn(`Family-event cache write skipped: ${error.message}`);
+  }
   const existingPosterNames = await readExistingPosterNames(outputDir);
   const posterLimit = sampleRun ? 1 : MAX_WEEKLY_POSTERS;
   const posterSet = selectPosterSet(run.posts, posterLimit, run.weekKey, regenerationTargets);
@@ -434,6 +459,7 @@ async function main() {
     ? 'Saved forced event to lib/social-partnership-events.js.'
     : 'Partnership event already exists; source file was unchanged.');
   console.log(`Matched ${run.posts.length} of ${run.slotCount || run.regions.length * 2} event slots.`);
+  console.log(`Family-event cache: wrote ${cacheWrite.count} city row${cacheWrite.count === 1 ? '' : 's'} to ${cacheWrite.target}.`);
   const skippedExistingCount = forcedInputEvents.length ? 0 : posterSet.filter((post) => existingPosterNames.has(posterFilename(post, run.weekKey))
     && !regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)).length;
   console.log(`Poster jobs: ${jobs.length} of ${run.posts.length} matched events (${sampleRun ? 'sample limit: 1' : `weekly limit: ${MAX_WEEKLY_POSTERS}`}; skipped ${skippedExistingCount} existing).`);

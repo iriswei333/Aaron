@@ -122,6 +122,22 @@ export function discoverGeocodeQuery(item, searchLocationLabel = '') {
   return `${place}, ${searchArea}`;
 }
 
+export function discoverMapUrl(item, searchLocationLabel = '') {
+  if (!['weekend_event', 'story_time'].includes(item?.kind)) return '';
+  const latitude = Number(item?.location?.latitude);
+  const longitude = Number(item?.location?.longitude);
+  const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude)
+    && !(latitude === 0 && longitude === 0);
+  const query = hasCoordinates
+    ? `${latitude},${longitude}`
+    : discoverGeocodeQuery(item, searchLocationLabel);
+  if (!query) return '';
+  const url = new URL('https://www.google.com/maps/search/');
+  url.searchParams.set('api', '1');
+  url.searchParams.set('query', query);
+  return url.toString();
+}
+
 function geocodeDiscoverItem({ maps, geocoder, item, searchLocationLabel }) {
   const knownPosition = discoverCoordinates(item);
   if (knownPosition) return Promise.resolve(knownPosition);

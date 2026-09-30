@@ -9,7 +9,7 @@ import {
   normalizeWeekendEvent,
   sourceRecord,
 } from '../discover/normalizers.js';
-import { hasGoogleMapsKey, renderGoogleDiscoverMap } from '../google-map.js';
+import { discoverMapUrl, hasGoogleMapsKey, renderGoogleDiscoverMap } from '../google-map.js';
 
 const nearbyPlaces = [
   ['Seattle Center Artists at Play', 'Outdoor playground', '0.6 mi', 'climbing, slides, car/streetcar watching nearby', 'dry or light drizzle'],
@@ -362,6 +362,7 @@ export function resetPlayState(state) {
   state.discoverFilter = 'all';
   state.discoverView = 'map';
   state.discoverSelectedId = '';
+  state.discoverDetailId = '';
   state.mapZoom = 1;
   state.nearbyStatus = 'Save a location to personalize nearby play options.';
   state.selectedPlaygroundKey = '';
@@ -1434,10 +1435,10 @@ function discoverActionMarkup(item, state, { detail = false } = {}) {
   }
   if (item.kind === 'weekend_event') {
     const saved = isFamilyEventAttended(data, state);
-    return `${item.href ? `<a class="secondary-button small-button" href="${escapeAttribute(item.href)}" target="_blank" rel="noreferrer">View details</a>` : ''}<button type="button" class="small-button" data-attend-family-event="${escapeAttribute(familyEventId(data))}" aria-pressed="${saved}">${saved ? 'Saved' : 'Save plan'}</button>`;
+    return `<button type="button" class="secondary-button small-button" data-open-discover-detail="${escapeAttribute(item.id)}">View details</button><button type="button" class="small-button" data-attend-family-event="${escapeAttribute(familyEventId(data))}" aria-pressed="${saved}">${saved ? 'Saved' : 'Save plan'}</button>`;
   }
   const saved = isStoryTimeSaved(data, state);
-  return `${item.href ? `<a class="secondary-button small-button" href="${escapeAttribute(item.href)}" target="_blank" rel="noreferrer">View details</a>` : ''}${data.resultType === 'search-link' ? '' : `<button type="button" class="small-button" data-save-story-time="${escapeAttribute(storyTimeId(data))}" aria-pressed="${saved}">${saved ? 'Saved' : 'Save plan'}</button>`}`;
+  return `<button type="button" class="secondary-button small-button" data-open-discover-detail="${escapeAttribute(item.id)}">View details</button>${data.resultType === 'search-link' ? '' : `<button type="button" class="small-button" data-save-story-time="${escapeAttribute(storyTimeId(data))}" aria-pressed="${saved}">${saved ? 'Saved' : 'Save plan'}</button>`}`;
 }
 
 function renderDiscoverCard(item, state) {
@@ -1447,7 +1448,37 @@ function renderDiscoverCard(item, state) {
   const image = item.imageUrl || (item.kind === 'playground'
     ? '/backgrounds/parenting-playground-default.png'
     : item.kind === 'story_time' ? '/backgrounds/parenting-home-default.png' : '');
-  return `<article class="discover-result-card kind-${item.kind}">${image ? `<img src="${escapeAttribute(image)}" alt="" loading="lazy" />` : `<span class="discover-result-icon" aria-hidden="true">${discoverKindIcon(item.kind)}</span>`}<div class="discover-result-copy"><small>${escapeHtml(discoverKindLabel(item.kind))}${schedule ? ` · ${escapeHtml(schedule)}` : ''}</small><button type="button" data-select-discover="${escapeAttribute(item.id)}"><strong>${escapeHtml(item.title)}</strong></button><p>${escapeHtml(item.summary || location)}</p><span>${escapeHtml([location, distance].filter(Boolean).join(' · '))}</span></div><div class="discover-result-actions">${discoverActionMarkup(item, state)}</div></article>`;
+  const titleAction = ['weekend_event', 'story_time'].includes(item.kind) ? 'data-open-discover-detail' : 'data-select-discover';
+  return `<article class="discover-result-card kind-${item.kind}">${image ? `<img src="${escapeAttribute(image)}" alt="" loading="lazy" />` : `<span class="discover-result-icon" aria-hidden="true">${discoverKindIcon(item.kind)}</span>`}<div class="discover-result-copy"><small>${escapeHtml(discoverKindLabel(item.kind))}${schedule ? ` · ${escapeHtml(schedule)}` : ''}</small><button type="button" ${titleAction}="${escapeAttribute(item.id)}"><strong>${escapeHtml(item.title)}</strong></button><p>${escapeHtml(item.summary || location)}</p><span>${escapeHtml([location, distance].filter(Boolean).join(' · '))}</span></div><div class="discover-result-actions">${discoverActionMarkup(item, state)}</div></article>`;
+}
+
+function discoverEventSaveMarkup(item, state) {
+  const data = item.detail || {};
+  if (item.kind === 'weekend_event') {
+    const saved = isFamilyEventAttended(data, state);
+    return `<button type="button" data-attend-family-event="${escapeAttribute(familyEventId(data))}" aria-pressed="${saved}">${saved ? '✓ Saved to plans' : '+ Save to plans'}</button>`;
+  }
+  if (data.resultType === 'search-link') return '';
+  const saved = isStoryTimeSaved(data, state);
+  return `<button type="button" data-save-story-time="${escapeAttribute(storyTimeId(data))}" aria-pressed="${saved}">${saved ? '✓ Saved to plans' : '+ Save to plans'}</button>`;
+}
+
+function discoverEventDetailModal(item, state, searchLocationLabel) {
+  if (!item || !['weekend_event', 'story_time'].includes(item.kind)) return '';
+  const schedule = discoverScheduleLabel(item) || 'Schedule available on the event website';
+  const venue = item.location?.venue || 'Venue details available on the event website';
+  const address = item.location?.address || '';
+  const source = item.source?.label || discoverKindLabel(item.kind);
+  const image = item.imageUrl || (item.kind === 'story_time'
+    ? '/backgrounds/parenting-home-default.png'
+    : '/backgrounds/parenting-playground-default.png');
+  const mapUrl = discoverMapUrl(item, searchLocationLabel);
+  const detailRows = [
+    ['◷', 'When', schedule],
+    ['⌖', 'Where', [venue, address && address !== venue ? address : ''].filter(Boolean).join(' · ')],
+    ['◎', 'Source', source],
+  ];
+  return `<div id="discover-event-detail-backdrop" class="modal-backdrop discover-event-detail-backdrop"><section class="modal-dialog discover-event-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="discover-event-detail-title"><button type="button" class="icon-button discover-event-detail-close" data-close-discover-detail aria-label="Close event details">×</button><div class="discover-event-detail-hero" style="--discover-event-image: url('${escapeAttribute(image)}')"><span>${discoverKindIcon(item.kind)} ${escapeHtml(discoverKindLabel(item.kind))}</span></div><div class="discover-event-detail-content"><p class="eyebrow">${escapeHtml(source)}</p><h2 id="discover-event-detail-title">${escapeHtml(item.title)}</h2><div class="discover-event-detail-facts">${detailRows.map(([iconValue, label, value]) => `<div><span aria-hidden="true">${iconValue}</span><p><small>${label}</small><strong>${escapeHtml(value)}</strong></p></div>`).join('')}</div><p class="discover-event-detail-summary">${escapeHtml(item.summary || `A family-friendly ${discoverKindLabel(item.kind).toLowerCase()} to explore together.`)}</p><div class="discover-event-detail-actions">${discoverEventSaveMarkup(item, state)}${item.href ? `<a href="${escapeAttribute(item.href)}" target="_blank" rel="noreferrer">Visit website <span aria-hidden="true">↗</span></a>` : ''}${mapUrl ? `<a class="secondary-button" href="${escapeAttribute(mapUrl)}" target="_blank" rel="noreferrer">Open in map <span aria-hidden="true">⌖</span></a>` : ''}</div></div></section></div>`;
 }
 
 function renderDiscoverSelection(item, state) {

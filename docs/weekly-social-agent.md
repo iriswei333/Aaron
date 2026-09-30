@@ -30,6 +30,15 @@ npm run social:weekly
 
 With `OPENAI_API_KEY`, the agent translates and summarizes each event detail description into one short Mandarin highlight of 2–3 sentences. Set `OPENAI_HIGHLIGHTS_MODEL` to override the default model. If the key or request is unavailable, the agent uses a local content-based fallback.
 
+Each run also groups the selected search results by location city and writes them to `family_event_cache` with the matching ParentMap location region and an `origin` of `weekly-social-agent`. Discover checks this shared city/weekend cache after its request-specific cache and before fetching providers again. In local mode the rows are written to `data/app-state.json`. To write scheduled production runs to Supabase, configure the server-only service role key alongside the project URL:
+
+```bash
+export NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+export SUPABASE_SERVICE_ROLE_KEY="your-server-only-service-role-key"
+```
+
+Never expose `SUPABASE_SERVICE_ROLE_KEY` in browser code or commit it to the repository. Social-agent rows remain fresh through the end of their event weekend, while normal Discover cache rows keep the shorter provider-refresh lifetime.
+
 For a no-image test:
 
 ```bash

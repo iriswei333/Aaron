@@ -1,6 +1,8 @@
 import {
   readLocalFamilyEventCache,
+  readLocalSocialFamilyEventCache,
   readSupabaseFamilyEventCache,
+  readSupabaseSocialFamilyEventCache,
   writeLocalFamilyEventCache,
   writeSupabaseFamilyEventCache,
 } from '../../../lib/backend.js';
@@ -59,6 +61,11 @@ export async function GET(request) {
         ? await readSupabaseFamilyEventCache(current.supabase, cacheKey)
         : await readLocalFamilyEventCache(cacheKey);
       if (cached) return cacheResponse(cached, current, true);
+
+      const socialCached = current.mode === 'supabase'
+        ? await readSupabaseSocialFamilyEventCache(current.supabase, { locationCity, startDate, endDate })
+        : await readLocalSocialFamilyEventCache({ locationCity, startDate, endDate });
+      if (socialCached) return cacheResponse(socialCached, current, true);
     }
 
     const fetchedAt = new Date().toISOString();

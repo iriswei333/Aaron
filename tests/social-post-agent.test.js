@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { parseParentMapEventVenue } from '../lib/family-events.js';
+import { familyEventCacheEntriesFromSocialRun, parseParentMapEventVenue } from '../lib/family-events.js';
 import { getForcedPartnershipEvents } from '../lib/social-partnership-events.js';
 import { appendPartnershipEventSource, partnershipEventRecord } from '../lib/social-partnership-events-file.js';
 import {
@@ -119,6 +119,77 @@ describe('ParentMap venue distance filtering', () => {
 
     expect(roundup.caption).toContain('地点：Seattle Aquarium · 1483 Alaskan Way Pier 59, Seattle, WA, 98101-2015, United States');
     expect(roundup.posts[0].venueAddress).toBe('1483 Alaskan Way Pier 59, Seattle, WA, 98101-2015, United States');
+  });
+});
+
+describe('Weekly social-agent family-event cache', () => {
+  it('groups selected events into reusable city and region cache rows', () => {
+    const entries = familyEventCacheEntriesFromSocialRun({
+      startDate: '2026-10-03',
+      endDate: '2026-10-04',
+      generatedAt: '2026-09-30T18:00:00.000Z',
+      searchMode: 'parentmap-venue-distance',
+      posts: [
+        {
+          id: 'social-seattle-saturday',
+          city: 'Seattle',
+          region: 'Seattle',
+          title: 'Aquarium Family Day',
+          description: 'Explore the aquarium together.',
+          date: '2026-10-03',
+          dateLabel: 'Saturday, Oct 3',
+          timeLabel: '10 a.m.–2 p.m.',
+          venue: 'Seattle Aquarium',
+          venueAddress: '1483 Alaskan Way, Seattle, WA',
+          imageUrl: 'https://images.example/aquarium.jpg',
+          eventUrl: 'https://events.example/aquarium',
+          source: 'parentmap',
+          sourceLabel: 'ParentMap',
+          matchingKeywords: ['family event'],
+        },
+        {
+          id: 'social-seattle-sunday',
+          city: 'Seattle',
+          region: 'Seattle',
+          title: 'Autumn Festival',
+          date: '2026-10-04',
+          venue: 'Seattle Center',
+          eventUrl: 'https://events.example/autumn',
+        },
+        {
+          id: 'social-bellevue-saturday',
+          city: 'Bellevue',
+          region: 'Bellevue',
+          title: 'Family Art Day',
+          date: '2026-10-03',
+          venue: 'Bellevue Arts Museum',
+          eventUrl: 'https://events.example/art',
+        },
+      ],
+    }, new Date('2026-09-30T18:00:00.000Z'));
+
+    expect(entries).toHaveLength(2);
+    expect(entries[0]).toMatchObject({
+      locationCity: 'Seattle',
+      locationRegion: 'seattle',
+      source: 'weekly-social-agent',
+      startDate: '2026-10-03',
+      endDate: '2026-10-04',
+      fallback: false,
+      filters: { origin: 'weekly-social-agent', searchMode: 'parentmap-venue-distance', version: 1 },
+    });
+    expect(entries[0].events).toHaveLength(2);
+    expect(entries[0].events[0]).toMatchObject({
+      title: 'Aquarium Family Day',
+      venue: 'Seattle Aquarium',
+      venueAddress: '1483 Alaskan Way, Seattle, WA',
+      url: 'https://events.example/aquarium',
+      imageUrl: 'https://images.example/aquarium.jpg',
+      resultType: 'event',
+      cacheOrigin: 'weekly-social-agent',
+    });
+    expect(new Date(entries[0].expiresAt).getTime()).toBeGreaterThan(new Date('2026-10-04T23:00:00.000Z').getTime());
+    expect(entries[1]).toMatchObject({ locationCity: 'Bellevue', locationRegion: 'eastside' });
   });
 });
 

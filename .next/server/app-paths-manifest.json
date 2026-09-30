@@ -1,14 +1,3 @@
 {
-  "/api/health/route": "app/api/health/route.js",
-  "/api/profile/route": "app/api/profile/route.js",
-  "/api/home-background/route": "app/api/home-background/route.js",
-  "/api/family-events/route": "app/api/family-events/route.js",
-  "/api/playdates/route": "app/api/playdates/route.js",
-  "/api/family-plans/route": "app/api/family-plans/route.js",
-  "/api/story-times/route": "app/api/story-times/route.js",
-  "/api/chat/route": "app/api/chat/route.js",
-  "/api/family-assets/picture-books/route": "app/api/family-assets/picture-books/route.js",
-  "/api/family-assets/toy-plays/route": "app/api/family-assets/toy-plays/route.js",
-  "/api/family-assets/practice-stories/route": "app/api/family-assets/practice-stories/route.js",
   "/[...slug]/page": "app/[...slug]/page.js"
 }

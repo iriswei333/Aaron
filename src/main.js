@@ -98,6 +98,7 @@ const state = {
   discoverFilter: 'all',
   discoverView: 'map',
   discoverSelectedId: '',
+  discoverDetailId: '',
   mapZoom: 1,
   nearbyStatus: 'Save a location to personalize nearby play options.',
   selectedPlaygroundKey: '',
