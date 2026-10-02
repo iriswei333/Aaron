@@ -105,7 +105,7 @@ export function createDiscoverClient(request = apiRequest) {
       if (locationLabel) {
         tasks.push({
           source: 'weekendEvents',
-          promise: request(`/family-events${queryString({ refresh: forceRefresh ? 1 : undefined, request: forceRefresh ? Date.now() : undefined, location: locationLabel })}`, options),
+          promise: request(`/family-events${queryString({ refresh: forceRefresh ? 1 : undefined, request: forceRefresh ? Date.now() : undefined, location: locationLabel, start: startDate, end: endDate })}`, options),
         });
       } else sources.weekendEvents = skippedState('A location is required to load weekend events.');
     }

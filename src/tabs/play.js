@@ -3,6 +3,8 @@ import { childAgeLabel, childDisplayName, getChildProfile, normalizePlayPreferen
 import { removeFamilyPlan, saveFamilyPlan } from '../family-plans.js';
 import { loadDiscover, loadPlaydatesForPlaygrounds } from '../discover/client.js';
 import {
+  filterDiscoverItems,
+  nextDiscoverFilterState,
   normalizePlaydate,
   normalizePlayground,
   normalizeStoryTime,
@@ -127,6 +129,7 @@ let weatherRequestId = 0;
 let nearbyRequestId = 0;
 let playDateRequestId = 0;
 let familyEventRequestId = 0;
+let todayFamilyEventRequestId = 0;
 let storyTimeRequestId = 0;
 
 function toNumber(value) {
@@ -360,6 +363,9 @@ export function resetPlayState(state) {
   state.nearbyPlayDates = [];
   state.nearbyPlayDatesRequestKey = '';
   state.discoverFilter = 'all';
+  state.discoverTodayOnly = false;
+  state.discoverPlaygroundOnly = false;
+  state.discoverTypeFilters = [];
   state.discoverView = 'map';
   state.discoverSelectedId = '';
   state.discoverDetailId = '';
@@ -384,6 +390,9 @@ export function resetPlayState(state) {
   state.familyEventsMeta = null;
   state.familyEventsLoading = false;
   state.familyEventsRequestKey = '';
+  state.todayFamilyEvents = [];
+  state.todayFamilyEventsRequestKey = '';
+  state.todayFamilyEventsLoading = false;
   state.storyTimes = [];
   state.storyTimesStatus = 'Loading story times from Seattle and King County libraries.';
   state.storyTimesMeta = null;
@@ -630,6 +639,39 @@ async function loadFamilyEvents(ctx, options = {}) {
   }
 
   if (state.tab === 'play' || state.tab === 'home') ctx.renderCurrent();
+}
+
+async function loadTodayFamilyEvents(ctx, options = {}) {
+  const { state } = ctx;
+  if (!state.user) return;
+  const location = getUserLocation(state);
+  const date = localDatePart(new Date());
+  if (!location || !date) return;
+  const requestKey = `${date}|${shortLocation(location).toLowerCase()}`;
+  if (!options.force && state.todayFamilyEventsRequestKey === requestKey) return;
+
+  const requestId = ++todayFamilyEventRequestId;
+  state.todayFamilyEventsLoading = true;
+  if (state.tab === 'play') ctx.renderCurrent();
+  try {
+    const result = await loadDiscover({
+      location,
+      kinds: ['weekend_event'],
+      startDate: date,
+      endDate: date,
+      forceRefresh: options.force,
+    });
+    if (requestId !== todayFamilyEventRequestId) return;
+    if (result.sources.weekendEvents.status === 'error') throw new Error(result.sources.weekendEvents.error);
+    state.todayFamilyEvents = result.groups.weekendEvents.map(sourceRecord);
+    state.todayFamilyEventsRequestKey = requestKey;
+  } catch {
+    if (requestId !== todayFamilyEventRequestId) return;
+    state.todayFamilyEvents = [];
+    state.todayFamilyEventsRequestKey = requestKey;
+  }
+  state.todayFamilyEventsLoading = false;
+  if (state.tab === 'play') ctx.renderCurrent();
 }
 
 function storyTimeRequestKey(state) {
@@ -1391,13 +1433,23 @@ function playgroundRecommendationReason(option, state) {
   return `Recommended for ${weatherFit}; ${option.distance || 'nearby'} from your saved location.`;
 }
 
-const discoverCategories = [
+const discoverFilters = [
   ['all', 'All'],
+  ['today', 'Today'],
   ['playground', 'Playgrounds'],
   ['playdate', 'Playdates'],
   ['weekend_event', 'Weekend events'],
   ['story_time', 'Story times'],
 ];
+
+const discoverEventKinds = ['playdate', 'weekend_event', 'story_time'];
+
+function discoverFilterIsActive(filter, { todayOnly, playgroundOnly, kinds }) {
+  if (filter === 'all') return !todayOnly && !playgroundOnly;
+  if (filter === 'today') return todayOnly;
+  if (filter === 'playground') return playgroundOnly;
+  return kinds.includes(filter);
+}
 
 function discoverKindLabel(kind) {
   if (kind === 'playground') return 'Playground';
@@ -1468,17 +1520,16 @@ function discoverEventDetailModal(item, state, searchLocationLabel) {
   const schedule = discoverScheduleLabel(item) || 'Schedule available on the event website';
   const venue = item.location?.venue || 'Venue details available on the event website';
   const address = item.location?.address || '';
-  const source = item.source?.label || discoverKindLabel(item.kind);
+  const distance = item.distance?.label || '';
   const image = item.imageUrl || (item.kind === 'story_time'
     ? '/backgrounds/parenting-home-default.png'
     : '/backgrounds/parenting-playground-default.png');
   const mapUrl = discoverMapUrl(item, searchLocationLabel);
   const detailRows = [
     ['◷', 'When', schedule],
-    ['⌖', 'Where', [venue, address && address !== venue ? address : ''].filter(Boolean).join(' · ')],
-    ['◎', 'Source', source],
+    ['⌖', 'Where', [venue, address && address !== venue ? address : '', distance].filter(Boolean).join(' · ')],
   ];
-  return `<div id="discover-event-detail-backdrop" class="modal-backdrop discover-event-detail-backdrop"><section class="modal-dialog discover-event-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="discover-event-detail-title"><button type="button" class="icon-button discover-event-detail-close" data-close-discover-detail aria-label="Close event details">×</button><div class="discover-event-detail-hero" style="--discover-event-image: url('${escapeAttribute(image)}')"><span>${discoverKindIcon(item.kind)} ${escapeHtml(discoverKindLabel(item.kind))}</span></div><div class="discover-event-detail-content"><p class="eyebrow">${escapeHtml(source)}</p><h2 id="discover-event-detail-title">${escapeHtml(item.title)}</h2><div class="discover-event-detail-facts">${detailRows.map(([iconValue, label, value]) => `<div><span aria-hidden="true">${iconValue}</span><p><small>${label}</small><strong>${escapeHtml(value)}</strong></p></div>`).join('')}</div><p class="discover-event-detail-summary">${escapeHtml(item.summary || `A family-friendly ${discoverKindLabel(item.kind).toLowerCase()} to explore together.`)}</p><div class="discover-event-detail-actions">${discoverEventSaveMarkup(item, state)}${item.href ? `<a href="${escapeAttribute(item.href)}" target="_blank" rel="noreferrer">Visit website <span aria-hidden="true">↗</span></a>` : ''}${mapUrl ? `<a class="secondary-button" href="${escapeAttribute(mapUrl)}" target="_blank" rel="noreferrer">Open in map <span aria-hidden="true">⌖</span></a>` : ''}</div></div></section></div>`;
+  return `<div id="discover-event-detail-backdrop" class="modal-backdrop discover-event-detail-backdrop"><section class="modal-dialog discover-event-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="discover-event-detail-title"><button type="button" class="icon-button discover-event-detail-close" data-close-discover-detail aria-label="Close event details">×</button><div class="discover-event-detail-hero" style="--discover-event-image: url('${escapeAttribute(image)}')"><span>${discoverKindIcon(item.kind)} ${escapeHtml(discoverKindLabel(item.kind))}</span></div><div class="discover-event-detail-content"><h2 id="discover-event-detail-title">${escapeHtml(item.title)}</h2><div class="discover-event-detail-facts">${detailRows.map(([iconValue, label, value]) => `<div><span aria-hidden="true">${iconValue}</span><p><small>${label}</small><strong>${escapeHtml(value)}</strong></p></div>`).join('')}</div><p class="discover-event-detail-summary">${escapeHtml(item.summary || `A family-friendly ${discoverKindLabel(item.kind).toLowerCase()} to explore together.`)}</p><div class="discover-event-detail-actions">${discoverEventSaveMarkup(item, state)}${item.href ? `<a href="${escapeAttribute(item.href)}" target="_blank" rel="noreferrer">Visit website <span aria-hidden="true">↗</span></a>` : ''}${mapUrl ? `<a class="secondary-button" href="${escapeAttribute(mapUrl)}" target="_blank" rel="noreferrer">Open in map <span aria-hidden="true">⌖</span></a>` : ''}</div></div></section></div>`;
 }
 
 function renderDiscoverSelection(item, state) {
@@ -1565,43 +1616,91 @@ export function renderPlay(ctx) {
     ? `<p class="muted">Based on today, ${escapeHtml(upcomingHolidays[0].name)} is next.</p>${upcomingHolidays.map((holiday, index) => `<article class="mini-card">${icon(holiday.personalized ? '🎂' : '🎁')}<div><h3>${escapeHtml(holiday.name)}</h3><p><strong>${escapeHtml(holiday.dateLabel)} · ${escapeHtml(holiday.countdown)}</strong></p><p>${escapeHtml(holiday.reminder)}</p>${index === 0 ? `<small>${escapeHtml(holiday.timing)}</small>` : ''}</div></article>`).join('')}`
     : '<p class="muted">No upcoming holidays found.</p>';
   const locationToolMarkup = `<div id="location-tool-backdrop" class="modal-backdrop" hidden><section class="modal-dialog location-tool location-tool-dialog" role="dialog" aria-modal="true" aria-labelledby="location-tool-title"><div class="section-heading"><div><p class="eyebrow">Set your home base</p><h2 id="location-tool-title">Enter an address</h2></div><button id="close-location-tool" type="button" class="icon-button" aria-label="Close location form">×</button></div><p>${escapeHtml(locationStatus)}</p><form id="location-form"><label class="input-label" for="location-address">Address or place</label><input id="location-address" value="${escapeAttribute(location?.address || '')}" placeholder="Home address, city, or favorite play area" /><button type="submit">Update location</button></form><div class="weather-grid"><strong>${escapeHtml(state.weather.label)}</strong><span>Rain: ${escapeHtml(state.weather.precipitation)}</span><span>Wind: ${escapeHtml(state.weather.wind)}</span></div></section></div>`;
+  if (state.discoverFilter === 'today') {
+    state.discoverFilter = 'all';
+    state.discoverTodayOnly = true;
+  }
+  if (state.discoverFilter === 'playground') {
+    state.discoverFilter = 'all';
+    state.discoverTodayOnly = false;
+    state.discoverPlaygroundOnly = true;
+    state.discoverTypeFilters = [];
+  } else if (discoverEventKinds.includes(state.discoverFilter)) {
+    state.discoverTypeFilters = [state.discoverFilter];
+    state.discoverPlaygroundOnly = false;
+    state.discoverFilter = 'all';
+  }
+  const discoverTodayOnly = Boolean(state.discoverTodayOnly);
+  const discoverPlaygroundOnly = Boolean(state.discoverPlaygroundOnly);
+  const discoverTypeFilters = Array.isArray(state.discoverTypeFilters)
+    ? state.discoverTypeFilters.filter((kind) => discoverEventKinds.includes(kind))
+    : [];
+  const discoverPlayDates = [...(state.nearbyPlayDates || []), ...(state.profilePlayDates || [])]
+    .filter((playDate, index, items) => playDate?.id
+      && items.findIndex((candidate) => candidate.id === playDate.id) === index);
+  const discoverFamilyEvents = [
+    ...(state.familyEvents || []),
+    ...(discoverTodayOnly ? state.todayFamilyEvents || [] : []),
+  ]
+    .filter((event, index, items) => {
+      const id = familyEventId(event);
+      return id && items.findIndex((candidate) => familyEventId(candidate) === id) === index;
+    });
   const discoverItems = [
     ...playOptions.map(normalizePlayground),
-    ...(state.nearbyPlayDates || []).map(normalizePlaydate),
-    ...(state.familyEvents || []).map(normalizeWeekendEvent),
+    ...discoverPlayDates.map(normalizePlaydate),
+    ...discoverFamilyEvents.map(normalizeWeekendEvent),
     ...(state.storyTimes || []).map(normalizeStoryTime),
   ];
-  const activeDiscoverFilter = state.discoverFilter || 'all';
-  const filteredDiscoverItems = discoverItems.filter((item) => activeDiscoverFilter === 'all' || item.kind === activeDiscoverFilter);
+  const filteredDiscoverItems = filterDiscoverItems(discoverItems, {
+    kinds: discoverTypeFilters,
+    todayOnly: discoverTodayOnly,
+    playgroundOnly: discoverPlaygroundOnly,
+  });
   const selectedDiscoverItem = filteredDiscoverItems.find((item) => item.id === state.discoverSelectedId) || filteredDiscoverItems[0] || null;
   if (selectedDiscoverItem && state.discoverSelectedId !== selectedDiscoverItem.id) state.discoverSelectedId = selectedDiscoverItem.id;
+  const discoverDetailItem = discoverItems.find((item) => item.id === state.discoverDetailId) || null;
   const discoverView = state.discoverView === 'list' ? 'list' : 'map';
   const discoverLocationLabel = location?.address || location?.label || childProfile?.homeCity || 'Choose a search location';
   const discoverResultsMarkup = filteredDiscoverItems.length
     ? filteredDiscoverItems.slice(0, 30).map((item) => renderDiscoverCard(item, state)).join('')
-    : '<div class="discover-empty"><span aria-hidden="true">⌖</span><strong>No adventures in this category yet</strong><p>Try another category, refresh the providers, or update your location.</p></div>';
+    : `<div class="discover-empty"><span aria-hidden="true">⌖</span><strong>${discoverTodayOnly && state.todayFamilyEventsLoading ? 'Checking today’s events…' : discoverTodayOnly ? 'No matching adventures scheduled today' : discoverPlaygroundOnly ? 'No nearby playgrounds found' : 'No adventures in this category yet'}</strong><p>${discoverTodayOnly && state.todayFamilyEventsLoading ? 'Looking for same-day playdates, events, and story times.' : discoverTodayOnly ? 'Try another event type or come back after refreshing the providers.' : discoverPlaygroundOnly ? 'Update your location or increase your playground search distance.' : 'Try another category, refresh the providers, or update your location.'}</p></div>`;
   const discoverContentMarkup = discoverView === 'map'
     ? `<div class="discover-map-layout">${discoverMapMarkup(filteredDiscoverItems, selectedDiscoverItem?.id || '', searchRadiusMiles)}<aside class="discover-map-selection">${renderDiscoverSelection(selectedDiscoverItem, state)}</aside></div>`
     : `<div class="discover-results-list">${discoverResultsMarkup}</div>`;
 
-  ctx.layout(`<main class="discover-screen"><header class="discover-heading"><div><p class="eyebrow">Out in the world</p><h1>Find your next adventure</h1><p>Places, playmates, and little discoveries for ${escapeHtml(childName)}.</p></div><div class="home-weather"><span aria-hidden="true">${state.weather.label?.toLowerCase().includes('rain') ? '☔' : '☀️'}</span><strong>${escapeHtml(state.weather.temperature || '--')}</strong><small>${escapeHtml(state.weather.label || 'Weather loading')}</small></div></header><section class="discover-location-panel" aria-label="Discover search location"><div class="discover-location-copy"><span aria-hidden="true">⌖</span><div><p class="eyebrow">Your search location</p><h2>${escapeHtml(discoverLocationLabel)}</h2><p>${escapeHtml(state.nearbyStatus || locationStatus)}</p></div></div><div class="discover-location-buttons"><button id="use-current-location" type="button">⌖ Use my current location</button><button id="open-location-tool" type="button" class="secondary-button">Input address</button></div></section><section class="discover-controls" aria-label="Discover filters and view"><div class="discover-filter-scroll">${discoverCategories.map(([kind, label]) => `<button type="button" class="discover-filter ${activeDiscoverFilter === kind ? 'active' : ''}" data-discover-filter="${kind}" aria-pressed="${activeDiscoverFilter === kind}">${escapeHtml(label)}</button>`).join('')}</div><div class="discover-toolbar"><p><strong>${filteredDiscoverItems.length} ${filteredDiscoverItems.length === 1 ? 'idea' : 'ideas'}</strong> to explore</p><div class="discover-view-switch" role="group" aria-label="Discover view"><button type="button" data-discover-view="map" aria-pressed="${discoverView === 'map'}">◎ Map</button><button type="button" data-discover-view="list" aria-pressed="${discoverView === 'list'}">☷ List</button></div></div></section>${activeDiscoverFilter === 'playdate' && currentPlayground ? `<div class="discover-context-action"><span>Want to invite nearby families?</span><button type="button" data-open-create-playdate>＋ New playdate</button></div>` : ''}${discoverContentMarkup}<footer class="discover-provider-note"><span class="${state.familyEventsLoading || state.storyTimesLoading ? 'loading' : ''}"></span><p>${escapeHtml(state.familyEventsStatus || '')} ${escapeHtml(state.storyTimesStatus || '')}</p><button id="refresh-discover" type="button" class="text-button">Refresh results</button></footer>${locationToolMarkup}${createPlayDateFormMarkup}${editingPlayDate ? renderEditPlayDateForm(editingPlayDate, ageLabel) : ''}${playgroundDetailModalMarkup}</main>`);
+  const discoverFilterState = {
+    todayOnly: discoverTodayOnly,
+    playgroundOnly: discoverPlaygroundOnly,
+    kinds: discoverTypeFilters,
+  };
+  ctx.layout(`<main class="discover-screen"><header class="discover-heading"><div><p class="eyebrow">Out in the world</p><h1>Find your next adventure</h1><p>Places, playmates, and little discoveries for ${escapeHtml(childName)}.</p></div><div class="home-weather"><span aria-hidden="true">${state.weather.label?.toLowerCase().includes('rain') ? '☔' : '☀️'}</span><strong>${escapeHtml(state.weather.temperature || '--')}</strong><small>${escapeHtml(state.weather.label || 'Weather loading')}</small></div></header><section class="discover-location-panel" aria-label="Discover search location"><div class="discover-location-copy"><span aria-hidden="true">⌖</span><div><p class="eyebrow">Your search location</p><h2>${escapeHtml(discoverLocationLabel)}</h2><p>${escapeHtml(state.nearbyStatus || locationStatus)}</p></div></div><div class="discover-location-buttons"><button id="use-current-location" type="button">⌖ Use my current location</button><button id="open-location-tool" type="button" class="secondary-button">Input address</button></div></section><section class="discover-controls" aria-label="Discover filters and view"><div class="discover-filter-scroll" role="group" aria-label="Filter Discover results">${discoverFilters.map(([filter, label]) => { const active = discoverFilterIsActive(filter, discoverFilterState); return `<button type="button" class="discover-filter ${active ? 'active' : ''}" data-discover-filter="${filter}" aria-pressed="${active}">${escapeHtml(label)}</button>`; }).join('')}</div><div class="discover-toolbar"><p><strong>${filteredDiscoverItems.length} ${filteredDiscoverItems.length === 1 ? 'idea' : 'ideas'}</strong> to explore</p><div class="discover-view-switch" role="group" aria-label="Discover view"><button type="button" data-discover-view="map" aria-pressed="${discoverView === 'map'}">◎ Map</button><button type="button" data-discover-view="list" aria-pressed="${discoverView === 'list'}">☷ List</button></div></div></section>${discoverTypeFilters.includes('playdate') && currentPlayground ? `<div class="discover-context-action"><span>Want to invite nearby families?</span><button type="button" data-open-create-playdate>＋ New playdate</button></div>` : ''}${discoverContentMarkup}<footer class="discover-provider-note"><span class="${state.familyEventsLoading || state.storyTimesLoading || state.todayFamilyEventsLoading ? 'loading' : ''}"></span><p>${escapeHtml(state.familyEventsStatus || '')} ${escapeHtml(state.storyTimesStatus || '')}</p><button id="refresh-discover" type="button" class="text-button">Refresh results</button></footer>${locationToolMarkup}${createPlayDateFormMarkup}${editingPlayDate ? renderEditPlayDateForm(editingPlayDate, ageLabel) : ''}${playgroundDetailModalMarkup}${discoverEventDetailModal(discoverDetailItem, state, discoverLocationLabel)}</main>`);
 
   if (state.playFocus === 'family-events') {
-    state.discoverFilter = 'weekend_event';
+    state.discoverFilter = 'all';
+    state.discoverTodayOnly = false;
+    state.discoverPlaygroundOnly = false;
+    state.discoverTypeFilters = ['weekend_event'];
     state.discoverView = 'list';
     state.playFocus = '';
     globalThis.requestAnimationFrame?.(() => ctx.renderCurrent());
   }
 
   if (state.playFocus === 'story-times') {
-    state.discoverFilter = 'story_time';
+    state.discoverFilter = 'all';
+    state.discoverTodayOnly = false;
+    state.discoverPlaygroundOnly = false;
+    state.discoverTypeFilters = ['story_time'];
     state.discoverView = 'list';
     state.playFocus = '';
     globalThis.requestAnimationFrame?.(() => ctx.renderCurrent());
   }
 
   if (state.playdateFocus === 'playdates') {
-    state.discoverFilter = 'playdate';
+    state.discoverFilter = 'all';
+    state.discoverTodayOnly = false;
+    state.discoverPlaygroundOnly = false;
+    state.discoverTypeFilters = ['playdate'];
     state.discoverView = 'list';
     state.playdateFocus = '';
     globalThis.requestAnimationFrame?.(() => ctx.renderCurrent());
@@ -1622,9 +1721,14 @@ export function renderPlay(ctx) {
   document.getElementById('location-form')?.addEventListener('submit', (event) => saveManualLocation(ctx, event));
   document.getElementById('use-current-location')?.addEventListener('click', () => requestCurrentLocation(ctx));
   document.querySelectorAll('[data-discover-filter]').forEach((button) => button.addEventListener('click', () => {
-    state.discoverFilter = button.dataset.discoverFilter || 'all';
+    const nextFilters = nextDiscoverFilterState(discoverFilterState, button.dataset.discoverFilter || 'all');
+    state.discoverFilter = 'all';
+    state.discoverTodayOnly = nextFilters.todayOnly;
+    state.discoverPlaygroundOnly = nextFilters.playgroundOnly;
+    state.discoverTypeFilters = nextFilters.kinds;
     state.discoverSelectedId = '';
     ctx.renderCurrent();
+    if (state.discoverTodayOnly) loadTodayFamilyEvents(ctx);
   }));
   document.querySelectorAll('[data-discover-view]').forEach((button) => button.addEventListener('click', () => {
     state.discoverView = button.dataset.discoverView === 'list' ? 'list' : 'map';
@@ -1637,7 +1741,33 @@ export function renderPlay(ctx) {
     if (item.kind === 'playground' && item.sourceId !== state.selectedPlaygroundKey) selectPlayground(ctx, item.sourceId);
     else ctx.renderCurrent();
   }));
-  document.getElementById('refresh-discover')?.addEventListener('click', () => refreshPlayPlanning(ctx));
+  document.querySelectorAll('[data-open-discover-detail]').forEach((button) => button.addEventListener('click', () => {
+    const item = discoverItems.find((candidate) => candidate.id === button.dataset.openDiscoverDetail);
+    if (!item || !['weekend_event', 'story_time'].includes(item.kind)) return;
+    state.discoverSelectedId = item.id;
+    state.discoverDetailId = item.id;
+    ctx.renderCurrent();
+  }));
+  const discoverEventDetailBackdrop = document.getElementById('discover-event-detail-backdrop');
+  document.querySelectorAll('[data-close-discover-detail]').forEach((button) => button.addEventListener('click', () => {
+    state.discoverDetailId = '';
+    ctx.renderCurrent();
+  }));
+  discoverEventDetailBackdrop?.addEventListener('click', (event) => {
+    if (event.target !== discoverEventDetailBackdrop) return;
+    state.discoverDetailId = '';
+    ctx.renderCurrent();
+  });
+  discoverEventDetailBackdrop?.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    state.discoverDetailId = '';
+    ctx.renderCurrent();
+  });
+  discoverEventDetailBackdrop?.querySelector('.discover-event-detail-close')?.focus();
+  document.getElementById('refresh-discover')?.addEventListener('click', () => {
+    refreshPlayPlanning(ctx);
+    if (state.discoverTodayOnly) loadTodayFamilyEvents(ctx, { force: true });
+  });
   document.querySelectorAll('[data-playdate-filter]').forEach((button) => button.addEventListener('click', () => {
     state.nearbyPlayDateFilter = button.dataset.playdateFilter || 'all';
     ctx.renderCurrent();

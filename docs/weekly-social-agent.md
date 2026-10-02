@@ -39,6 +39,19 @@ export SUPABASE_SERVICE_ROLE_KEY="your-server-only-service-role-key"
 
 Never expose `SUPABASE_SERVICE_ROLE_KEY` in browser code or commit it to the repository. Social-agent rows remain fresh through the end of their event weekend, while normal Discover cache rows keep the shorter provider-refresh lifetime.
 
+## Import every recommendation from a URL
+
+Use `--recommendations-url` (or its `--events-url` alias) to import the dated event list from a ParentMap roundup page, generate posters with the existing SproutCue template, and save all imported events to the shared family-event cache:
+
+```bash
+npm run social:weekly -- \
+  --recommendations-url "https://www.parentmap.com/things-to-do/the-weekender/"
+```
+
+The importer reads each listicle heading and its Date, Cost, Location, and summary fields. Direct `/calendar/` links are retained. For recurring `/series/` links, it opens the series page and selects the calendar occurrence whose URL matches the parsed event date, such as `/calendar/spooky-science-burke-museum/2026-10-02/`. It then reads the detail page for time and image metadata. A failed detail-page lookup does not discard the recommendation; the list-page facts are saved with a resolution warning in the manifest.
+
+The manifest and family-event cache contain every valid imported event. The normal weekly individual-image limit still applies, so at most eight individual event posters are generated per run. The importer also generates one additional `recommendations-YYYY-MM-DD-all-events.png` roundup poster that lists every imported event with its date and venue in a single image. Recommendation imports use title-qualified individual filenames such as `seattle-2026-10-02-spooky-science-at-the-burke-museum.png`, preventing two events in the same city on the same date from overwriting each other. Add `--skip-images` or `--dry-run` to import and inspect the event data without generating images.
+
 For a no-image test:
 
 ```bash
@@ -110,6 +123,8 @@ The rejected-event registry is saved in `event-feedback.json` in the output dire
 Use the `--regenerate City,YYYY-MM-DD` flag more than once for multiple posters. Each request searches that city/day again and selects a different eligible event from the results. When an alternate event is found, the matching `weekly-YYYY-MM-DD-roundup.md` file is regenerated too. The roundup includes only the up-to-eight events represented by the poster set, lists each event’s city, name, venue, and detailed address without exact event times, uses one sentence of highlights per event, and is capped at 670 words. Add `--feedback "..."` to include the critique in the replacement prompt. Regeneration intentionally overwrites only the requested poster; all other existing posters remain skipped.
 
 Generated manifests, prompts, and poster images are saved under `output/social-posts/` by default. Posters use a fixed 1024×1536 (2:3) reference-inspired template: navy top ribbon, rounded orange event card, cream weekend banner, family illustration, three event-specific feature tiles, navy date/time/location bar, green Mandarin call-to-action, and SproutCue footer pill. The feature tiles are derived from the event title, theme, highlights, description, and trend keywords rather than fixed generic copy. Only event content and a subtle city illustration vary. Event selection applies trend recommendations: regional state fairs receive a geographic boost; fall festivals, pumpkin events, harvest events, and Mid-Autumn Moon Festival/Moon Festival events receive seasonal boosts in fall; and story-time events receive an early-learning boost plus an age-fit boost when they welcome toddlers, preschoolers, or all ages. Matching keywords and recommendation reasons are written to the manifest and roundup. Poster selection uses a per-city quota: Seattle and Bellevue can receive two posters, while other cities default to one; each city’s quota is ranked by recommendation score rather than assuming Saturday first. Before generating images, the agent checks that directory and skips any poster whose expected `{city}-{date}.png` file already exists; the weekly limit is filled with other missing posters when available.
+
+Normal weekend recommendation runs also create one `weekly-YYYY-MM-DD-all-events.png` summary poster using the same text-first two-column style as URL imports. It includes every matched weekend event with its exact date label and venue, independently of the eight-poster individual-event limit. Regenerating a weekend event refreshes this summary poster so it stays aligned with the updated event set. Forced single-event URL runs do not create a redundant summary image.
 
 To generate posters from an existing roundup without fetching weekend events again, pass the roundup path:
 

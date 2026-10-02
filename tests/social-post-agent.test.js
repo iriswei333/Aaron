@@ -8,9 +8,62 @@ import {
   filterParentMapEventsByDistance,
   generateWeeklySocialPosts,
   makeWeeklyRoundup,
+  parseEventRecommendationPage,
   parseForcedEventPage,
   rankLocationFallbackCandidates,
+  resolveParentMapEventUrl,
 } from '../lib/social-post-agent.js';
+
+describe('Event recommendation URL imports', () => {
+  const recommendationHtml = `
+    <meta property="article:published_time" content="2026-09-30T20:25:25+00:00">
+    <h3 class="wp-block-heading is-style-listicle-heading"><a href="https://www.parentmap.com/series/spooky-science-burke-museum-series-413455/">Spooky Science at the Burke Museum</a></h3>
+    <p class="wp-block-paragraph"><strong>Date:</strong> Friday–Sunday, Oct. 2–4<br><strong>Cost: </strong>Included with admission ($16–$24); ages 3 and younger are free<br><strong>Location:</strong> <a href="https://maps.example/burke">Burke Museum</a>, 4303 Memorial Way N.E., Seattle<br><br>Spooky, scary science activities all month long.</p>
+    <h3 class="wp-block-heading is-style-listicle-heading"><a href="https://www.parentmap.com/calendar/ching-garden-grand-opening/">Ching Garden Grand Opening</a></h3>
+    <p class="wp-block-paragraph"><strong>Date:</strong> Saturday, Oct. 3<br><strong>Cost:</strong> Free<br><strong>Location:</strong> <a href="https://maps.example/ching">Ching Garden</a>, 16034 Greenwood Ave. N., Shoreline<br><br>Tour the food forest and enjoy kids activities.</p>`;
+
+  it('extracts event facts and dates from a ParentMap roundup page', () => {
+    const events = parseEventRecommendationPage(recommendationHtml, {
+      url: 'https://www.parentmap.com/things-to-do/the-weekender/',
+    });
+
+    expect(events).toHaveLength(2);
+    expect(events[0]).toMatchObject({
+      title: 'Spooky Science at the Burke Museum',
+      date: '2026-10-02',
+      dateLabel: 'Friday–Sunday, Oct. 2–4',
+      city: 'Seattle',
+      venue: 'Burke Museum',
+      venueAddress: '4303 Memorial Way N.E., Seattle',
+      summary: 'Spooky, scary science activities all month long.',
+    });
+    expect(events[1]).toMatchObject({ title: 'Ching Garden Grand Opening', date: '2026-10-03', city: 'Shoreline', free: true });
+  });
+
+  it('resolves a recurring series to the occurrence matching the recommendation date', async () => {
+    const fetchImpl = vi.fn(async () => ({
+      ok: true,
+      url: 'https://www.parentmap.com/series/spooky-science-burke-museum-series-413455/',
+      text: async () => '<a href="/calendar/spooky-science-burke-museum/2026-10-03/">Saturday</a><a href="/calendar/spooky-science-burke-museum/2026-10-02/">Friday</a>',
+    }));
+
+    await expect(resolveParentMapEventUrl(
+      'https://www.parentmap.com/series/spooky-science-burke-museum-series-413455/',
+      '2026-10-02',
+      { fetchImpl },
+    )).resolves.toBe('https://www.parentmap.com/calendar/spooky-science-burke-museum/2026-10-02/');
+  });
+
+  it('keeps direct calendar links without an extra series-page request', async () => {
+    const fetchImpl = vi.fn();
+    await expect(resolveParentMapEventUrl(
+      'https://www.parentmap.com/calendar/ching-garden-grand-opening/',
+      '2026-10-03',
+      { fetchImpl },
+    )).resolves.toBe('https://www.parentmap.com/calendar/ching-garden-grand-opening/');
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+});
 
 describe('ParentMap venue distance filtering', () => {
   it('defaults the social-agent venue radius to 15 miles', () => {

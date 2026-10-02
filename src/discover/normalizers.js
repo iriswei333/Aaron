@@ -16,6 +16,16 @@ function discoverId(kind, id) {
   return `${kind}:${sourceId(id, 'unknown')}`;
 }
 
+function localDateKey(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-');
+}
+
 function distance(value, label = '') {
   const miles = finiteNumber(value);
   return {
@@ -98,7 +108,7 @@ function normalizeScheduledEvent(event, kind) {
     summary: text(event.summary),
     location: {
       venue: text(event.venue),
-      address: text(event.address),
+      address: text(event.address || event.venueAddress),
       latitude: finiteNumber(event.latitude),
       longitude: finiteNumber(event.longitude),
     },
@@ -131,6 +141,63 @@ export function normalizeWeekendEvent(event = {}) {
 
 export function normalizeStoryTime(event = {}) {
   return normalizeScheduledEvent(event, 'story_time');
+}
+
+export function discoverItemOccursOnDate(item, date = new Date()) {
+  if (!['playdate', 'weekend_event', 'story_time'].includes(item?.kind)) return false;
+  if (item.source?.resultType === 'search-link') return false;
+  const targetDate = localDateKey(date);
+  if (!targetDate) return false;
+  if (item.schedule?.startsAt) {
+    const scheduledDate = localDateKey(item.schedule.startsAt);
+    if (scheduledDate) return scheduledDate === targetDate;
+  }
+  return text(item.schedule?.date).slice(0, 10) === targetDate;
+}
+
+const scheduledDiscoverKinds = ['playdate', 'weekend_event', 'story_time'];
+
+function normalizedDiscoverKinds(kinds, kind) {
+  if (Array.isArray(kinds)) return [...new Set(kinds.filter((value) => scheduledDiscoverKinds.includes(value)))];
+  return scheduledDiscoverKinds.includes(kind) ? [kind] : [];
+}
+
+export function nextDiscoverFilterState(current = {}, selection = 'all') {
+  const kinds = normalizedDiscoverKinds(current.kinds);
+  const todayOnly = Boolean(current.todayOnly);
+  const playgroundOnly = Boolean(current.playgroundOnly);
+
+  if (selection === 'all') return { todayOnly: false, playgroundOnly: false, kinds };
+  if (selection === 'today') return { todayOnly: true, playgroundOnly: false, kinds };
+  if (selection === 'playground') {
+    return playgroundOnly
+      ? { todayOnly: false, playgroundOnly: false, kinds: [] }
+      : { todayOnly: false, playgroundOnly: true, kinds: [] };
+  }
+  if (!scheduledDiscoverKinds.includes(selection)) return { todayOnly, playgroundOnly, kinds };
+  const baseKinds = playgroundOnly ? [] : kinds;
+  return {
+    todayOnly: playgroundOnly ? false : todayOnly,
+    playgroundOnly: false,
+    kinds: baseKinds.includes(selection)
+      ? baseKinds.filter((kindValue) => kindValue !== selection)
+      : [...baseKinds, selection],
+  };
+}
+
+export function filterDiscoverItems(items = [], {
+  kind = 'all',
+  kinds,
+  todayOnly = false,
+  playgroundOnly = false,
+  date = new Date(),
+} = {}) {
+  const selectedKinds = normalizedDiscoverKinds(kinds, kind);
+  return (Array.isArray(items) ? items : []).filter((item) => {
+    if (playgroundOnly) return item?.kind === 'playground';
+    const matchesCategory = selectedKinds.length === 0 || selectedKinds.includes(item?.kind);
+    return matchesCategory && (!todayOnly || discoverItemOccursOnDate(item, date));
+  });
 }
 
 export function sourceRecord(item) {

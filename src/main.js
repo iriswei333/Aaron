@@ -13,6 +13,7 @@ import { renderFamilyProfile } from './tabs/profile.js';
 import { renderStudio, resetStudioState } from './tabs/studio.js';
 import { createSupabaseBrowserClient } from '../lib/supabase/client.js';
 import { loadFamilyPlans } from './family-plans.js';
+import { aiGlobalMarkup, bindAiGlobalUi, resetAiUi } from './ai-jobs.js';
 import {
   APP_NAME,
   STORY_LANGUAGE_OPTIONS,
@@ -96,6 +97,9 @@ const state = {
   nearbyPlayDatesRequestKey: '',
   nearbyPlayDateFilter: 'all',
   discoverFilter: 'all',
+  discoverTodayOnly: false,
+  discoverPlaygroundOnly: false,
+  discoverTypeFilters: [],
   discoverView: 'map',
   discoverSelectedId: '',
   discoverDetailId: '',
@@ -120,6 +124,9 @@ const state = {
   familyEventsMeta: null,
   familyEventsLoading: false,
   familyEventsRequestKey: '',
+  todayFamilyEvents: [],
+  todayFamilyEventsRequestKey: '',
+  todayFamilyEventsLoading: false,
   storyTimes: [],
   storyTimesStatus: 'Loading story times from Seattle and King County libraries.',
   storyTimesMeta: null,
@@ -158,7 +165,7 @@ const state = {
   toyPlayAssets: [],
   toyPlayAssetsLoaded: false,
   toyPlayAssetsLoading: false,
-  selectedToyPlayAssetId: '',
+  selectedToyPlayAssetId: new URLSearchParams(globalThis.location?.search || '').get('toyPlay') || '',
   toyPlayPhotoFile: null,
   toyPlayPhotoPreviewUrl: '',
   toyPlayAnalysis: null,
@@ -183,12 +190,23 @@ const state = {
   practiceStoryGenerating: false,
   practiceStoryStatus: '',
   practiceStoryResult: null,
-  selectedPracticeStoryAssetId: '',
+  selectedPracticeStoryAssetId: new URLSearchParams(globalThis.location?.search || '').get('practiceStory') || '',
   deletingFamilyAssetId: '',
   showPracticeStory: false,
   showPictureBookChooser: false,
   studioFeatureNotice: '',
   studioView: studioViewFromLocation(),
+  activeAiJobId: '',
+  aiWaitJob: null,
+  aiWaitOpen: false,
+  aiWaitError: '',
+  aiUsage: null,
+  notifications: [],
+  notificationsLoaded: false,
+  notificationsLoading: false,
+  notificationUnreadCount: 0,
+  notificationStatus: '',
+  showNotifications: false,
 };
 
 const tabRenderers = {
@@ -334,7 +352,7 @@ function layout(content) {
   const locationLabel = state.user?.location?.address || state.user?.location?.label || getChildProfile(state.user)?.homeCity || 'Location not set';
   const unreadChatCount = (state.chatContacts || []).reduce((total, thread) => total + (Number(thread.unreadCount) || 0), 0);
   const navMarkup = tabs.map(([key, label]) => `<button class="rail-nav-button ${state.tab === key ? 'active' : ''}" data-tab="${key}" aria-current="${state.tab === key ? 'page' : 'false'}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_ICONS[key]}</svg><span>${label}</span>${key === 'profile' && unreadChatCount ? `<span class="rail-count">${unreadChatCount}</span>` : ''}</button>`).join('');
-  root.innerHTML = `<div class="app-shell"><div class="app-frame"><aside class="app-rail"><div class="rail-brand"><img src="/favicon.svg" alt="" aria-hidden="true" /><span>${APP_NAME}</span></div><nav class="rail-nav" aria-label="Main navigation">${navMarkup}</nav><button id="new-playdate" class="rail-create" type="button" aria-label="Create a new playdate"><span aria-hidden="true">＋</span><b>New playdate</b></button><div class="rail-spacer"></div><div class="rail-account"><div class="rail-account-avatar">${escapeHtml((state.user?.displayName || 'F').slice(0, 1).toUpperCase())}</div><div class="rail-account-copy"><strong>${escapeHtml(state.user?.displayName || 'Family')}</strong><small>${escapeHtml(locationLabel)}</small></div></div><div class="rail-account-actions"><button id="edit-profile" type="button">Edit profile</button><button id="logout-user" type="button">Sign out</button></div></aside><section class="app-content"><div class="app-status ${state.apiReady ? 'ready' : ''}"><span>${escapeHtml(state.apiMessage)}</span>${state.user?.email ? `<small>${escapeHtml(state.user.email)}</small>` : ''}</div>${content}</section></div></div>`;
+  root.innerHTML = `<div class="app-shell"><div class="app-frame"><aside class="app-rail"><div class="rail-brand"><img src="/favicon.svg" alt="" aria-hidden="true" /><span>${APP_NAME}</span></div><nav class="rail-nav" aria-label="Main navigation">${navMarkup}</nav><button id="new-playdate" class="rail-create" type="button" aria-label="Create a new playdate"><span aria-hidden="true">＋</span><b>New playdate</b></button><div class="rail-spacer"></div><div class="rail-account"><div class="rail-account-avatar">${escapeHtml((state.user?.displayName || 'F').slice(0, 1).toUpperCase())}</div><div class="rail-account-copy"><strong>${escapeHtml(state.user?.displayName || 'Family')}</strong><small>${escapeHtml(locationLabel)}</small></div></div><div class="rail-account-actions"><button id="edit-profile" type="button">Edit profile</button><button id="logout-user" type="button">Sign out</button></div></aside><section class="app-content"><div class="app-status ${state.apiReady ? 'ready' : ''}"><span>${escapeHtml(state.apiMessage)}</span>${state.user?.email ? `<small>${escapeHtml(state.user.email)}</small>` : ''}</div>${content}</section></div></div>${aiGlobalMarkup(state)}`;
   document.querySelectorAll('[data-tab]').forEach((button) => button.addEventListener('click', () => {
     navigateToTab(button.dataset.tab);
   }));
@@ -349,6 +367,7 @@ function layout(content) {
     render();
   });
   document.getElementById('logout-user').addEventListener('click', logoutUser);
+  bindAiGlobalUi(appContext);
 }
 
 async function deleteParentData() {
@@ -369,6 +388,7 @@ async function deleteParentData() {
     resetSocialState(state);
     resetPlayState(state);
     resetStudioState(state);
+    resetAiUi(state);
     render();
   } catch (error) {
     state.apiMessage = `Deletion failed: ${error.message}`;
@@ -891,6 +911,7 @@ async function logoutUser() {
   resetSocialState(state);
   resetPlayState(state);
   resetStudioState(state);
+  resetAiUi(state);
   state.authStatus = 'Signed out. Choose another family profile.';
   state.onboardingStatus = '';
   state.showProfileSetup = false;

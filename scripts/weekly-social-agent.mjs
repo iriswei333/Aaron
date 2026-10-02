@@ -10,6 +10,7 @@ import {
   DEFAULT_EVENT_DISTANCE_MILES,
   DEFAULT_SOCIAL_REGIONS,
   fetchForcedEventFromUrl,
+  generateSocialPostsFromRecommendationUrl,
   generateWeeklySocialPosts,
   makeWeeklyRoundup,
 } from '../lib/social-post-agent.js';
@@ -104,6 +105,7 @@ const rejectedEventRequests = argValues('--reject-event');
 const feedback = argValue('--feedback');
 const sourceRoundupPath = argValue('--from-roundup');
 const forceEventUrlInput = argValue('--force-event-url');
+const recommendationUrlInput = argValue('--recommendations-url') || argValue('--events-url');
 const forcedCity = argValue('--city').trim();
 const forcedDate = argValue('--date').trim();
 const savePartnership = process.argv.includes('--save-partnership');
@@ -207,8 +209,27 @@ ${featureTiles.map((tile) => `“${tile.title}”\n“${tile.subtitle}”`).join
 Constraints: preserve every supplied event text and fact exactly; keep the three feature tiles exactly as written; prioritize mobile legibility over illustration detail; use no alternate layout, collage, dense background, extra text, event-source label, QR code, phone number, fake logo, watermark, invented detail, or tiny unreadable copy.`;
 }
 
-function posterFilename(post, weekKey) {
-  return `${post.city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${post.date || weekKey}.png`;
+function recommendationSummaryPosterPrompt(posts, startDate, endDate) {
+  const eventBlocks = posts.map((post, index) => `${index + 1}. “${post.title}”\n“${post.dateLabel || post.date} · ${post.venue || post.city}”`).join('\n');
+  return `Use case: ads-marketing
+Asset type: fixed-format vertical ${POSTER_FORMAT.aspectRatio} family-event roundup poster
+Primary request: Create one polished SproutCue summary poster containing every supplied event, date, and venue exactly once.
+Canvas: exactly ${POSTER_FORMAT.width}x${POSTER_FORMAT.height} px, ${POSTER_FORMAT.aspectRatio}; keep all content inside a ${POSTER_FORMAT.safeMargin} safe margin.
+Visual system: use the established SproutCue warm cream paper-textured background, deep navy #082b52, coral-orange #f0643d, leafy green #3c713d, rounded panels, stitched cream details, crisp dark outlines, and subtle leafy/orange accents.
+Layout: place a navy ribbon headline at the top, then arrange the event list in two balanced columns of rounded cream cards. Each card must contain the event title followed immediately by its date and venue. Use compact but highly legible typography and consistent spacing. Do not use a large central illustration; small simple event icons are allowed only when they do not reduce text space. Finish with a green call-to-action and the SproutCue footer pill.
+Text rules: render only the following text, preserving spelling, punctuation, dates, venues, and event order exactly. Do not omit, merge, abbreviate, or duplicate an event:
+“周末亲子活动总览”
+“${startDate}–${endDate}”
+${eventBlocks}
+“收藏清单，带上家人一起出发！”
+“资料整理：SproutCue”
+Constraints: every numbered event must be visible in this one image; prioritize exact readable text over decoration; no extra copy, QR code, phone number, source label, fake logo, watermark, invented detail, or tiny unreadable text.`;
+}
+
+function posterFilename(post, weekKey, includeTitle = false) {
+  const city = post.city.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const title = post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 64);
+  return `${city}-${post.date || weekKey}${includeTitle && title ? `-${title}` : ''}.png`;
 }
 
 function parseRegenerationRequest(value) {
@@ -353,6 +374,7 @@ async function writeSocialRunToFamilyEventCache(run) {
 
 async function main() {
   const hasForcedArguments = Boolean(forceEventUrlInput || forcedCity || forcedDate);
+  const recommendationUrl = normalizedForcedEventUrl(recommendationUrlInput);
   if (savePartnership && !hasForcedArguments) {
     throw new Error('--save-partnership requires --force-event-url, --city, and --date.');
   }
@@ -362,6 +384,9 @@ async function main() {
   if (forcedDate && !validForcedDate(forcedDate)) throw new Error('--date must use a valid YYYY-MM-DD date.');
   if (hasForcedArguments && sourceRoundupPath) throw new Error('--force-event-url cannot be combined with --from-roundup.');
   if (hasForcedArguments && regenerationRequests.length) throw new Error('--force-event-url cannot be combined with --regenerate.');
+  if (recommendationUrl && (hasForcedArguments || sourceRoundupPath || regenerationRequests.length || savePartnership)) {
+    throw new Error('--recommendations-url cannot be combined with forced, roundup, regeneration, or partnership options.');
+  }
   const forceEventUrl = normalizedForcedEventUrl(forceEventUrlInput);
   const forcedInputEvents = forceEventUrl
     ? [await fetchForcedEventFromUrl({ url: forceEventUrl, city: forcedCity, date: forcedDate })]
@@ -388,6 +413,8 @@ async function main() {
   const excludedEventSlots = new Set(rejectedEvents.flatMap(rejectedEventKeys));
   const run = sourceRoundupPath
     ? await loadRunFromRoundup(sourceRoundupPath)
+    : recommendationUrl
+      ? await generateSocialPostsFromRecommendationUrl({ url: recommendationUrl })
     : await generateWeeklySocialPosts({
       regions,
       alternateSlots: regenerationTargets,
@@ -405,17 +432,29 @@ async function main() {
   }
   const existingPosterNames = await readExistingPosterNames(outputDir);
   const posterLimit = sampleRun ? 1 : MAX_WEEKLY_POSTERS;
-  const posterSet = selectPosterSet(run.posts, posterLimit, run.weekKey, regenerationTargets);
+  const isRecommendationRun = Boolean(recommendationUrl || run.searchMode === 'recommendations-url');
+  const posterSet = isRecommendationRun
+    ? [...run.posts].sort((a, b) => (b.recommendationScore || 0) - (a.recommendationScore || 0)).slice(0, posterLimit)
+    : selectPosterSet(run.posts, posterLimit, run.weekKey, regenerationTargets);
+  const includeTitleInFilename = isRecommendationRun;
+  const filenameFor = (post) => posterFilename(post, run.weekKey, includeTitleInFilename);
   const posterPosts = posterSet.filter((post) => forcedInputEvents.length
     || regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)
-    || !existingPosterNames.has(posterFilename(post, run.weekKey)));
+    || !existingPosterNames.has(filenameFor(post)));
+  const supportsSummaryPoster = Boolean(run.posts.length && !forcedInputEvents.length && run.searchMode !== 'forced-url');
+  const summaryPosterFilename = supportsSummaryPoster
+    ? `${isRecommendationRun ? 'recommendations' : 'weekly'}-${run.weekKey}-all-events.png`
+    : '';
+  const shouldGenerateSummaryPoster = Boolean(summaryPosterFilename
+    && (!existingPosterNames.has(summaryPosterFilename) || regenerationTargets.size > 0));
   const roundupPosterPosts = posterSet;
   const roundup = makeWeeklyRoundup(roundupPosterPosts, run.startDate, run.endDate);
   roundup.caption = limitWords(roundup.caption);
   const matchedRegenerationTargets = new Set(posterPosts.filter((post) => regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)).map((post) => `${post.city.toLowerCase()}|${post.date || run.weekKey}`));
   const unmatchedRegenerationRequests = [...regenerationTargets].filter((target) => !matchedRegenerationTargets.has(target));
-  const manifestPath = join(outputDir, `weekly-${run.weekKey}.json`);
-  const promptPath = join(outputDir, `weekly-${run.weekKey}.jsonl`);
+  const artifactPrefix = `${isRecommendationRun ? 'recommendations' : 'weekly'}-${run.weekKey}`;
+  const manifestPath = join(outputDir, `${artifactPrefix}.json`);
+  const promptPath = join(outputDir, `${artifactPrefix}.jsonl`);
   const manifest = {
     ...run,
     roundup,
@@ -423,7 +462,7 @@ async function main() {
     imageGenCommand: imageGen,
     posterLimit,
     existingPosterCount: existingPosterNames.size,
-    skippedExistingPosterCount: forcedInputEvents.length ? 0 : posterSet.filter((post) => existingPosterNames.has(posterFilename(post, run.weekKey))
+    skippedExistingPosterCount: forcedInputEvents.length ? 0 : posterSet.filter((post) => existingPosterNames.has(filenameFor(post))
       && !regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)).length,
     regenerationRequests,
     feedback,
@@ -432,12 +471,18 @@ async function main() {
     sampleRun,
     posterPostIds: posterPosts.map((post) => post.id),
     posterSetPostIds: posterSet.map((post) => post.id),
+    summaryPoster: supportsSummaryPoster ? {
+      filename: summaryPosterFilename,
+      eventCount: run.posts.length,
+      eventPostIds: run.posts.map((post) => post.id),
+      generatedThisRun: shouldGenerateSummaryPoster,
+    } : null,
     posterLimitByCity: Object.fromEntries([...new Set(posterSet.map((post) => post.city))].map((city) => [city, cityPosterLimit(city)])),
     roundupPostIds: roundupPosterPosts.map((post) => post.id),
     roundupWordLimit: MAX_ROUNDUP_WORDS,
   };
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
-  const roundupPath = join(outputDir, `weekly-${run.weekKey}-roundup.md`);
+  const roundupPath = join(outputDir, `${artifactPrefix}-roundup.md`);
   const shouldWriteRoundup = !sourceRoundupPath && (regenerationTargets.size === 0 || matchedRegenerationTargets.size > 0);
   if (shouldWriteRoundup) {
     await writeFile(roundupPath, `# ${roundup.title}\n\n${roundup.caption}\n`);
@@ -447,12 +492,20 @@ async function main() {
     use_case: 'ads-marketing',
     size: `${POSTER_FORMAT.width}x${POSTER_FORMAT.height}`,
     quality: 'high',
-    out: posterFilename(post, run.weekKey),
+    out: filenameFor(post),
   }));
+  if (shouldGenerateSummaryPoster) jobs.push({
+    prompt: recommendationSummaryPosterPrompt(run.posts, run.startDate, run.endDate),
+    use_case: 'ads-marketing',
+    size: `${POSTER_FORMAT.width}x${POSTER_FORMAT.height}`,
+    quality: 'high',
+    out: summaryPosterFilename,
+  });
   await writeFile(promptPath, jobs.map((job) => JSON.stringify(job)).join('\n') + (jobs.length ? '\n' : ''));
 
   console.log(forcedInputEvents.length ? `Event date: ${run.startDate}` : `Weekend: ${run.startDate}–${run.endDate}`);
   if (sourceRoundupPath) console.log(`Source roundup: ${sourceRoundupPath} (event search skipped).`);
+  else if (recommendationUrl) console.log(`Event search mode: recommendations from ${recommendationUrl}.`);
   else if (forcedInputEvents.length) console.log(`Event search mode: forced URL for ${forcedCity} on ${forcedDate}.`);
   else console.log(`Event search mode: ${venueDistanceFilter ? `ParentMap venues within ${maxDistanceMiles} miles` : 'normal'}.`);
   if (savePartnership) console.log(partnershipSaved
@@ -460,9 +513,9 @@ async function main() {
     : 'Partnership event already exists; source file was unchanged.');
   console.log(`Matched ${run.posts.length} of ${run.slotCount || run.regions.length * 2} event slots.`);
   console.log(`Family-event cache: wrote ${cacheWrite.count} city row${cacheWrite.count === 1 ? '' : 's'} to ${cacheWrite.target}.`);
-  const skippedExistingCount = forcedInputEvents.length ? 0 : posterSet.filter((post) => existingPosterNames.has(posterFilename(post, run.weekKey))
+  const skippedExistingCount = forcedInputEvents.length ? 0 : posterSet.filter((post) => existingPosterNames.has(filenameFor(post))
     && !regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)).length;
-  console.log(`Poster jobs: ${jobs.length} of ${run.posts.length} matched events (${sampleRun ? 'sample limit: 1' : `weekly limit: ${MAX_WEEKLY_POSTERS}`}; skipped ${skippedExistingCount} existing).`);
+  console.log(`Poster jobs: ${jobs.length} (${posterPosts.length} individual of ${run.posts.length} matched events${supportsSummaryPoster ? ` plus ${shouldGenerateSummaryPoster ? '1' : '0'} all-events summary` : ''}; ${sampleRun ? 'sample limit: 1' : `weekly individual limit: ${MAX_WEEKLY_POSTERS}`}; skipped ${skippedExistingCount} existing).`);
   if (regenerationRequests.length) console.log(`Regenerating: ${regenerationRequests.join('; ')}`);
   if (unmatchedRegenerationRequests.length) console.warn(`No matching event found for regeneration request(s): ${unmatchedRegenerationRequests.join(', ')}`);
   console.log(`Manifest: ${manifestPath}`);

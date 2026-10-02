@@ -6,10 +6,10 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/[...slug]/page": [
+    "/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/[...slug]/page.js"
+      "static/chunks/app/page.js"
     ],
     "/api/health/route": [
       "static/chunks/webpack.js",
@@ -26,10 +26,20 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/home-background/route.js"
     ],
+    "/api/notifications/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/notifications/route.js"
+    ],
     "/api/playgrounds/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/playgrounds/route.js"
+    ],
+    "/api/family-events/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/family-events/route.js"
     ],
     "/api/playdates/route": [
       "static/chunks/webpack.js",
@@ -41,20 +51,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/story-times/route.js"
     ],
-    "/api/family-events/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/family-events/route.js"
-    ],
     "/api/family-plans/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/family-plans/route.js"
-    ],
-    "/api/discover-locations/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/discover-locations/route.js"
     ],
     "/api/family-assets/picture-books/route": [
       "static/chunks/webpack.js",
@@ -66,21 +66,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/family-assets/picture-book-templates/route.js"
     ],
-    "/api/family-assets/practice-stories/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/family-assets/practice-stories/route.js"
-    ],
-    "/api/family-assets/photos/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/family-assets/photos/route.js"
-    ],
-    "/api/family-assets/practice-stories/content/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/family-assets/practice-stories/content/route.js"
-    ],
     "/api/chat/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -91,20 +76,30 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/family-assets/toy-plays/route.js"
     ],
-    "/api/play-preferences/route": [
+    "/api/family-assets/practice-stories/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/play-preferences/route.js"
+      "static/chunks/app/api/family-assets/practice-stories/route.js"
     ],
-    "/api/location/route": [
+    "/api/family-assets/practice-stories/content/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/location/route.js"
+      "static/chunks/app/api/family-assets/practice-stories/content/route.js"
+    ],
+    "/api/family-assets/photos/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/family-assets/photos/route.js"
     ],
     "/api/family-assets/photos/content/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/family-assets/photos/content/route.js"
+    ],
+    "/api/ai-jobs/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/ai-jobs/route.js"
     ]
   }
 }

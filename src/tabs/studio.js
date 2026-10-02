@@ -1,5 +1,6 @@
 import { apiRequest, escapeAttribute, escapeHtml, readFirstStoredValue } from '../shared.js';
 import { childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
+import { startAiJobWait } from '../ai-jobs.js';
 
 const DEFAULT_TEMPLATE = 'career-recognition-v1';
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
@@ -69,11 +70,10 @@ async function generatePracticeStory(ctx, form) {
     const response = await fetch('/api/family-assets/practice-stories', { method: 'POST', body: data, headers: localHeaders() });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || `Request failed with ${response.status}`);
-    state.practiceStoryResult = result.asset;
-    state.practiceStoryAssets = [result.asset, ...(state.practiceStoryAssets || []).filter((asset) => asset.id !== result.asset.id)];
-    state.practiceStoryAssetsLoaded = true;
-    state.familyAssetsLoaded = false;
-    state.practiceStoryStatus = 'Story created and saved to Family AI Assets.';
+    state.practiceStoryStatus = 'Story queued. We’ll notify you when it is ready.';
+    state.practiceStoryGenerating = false;
+    startAiJobWait(ctx, result.job, result.usage);
+    return;
   } catch (error) {
     state.practiceStoryStatus = `Could not create the story: ${error.message}`;
   }
@@ -123,11 +123,10 @@ async function generateToyPlay(ctx) {
     const response = await fetch('/api/family-assets/toy-play/generate', { method: 'POST', body: data, headers: localHeaders() });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || `Request failed with ${response.status}`);
-    state.toyPlayAnalysis = result.analysis;
-    state.toyPlayLanguage = result.language || state.toyPlayLanguage || 'en';
-    state.toyPlayModel = result.model || '';
-    state.toyPlayResponseId = result.responseId || '';
-    state.toyPlayStatus = result.analysis?.status === 'ready' ? (mandarin ? '新玩法已生成，请查看。' : 'Your new way to play is ready to review.') : result.analysis?.message || (mandarin ? '请换一张更清晰、只包含一个玩具的照片。' : 'Try a clearer photo of one toy.');
+    state.toyPlayStatus = mandarin ? '玩法已加入队列，完成后会通知你。' : 'Play idea queued. We’ll notify you when it is ready.';
+    state.toyPlayGenerating = false;
+    startAiJobWait(ctx, result.job, result.usage);
+    return;
   } catch (error) {
     state.toyPlayStatus = mandarin ? `暂时无法生成玩法：${error.message}` : `Could not make a play idea: ${error.message}`;
   }
@@ -255,10 +254,10 @@ async function generatePage(ctx, bookId, pageKey, { quiet = false } = {}) {
     state.pictureBookStatus = `Making ${pageLabel(pageKey, page).toLowerCase()}… this can take a moment.`;
     ctx.renderCurrent();
   }
-  const { book } = await apiRequest('/family-assets/picture-book-pages', { method: 'POST', body: JSON.stringify({ bookAssetId: bookId, pageKey }) });
-  state.pictureBooks = state.pictureBooks.map((item) => item.id === book.id ? book : item);
-  if (!quiet) state.pictureBookStatus = `${pageLabel(pageKey, book.pages?.[pageKey])} is ready.`;
-  return book;
+  const result = await apiRequest('/family-assets/picture-book-pages', { method: 'POST', body: JSON.stringify({ bookAssetId: bookId, pageKey }) });
+  state.pictureBookStatus = `${pageLabel(pageKey, page)} queued. We’ll notify you when it is ready.`;
+  startAiJobWait(ctx, result.job, result.usage);
+  return result.job;
 }
 
 async function makeWholeBook(ctx, bookId) {
@@ -271,23 +270,18 @@ async function makeWholeBook(ctx, bookId) {
     return;
   }
   state.pictureBookGeneratingBookId = bookId;
-  let completed = 0;
-  for (const [pageKey, page] of pending) {
-    state.pictureBookStatus = `Making the whole book · ${completed + 1} of ${pending.length}: ${pageLabel(pageKey, page)}`;
-    ctx.renderCurrent();
-    try {
-      await generatePage(ctx, bookId, pageKey, { quiet: true });
-      completed += 1;
-    } catch (error) {
-      state.pictureBookStatus = `Stopped after ${completed} page${completed === 1 ? '' : 's'}: ${error.message}`;
-      state.pictureBookGeneratingBookId = '';
-      ctx.renderCurrent();
-      return;
-    }
-  }
-  state.pictureBookGeneratingBookId = '';
-  state.pictureBookStatus = 'Your whole picture book is ready to view as a PDF.';
+  state.pictureBookStatus = `Queueing ${pending.length} remaining pages…`;
   ctx.renderCurrent();
+  try {
+    const result = await apiRequest('/family-assets/picture-book-pages', { method: 'POST', body: JSON.stringify({ bookAssetId: bookId, wholeBook: true }) });
+    state.pictureBookGeneratingBookId = '';
+    state.pictureBookStatus = 'Whole book queued. You can leave and we’ll notify you when it is ready.';
+    startAiJobWait(ctx, result.job, result.usage);
+  } catch (error) {
+    state.pictureBookGeneratingBookId = '';
+    state.pictureBookStatus = `Could not queue the whole book: ${error.message}`;
+    ctx.renderCurrent();
+  }
 }
 
 async function viewPage(ctx, bookId, pageKey) {
@@ -421,9 +415,9 @@ function studioToyPlay(state, childName, ageMonths) {
   const toy = analysis?.toy || {};
   const mandarin = state.toyPlayLanguage === 'zh-CN';
   const copy = mandarin ? {
-    back: '返回 Play Studio', eyebrow: '旧玩具，新玩法', heading: '给我们看一个玩具，\n一起发现新玩法。', intro: `上传一张照片，获取适合 ${childName} 年龄的简单玩法。`, madeFor: `适合 ${childName} · ${ageMonths} 个月`, selected: '照片已选择，可以开始识别。', addPhoto: '添加一张玩具照片', photoTip: '请把一个玩具放在光线充足、背景清晰的平面上。', ready: '准备好发现一个新玩法了吗？', choose: '选择一张清晰的玩具照片', fileHelp: '支持 JPEG、PNG、WebP 或 HEIC，最大 20 MB。点击“生成玩法”后才会分析照片。', generating: '正在生成玩法…', generate: '生成普通话玩法', how: '使用方法', show: '展示一个玩具', showHelp: '我们只识别主要玩具，不识别人脸、品牌或地点。', match: '获取适龄玩法', matchHelp: `玩法会参考 ${childName} 保存的年龄：${ageMonths} 个月。`, review: '查看后保存', reviewHelp: '只有点击保存后，内容才会出现在家庭 AI 作品中。', retryTitle: '请换一张照片试试', retryMessage: '我们无法确认照片中有一个清晰的玩具。', chooseAnother: '选择其他照片', identified: '已识别玩具', confidence: { high: '高', medium: '中', low: '低' }, idea: '分钟玩法', need: '需要准备', say: '可以这样说', together: '一起玩', variations: '调整难度', easier: '更简单', harder: '增加挑战', safety: '家长安全检查', saving: '正在保存…', saved: '已保存到家庭 AI 作品 ✓', save: '保存到家庭 AI 作品', anotherToy: '换一个玩具', viewAssets: '查看家庭 AI 作品 →', privacy: '预览不会自动保存到家庭 AI 作品。请先检查玩具，并在玩耍时全程陪伴。',
+    back: '返回 Play Studio', eyebrow: '旧玩具，新玩法', heading: '给我们看一个玩具，\n一起发现新玩法。', intro: `上传一张照片，获取适合 ${childName} 年龄的简单玩法。`, madeFor: `适合 ${childName} · ${ageMonths} 个月`, selected: '照片已选择，可以开始识别。', addPhoto: '添加一张玩具照片', photoTip: '请把一个玩具放在光线充足、背景清晰的平面上。', ready: '准备好发现一个新玩法了吗？', choose: '选择一张清晰的玩具照片', fileHelp: '支持 JPEG、PNG、WebP 或 HEIC，最大 20 MB。点击“生成玩法”后才会分析照片。', generating: '正在生成玩法…', generate: '生成普通话玩法', how: '使用方法', show: '展示一个玩具', showHelp: '我们只识别主要玩具，不识别人脸、品牌或地点。', match: '获取适龄玩法', matchHelp: `玩法会参考 ${childName} 保存的年龄：${ageMonths} 个月。`, review: '等待或离开', reviewHelp: '玩法会自动保存，完成后我们会通知你。', retryTitle: '请换一张照片试试', retryMessage: '我们无法确认照片中有一个清晰的玩具。', chooseAnother: '选择其他照片', identified: '已识别玩具', confidence: { high: '高', medium: '中', low: '低' }, idea: '分钟玩法', need: '需要准备', say: '可以这样说', together: '一起玩', variations: '调整难度', easier: '更简单', harder: '增加挑战', safety: '家长安全检查', saving: '正在保存…', saved: '已保存到家庭 AI 作品 ✓', save: '保存到家庭 AI 作品', anotherToy: '换一个玩具', viewAssets: '查看家庭 AI 作品 →', privacy: '玩法会在后台生成并自动保存。完成后请先检查玩具，并在玩耍时全程陪伴。',
   } : {
-    back: 'Back to Play Studio', eyebrow: 'New play, same toys', heading: 'Show us a toy.\nWe’ll spark a new game.', intro: `Upload one photo and get a simple play idea matched to ${childName}’s age.`, madeFor: `Made for ${childName} · ${ageMonths} months`, selected: 'Photo selected and ready to analyze.', addPhoto: 'Add one toy photo', photoTip: 'Place the toy on a clear surface in good light.', ready: 'Ready to discover a new way to play?', choose: 'Choose a clear toy photo', fileHelp: 'JPEG, PNG, WebP, or HEIC · up to 20 MB. Photos are analyzed only when you tap Make a play idea.', generating: 'Making your play idea…', generate: 'Make a play idea', how: 'How it works', show: 'Show one toy', showHelp: 'We look only for the main toy—not people, brands, or places.', match: 'Get an age-matched idea', matchHelp: `The plan uses ${childName}’s saved age of ${ageMonths} months.`, review: 'Review, then save', reviewHelp: 'Nothing appears in Family AI Assets until you choose Save.', retryTitle: 'Let’s try another photo', retryMessage: 'We could not confidently identify one toy in this photo.', chooseAnother: 'Choose another photo', identified: 'Toy identified', confidence: { high: 'high', medium: 'medium', low: 'low' }, idea: 'minute play idea', need: 'What you need', say: 'Try saying', together: 'Play together', variations: 'Make it easier or harder', easier: 'Easier', harder: 'More challenge', safety: 'Grown-up check', saving: 'Saving…', saved: 'Saved to Family Assets ✓', save: 'Save to Family Assets', anotherToy: 'Try another toy', viewAssets: 'View Family Assets →', privacy: 'Your preview is not added to Family AI Assets until you save it. Always inspect the toy and supervise play.',
+    back: 'Back to Play Studio', eyebrow: 'New play, same toys', heading: 'Show us a toy.\nWe’ll spark a new game.', intro: `Upload one photo and get a simple play idea matched to ${childName}’s age.`, madeFor: `Made for ${childName} · ${ageMonths} months`, selected: 'Photo selected and ready to analyze.', addPhoto: 'Add one toy photo', photoTip: 'Place the toy on a clear surface in good light.', ready: 'Ready to discover a new way to play?', choose: 'Choose a clear toy photo', fileHelp: 'JPEG, PNG, WebP, or HEIC · up to 20 MB. Photos are analyzed only when you tap Make a play idea.', generating: 'Making your play idea…', generate: 'Make a play idea', how: 'How it works', show: 'Show one toy', showHelp: 'We look only for the main toy—not people, brands, or places.', match: 'Get an age-matched idea', matchHelp: `The plan uses ${childName}’s saved age of ${ageMonths} months.`, review: 'Wait or leave', reviewHelp: 'The plan saves automatically, and we’ll notify you when it is ready.', retryTitle: 'Let’s try another photo', retryMessage: 'We could not confidently identify one toy in this photo.', chooseAnother: 'Choose another photo', identified: 'Toy identified', confidence: { high: 'high', medium: 'medium', low: 'low' }, idea: 'minute play idea', need: 'What you need', say: 'Try saying', together: 'Play together', variations: 'Make it easier or harder', easier: 'Easier', harder: 'More challenge', safety: 'Grown-up check', saving: 'Saving…', saved: 'Saved to Family Assets ✓', save: 'Save to Family Assets', anotherToy: 'Try another toy', viewAssets: 'View Family Assets →', privacy: 'Your plan is created in the background and saved automatically. Always inspect the toy and supervise play.',
   };
   const photo = state.toyPlayPhotoPreviewUrl
     ? `<img src="${escapeAttribute(state.toyPlayPhotoPreviewUrl)}" alt="${mandarin ? '已选择的玩具照片' : 'Selected toy preview'}" />`
