@@ -2246,6 +2246,9 @@ input, select, textarea { border-color: #e8c9b4; border-radius: var(--radius-con
 .practice-photo-upload { align-items: center; background: #fff; border: 1px dashed #aaa1cf; border-radius: 15px; cursor: pointer; display: flex; gap: 12px; min-height: 78px; padding: 10px; }
 .practice-photo-upload img { border-radius: 11px; height: 58px; object-fit: cover; width: 58px; }
 .practice-photo-upload > span:last-of-type { color: var(--color-ink); font-size: .76rem; font-weight: 800; }
+.practice-photo-selection { display: flex; flex: 0 0 auto; gap: 4px; max-width: 210px; overflow: hidden; }
+.practice-photo-selection .practice-photo-thumb { display: block; }
+.practice-photo-selection .practice-photo-thumb img { height: 48px; width: 48px; }
 .practice-photo-placeholder { align-items: center; background: #eceaf7; border-radius: 11px; color: #675d9b; display: flex; font-size: 1.35rem; height: 58px; justify-content: center; width: 58px; }
 .practice-photo-upload input { height: 1px; opacity: 0; position: absolute; width: 1px; }
 .practice-photo-clear { justify-self: start; margin: -5px 0 0; padding: 4px 0; }

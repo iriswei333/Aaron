@@ -1,0 +1,851 @@
+{
+  "id": "recommendations-2026-10-02",
+  "weekKey": "2026-10-02",
+  "startDate": "2026-10-02",
+  "endDate": "2026-10-04",
+  "regions": [
+    "Seattle",
+    "Tacoma",
+    "Bellevue",
+    "Shoreline",
+    "Issaquah",
+    "Eatonville"
+  ],
+  "posts": [
+    {
+      "id": "social-seattle-2026-10-02-bluey-s-big-play",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "Bluey’s Big Play",
+      "theme": "Family event recommendation",
+      "headline": "Seattle · 周末亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "Bluey舞台剧上演，超大木偶与大师级木偶师同台演绎。魔法木琴、可爱侏儒等熟悉元素齐聚。用全新现场体验开启Heeler一家的奇趣冒险。"
+      ],
+      "description": "The Heeler family has saved me more than once, so you can consider me a “Bluey” fan for life. This live theater show brings larger-than-life puppets and master puppeteers to the stage. From that magic xylophone to adorable gnomes, it’s a chance to experience the usual shenanigans in a brand-new way (rather than, say, watching all 154 episodes again).",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Bluey’s Big Play\nFriday–Sunday, Oct. 2–4 · 6–7:30 p.m. · The 5th Avenue Theatre\n\nThe Heeler family has saved me more than once, so you can consider me a “Bluey” fan for life. This live theater show brings larger-than-life puppets and master puppeteers to the stage. From that magic xylophone to adorable gnomes, it’s a chance to experience the usual shenanigans in a brand-new way (rather than, say, watching all 154 episodes again).\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-02",
+      "dateLabel": "Friday–Sunday, Oct. 2–4",
+      "timeLabel": "6–7:30 p.m.",
+      "cost": "Starting at $55.10",
+      "free": null,
+      "venue": "The 5th Avenue Theatre",
+      "venueAddress": "1308 Fifth Ave., Seattle",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/08/Screenshot-2026-08-17-164155.png",
+      "eventUrl": "https://www.parentmap.com/calendar/blueys-big-play/2026-10-02/",
+      "sourceUrl": "https://www.parentmap.com/calendar/blueys-big-play/2026-10-02/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-seattle-2026-10-02-spooky-science-at-the-burke-museum",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "Spooky Science at the Burke Museum",
+      "theme": "Family event recommendation",
+      "headline": "Seattle · 周末亲子精选",
+      "bannerText": "带上家人，一起去玩！",
+      "highlights": [
+        "拼接动物身体部件，还能亲手做只小蝙蝠带回家。探索会发光的矿石与各种“吓人”生物，边玩边学怪奇科学。"
+      ],
+      "description": "Spooky, scary … stuffed animals? Head to the Burke Museum for creepy, crawly science activities all month long! On the second floor, you’ll find ways to piece together stuffed animal body parts and even craft your own bat to take home. On the third floor, you’ll discover glowing minerals and scary creatures.",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Spooky Science at the Burke Museum\nFriday–Sunday, Oct. 2–4 · 10–5 p.m. · Burke Museum\n\nSpooky, scary … stuffed animals? Head to the Burke Museum for creepy, crawly science activities all month long! On the second floor, you’ll find ways to piece together stuffed animal body parts and even craft your own bat to take home. On the third floor, you’ll discover glowing minerals and scary creatures.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-02",
+      "dateLabel": "Friday–Sunday, Oct. 2–4",
+      "timeLabel": "10–5 p.m.",
+      "cost": "Included with admission ($16–$24); ages 3 and younger are free",
+      "free": null,
+      "venue": "Burke Museum",
+      "venueAddress": "4303 Memorial Way N.E., Seattle",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775188500095-image001-3-b3db4e7d9afc.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/spooky-science-burke-museum/2026-10-02/",
+      "sourceUrl": "https://www.parentmap.com/calendar/spooky-science-burke-museum/2026-10-02/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-tacoma-2026-10-03-tacoma-honk-fest",
+      "region": "Tacoma",
+      "city": "Tacoma",
+      "title": "Tacoma Honk Fest",
+      "theme": "Family event recommendation",
+      "headline": "Tacoma · 星期六亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "鼓队、行进乐队与铜管乐队走上街头，一整天热闹开演。和他们一起摇摆，逛社区摊位、买周边，亲子同乐。"
+      ],
+      "description": "The absolute joy of Honk! Fest is undeniable. Drum lines, marching bands, brass bands and more take to the streets for a full day of music. Groove alongside them, check out the community booths, snag some merch and have a blast.",
+      "caption": "这个周末去Tacoma玩什么？🌿\n\n推荐：Tacoma Honk Fest\n免费入场，Saturday, Oct. 3 · 12–7 p.m. · McKinley Hill Business District\n\nThe absolute joy of Honk! Fest is undeniable. Drum lines, marching bands, brass bands and more take to the streets for a full day of music. Groove alongside them, check out the community booths, snag some merch and have a blast.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-03",
+      "dateLabel": "Saturday, Oct. 3",
+      "timeLabel": "12–7 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "McKinley Hill Business District",
+      "venueAddress": "McKinley Avenue and East Division Lane, Tacoma",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775189693269-2023-06-01-honk-05930485a0d-88dc38bcba1e.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/tacoma-honk-fest/",
+      "sourceUrl": "https://www.parentmap.com/calendar/tacoma-honk-fest/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-bellevue-2026-10-03-kelsey-creek-farm-fair",
+      "region": "Bellevue",
+      "city": "Bellevue",
+      "title": "Kelsey Creek Farm Fair",
+      "theme": "Family event recommendation",
+      "headline": "Bellevue · 星期六亲子精选",
+      "bannerText": "把周末过成美好回忆！",
+      "highlights": [
+        "与农场动物零距离，坐拖拉机拉车逛逛南瓜园。甜咸爆米花和餐车午餐相伴，全家玩得尽兴。"
+      ],
+      "description": "Ready for a fun fall day on the farm? This beloved community event gives kids a chance to meet farm animals, take a tractor-pulled wagon ride and explore a pumpkin patch. Snack on kettle corn or grab lunch from one of the food trucks and make a day of it!",
+      "caption": "这个周末去Bellevue玩什么？🌿\n\n推荐：Kelsey Creek Farm Fair\nSaturday, Oct. 3 · 11–4 p.m. · Kelsey Creek Farm\n\nReady for a fun fall day on the farm? This beloved community event gives kids a chance to meet farm animals, take a tractor-pulled wagon ride and explore a pumpkin patch. Snack on kettle corn or grab lunch from one of the food trucks and make a day of it!\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-03",
+      "dateLabel": "Saturday, Oct. 3",
+      "timeLabel": "11–4 p.m.",
+      "cost": "Many free activities; select activities have a small fee",
+      "free": null,
+      "venue": "Kelsey Creek Farm",
+      "venueAddress": "410 130 Pl. S.E., Bellevue",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775185796150-dsc_0475_0-499d1e3d79eb.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/kelsey-creek-farm-fair-0/",
+      "sourceUrl": "https://www.parentmap.com/calendar/kelsey-creek-farm-fair-0/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "pumpkin"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 18,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-shoreline-2026-10-03-ching-garden-grand-opening",
+      "region": "Shoreline",
+      "city": "Shoreline",
+      "title": "Ching Garden Grand Opening",
+      "theme": "Family event recommendation",
+      "headline": "Shoreline · 星期六亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "社区花园开幕，听食物森林的故事并跟随导览走一圈。还能把多年生植物和种子带回家，现场有适合孩子的活动。"
+      ],
+      "description": "This sweet community garden honoring the Ching family has been in the works for a few years, and it is finally opening to the public! Hear the story behind the food forest, take a tour, and even take home some perennials and seeds. There will be kids activities too.",
+      "caption": "这个周末去Shoreline玩什么？🌿\n\n推荐：Ching Garden Grand Opening\n免费入场，Saturday, Oct. 3 · 11–2 p.m. · Ching Garden\n\nThis sweet community garden honoring the Ching family has been in the works for a few years, and it is finally opening to the public! Hear the story behind the food forest, take a tour, and even take home some perennials and seeds. There will be kids activities too.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-03",
+      "dateLabel": "Saturday, Oct. 3",
+      "timeLabel": "11–2 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Ching Garden",
+      "venueAddress": "16034 Greenwood Ave. N., Shoreline",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/09/Screenshot-2026-09-20-161701.png",
+      "eventUrl": "https://www.parentmap.com/calendar/ching-garden-grand-opening/",
+      "sourceUrl": "https://www.parentmap.com/calendar/ching-garden-grand-opening/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-bellevue-2026-10-03-fiesta-del-ma-z",
+      "region": "Bellevue",
+      "city": "Bellevue",
+      "title": "Fiesta del Maíz",
+      "theme": "Family event recommendation",
+      "headline": "Bellevue · 星期六亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "免费庆典，走近中美洲原住民文化。通过特别展示学习玉米的传统种植与烹饪方式。还有舞蹈表演、缤纷艺术、讲故事与手工，适合全家同乐。"
+      ],
+      "description": "Celebrate Mesoamerican Indigenous cultures at this free fiesta. Special presentations bring history and traditions to life, and you can expect to learn traditional ways to cultivate and prepare corn. There will also be dance performances, colorful artwork, storytelling, crafts and more to enjoy.",
+      "caption": "这个周末去Bellevue玩什么？🌿\n\n推荐：Fiesta del Maíz\n免费入场，Saturday, Oct. 3 · 12–5 p.m. · Crossroads Park\n\nCelebrate Mesoamerican Indigenous cultures at this free fiesta. Special presentations bring history and traditions to life, and you can expect to learn traditional ways to cultivate and prepare corn. There will also be dance performances, colorful artwork, storytelling, crafts and more to enjoy.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-03",
+      "dateLabel": "Saturday, Oct. 3",
+      "timeLabel": "12–5 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Crossroads Park",
+      "venueAddress": "999 164th Ave. N.E., Bellevue",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2024/09/lawjr-corn-4496878_1280.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/fiesta-del-maiz/",
+      "sourceUrl": "https://www.parentmap.com/calendar/fiesta-del-maiz/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-seattle-2026-10-03-little-beats-concert-series",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "Little Beats Concert Series",
+      "theme": "Family event recommendation",
+      "headline": "Seattle · 星期六亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "Little Beats 音乐会系列回归第三季，首场由 Brian and the Good Buddies 登台，穿上舞鞋一起唱唱跳跳。后续还有 Highlight Quartet 和 The Harmonica Pocket 亮相，亲子友好。"
+      ],
+      "description": "This little concert series is back for its third season! It kicks off on Saturday with Brian and the Good Buddies, so put on your dancing shoes and get ready to sing along. (And mark your calendars for Highlight Quartet on Nov. 7 and The Harmonica Pocket on Feb. 6.)",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Little Beats Concert Series\nSaturday, Oct. 3 · 11–12 p.m. · McGilvra Elementary School\n\nThis little concert series is back for its third season! It kicks off on Saturday with Brian and the Good Buddies, so put on your dancing shoes and get ready to sing along. (And mark your calendars for Highlight Quartet on Nov. 7 and The Harmonica Pocket on Feb. 6.)\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-03",
+      "dateLabel": "Saturday, Oct. 3",
+      "timeLabel": "11–12 p.m.",
+      "cost": "$5 per show; $18 for 3-show series pass",
+      "free": null,
+      "venue": "McGilvra Elementary School",
+      "venueAddress": "1617 38th Ave. E., Seattle",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/03/1774038402759-unnamed---2024-11-09t165522161-c0e94e60c0ea.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/little-beats-concert-series/2026-10-03/",
+      "sourceUrl": "https://www.parentmap.com/calendar/little-beats-concert-series/2026-10-03/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-issaquah-2026-10-03-issaquah-salmon-days",
+      "region": "Issaquah",
+      "city": "Issaquah",
+      "title": "Issaquah Salmon Days",
+      "theme": "Family event recommendation",
+      "headline": "Issaquah · 星期六亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "庆祝鲑鱼回归的本地节日，开幕大游行热闹开场。看 DockDogs 表演、逛艺术与手作、玩充气设施和迷你高尔夫，亲子齐欢乐。"
+      ],
+      "description": "This beloved local festival kicks off on Saturday morning with a grand parade, and then a flurry of festivities continues through the weekend. You can expect DockDogs performances, arts and crafts, inflatables, mini golf and more activities, all in celebration of the triumphant salmon that have returned for the season.",
+      "caption": "这个周末去Issaquah玩什么？🌿\n\n推荐：Issaquah Salmon Days\n免费入场，Saturday–Sunday, Oct. 3–4 · 10–6 p.m. · Historic Shell Station & Downtown Issaquah\n\nThis beloved local festival kicks off on Saturday morning with a grand parade, and then a flurry of festivities continues through the weekend. You can expect DockDogs performances, arts and crafts, inflatables, mini golf and more activities, all in celebration of the triumphant salmon that have returned for the season.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-03",
+      "dateLabel": "Saturday–Sunday, Oct. 3–4",
+      "timeLabel": "10–6 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Historic Shell Station & Downtown Issaquah",
+      "venueAddress": "232 Front St. N., Issaquah",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775185570149-12028757_1145127262170091_6991374505321062840_o-753f0c5091c4.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/issaquah-salmon-days/2026-10-03/",
+      "sourceUrl": "https://www.parentmap.com/calendar/issaquah-salmon-days/2026-10-03/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-eatonville-2026-10-03-pumpkin-chomp-stomp",
+      "region": "Eatonville",
+      "city": "Eatonville",
+      "title": "Pumpkin Chomp & Stomp",
+      "theme": "Family event recommendation",
+      "headline": "Eatonville · 星期六亲子精选",
+      "bannerText": "一起发现身边的小惊喜！",
+      "highlights": [
+        "有看护员特别讲解，水獭、浣熊和熊大啖南瓜，萌趣满满。穿上你的装扮走步道、尽情探索公园，并预留游乐场时间。"
+      ],
+      "description": "My daughter loved seeing animals snack on pumpkins last year at Northwest Trek , and we can’t wait to visit again this fall. The annual Pumpkin Chomp & Stomp includes special keeper chats and pumpkin treats for the otters and raccoons and bears (oh my!). Wear your costumes, walk the trails and enjoy the incredible park. Just plan for extra time on the playground.",
+      "caption": "这个周末去Eatonville玩什么？🌿\n\n推荐：Pumpkin Chomp & Stomp\nSaturday–Sunday, Oct. 3–4 · 9:30–3 p.m. · Northwest Trek Wildlife Park\n\nMy daughter loved seeing animals snack on pumpkins last year at Northwest Trek , and we can’t wait to visit again this fall. The annual Pumpkin Chomp & Stomp includes special keeper chats and pumpkin treats for the otters and raccoons and bears (oh my!). Wear your costumes, walk the trails and enjoy the incredible park. Just plan for extra time on the playground.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-03",
+      "dateLabel": "Saturday–Sunday, Oct. 3–4",
+      "timeLabel": "9:30–3 p.m.",
+      "cost": "Included with admission ($17–$32; ages 2 and younger free) or membership",
+      "free": null,
+      "venue": "Northwest Trek Wildlife Park",
+      "venueAddress": "11610 Trek Dr. E., Eatonville",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775190844431-screenshot-2023-08-12-150118-39a89294e662.png",
+      "eventUrl": "https://www.parentmap.com/calendar/pumpkin-chomp-stomp/2026-10-03/",
+      "sourceUrl": "https://www.parentmap.com/calendar/pumpkin-chomp-stomp/2026-10-03/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "pumpkin"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 18,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-seattle-2026-10-04-oktoberfest-kid-s-day",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "Oktoberfest Kid’s Day",
+      "theme": "Family event recommendation",
+      "headline": "Seattle · 星期日亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "全家一起感受啤酒节氛围：孩子可做椒盐脆饼项链、参加涂色比赛和脸部彩绘。还有经典游戏“Hammerschlagen”的南瓜改编，趣味十足。"
+      ],
+      "description": "One of our favorite breweries invites the whole family to get into the Oktoberfest spirit with fun activities. Kids can craft a pretzel necklace, compete in a coloring contest and get their face painted. Plus, the brewery is putting a twist on the classic game of Hammerschlagen — with pumpkins.",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Oktoberfest Kid’s Day\n免费入场，Sunday, Oct. 4 · 12–7 p.m. · Ounces Taproom & Beer Garden\n\nOne of our favorite breweries invites the whole family to get into the Oktoberfest spirit with fun activities. Kids can craft a pretzel necklace, compete in a coloring contest and get their face painted. Plus, the brewery is putting a twist on the classic game of Hammerschlagen — with pumpkins.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-04",
+      "dateLabel": "Sunday, Oct. 4",
+      "timeLabel": "12–7 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Ounces Taproom & Beer Garden",
+      "venueAddress": "3809 Delridge Way S.W., Seattle",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/09/Kids-Day-for-web-no-qr-code.png",
+      "eventUrl": "https://www.parentmap.com/calendar/otoberfest-kids-day/",
+      "sourceUrl": "https://www.parentmap.com/calendar/otoberfest-kids-day/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "pumpkin"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 18,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    }
+  ],
+  "roundup": {
+    "title": "本周末亲子活动精选｜5城8场",
+    "caption": "这个周末，5 个城市都有适合家庭的活动！🌿\n\n本周亮点包括「Kelsey Creek Farm Fair」和「Pumpkin Chomp & Stomp」，适合安排轻松又充实的亲子时光。从户外探索到社区活动，各个城市都有值得带孩子一起体验的选择。\n\n我们整理了 8 场地区亮点：\n\n1. Bellevue：Kelsey Creek Farm Fair\n   地点：Kelsey Creek Farm · 410 130 Pl. S.E., Bellevue\n   趋势关键词：pumpkin\n   亮点：与农场动物零距离，坐拖拉机拉车逛逛南瓜园。\n\n2. Eatonville：Pumpkin Chomp & Stomp\n   地点：Northwest Trek Wildlife Park · 11610 Trek Dr. E., Eatonville\n   趋势关键词：pumpkin\n   亮点：有看护员特别讲解，水獭、浣熊和熊大啖南瓜，萌趣满满。\n\n3. Seattle：Oktoberfest Kid’s Day\n   地点：Ounces Taproom & Beer Garden · 3809 Delridge Way S.W., Seattle\n   趋势关键词：pumpkin\n   亮点：全家一起感受啤酒节氛围：孩子可做椒盐脆饼项链、参加涂色比赛和脸部彩绘。\n\n4. Seattle：Bluey’s Big Play\n   地点：The 5th Avenue Theatre · 1308 Fifth Ave., Seattle\n   亮点：Bluey舞台剧上演，超大木偶与大师级木偶师同台演绎。\n\n5. Seattle：Spooky Science at the Burke Museum\n   地点：Burke Museum · 4303 Memorial Way N.E., Seattle\n   亮点：拼接动物身体部件，还能亲手做只小蝙蝠带回家。\n\n6. Tacoma：Tacoma Honk Fest\n   地点：McKinley Hill Business District · McKinley Avenue and East Division Lane, Tacoma\n   亮点：鼓队、行进乐队与铜管乐队走上街头，一整天热闹开演。\n\n7. Shoreline：Ching Garden Grand Opening\n   地点：Ching Garden · 16034 Greenwood Ave. N., Shoreline\n   亮点：社区花园开幕，听食物森林的故事并跟随导览走一圈。\n\n8. Bellevue：Fiesta del Maíz\n   地点：Crossroads Park · 999 164th Ave. N.E., Bellevue\n   亮点：免费庆典，走近中美洲原住民文化。\n\n收藏这份周末清单，带上家人一起出门玩吧！\n\n想让周末更轻松？来 SproutCue 找附近的 playdate、游乐场、故事时间和周末活动吧！🛝📚 创建你的家庭卡片，认识附近愿意一起玩的家庭，一起发现更多亲子时光！💛\n\n资料整理：SproutCue\n活动日期：2026-10-02–2026-10-04",
+    "posts": [
+      {
+        "city": "Bellevue",
+        "title": "Kelsey Creek Farm Fair",
+        "date": "2026-10-03",
+        "dateLabel": "Saturday, Oct. 3",
+        "timeLabel": "11–4 p.m.",
+        "venue": "Kelsey Creek Farm",
+        "venueAddress": "410 130 Pl. S.E., Bellevue",
+        "highlights": [
+          "与农场动物零距离，坐拖拉机拉车逛逛南瓜园。甜咸爆米花和餐车午餐相伴，全家玩得尽兴。"
+        ],
+        "matchingKeywords": [
+          "pumpkin"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/kelsey-creek-farm-fair-0/"
+      },
+      {
+        "city": "Eatonville",
+        "title": "Pumpkin Chomp & Stomp",
+        "date": "2026-10-03",
+        "dateLabel": "Saturday–Sunday, Oct. 3–4",
+        "timeLabel": "9:30–3 p.m.",
+        "venue": "Northwest Trek Wildlife Park",
+        "venueAddress": "11610 Trek Dr. E., Eatonville",
+        "highlights": [
+          "有看护员特别讲解，水獭、浣熊和熊大啖南瓜，萌趣满满。穿上你的装扮走步道、尽情探索公园，并预留游乐场时间。"
+        ],
+        "matchingKeywords": [
+          "pumpkin"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/pumpkin-chomp-stomp/2026-10-03/"
+      },
+      {
+        "city": "Seattle",
+        "title": "Oktoberfest Kid’s Day",
+        "date": "2026-10-04",
+        "dateLabel": "Sunday, Oct. 4",
+        "timeLabel": "12–7 p.m.",
+        "venue": "Ounces Taproom & Beer Garden",
+        "venueAddress": "3809 Delridge Way S.W., Seattle",
+        "highlights": [
+          "全家一起感受啤酒节氛围：孩子可做椒盐脆饼项链、参加涂色比赛和脸部彩绘。还有经典游戏“Hammerschlagen”的南瓜改编，趣味十足。"
+        ],
+        "matchingKeywords": [
+          "pumpkin"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/otoberfest-kids-day/"
+      },
+      {
+        "city": "Seattle",
+        "title": "Bluey’s Big Play",
+        "date": "2026-10-02",
+        "dateLabel": "Friday–Sunday, Oct. 2–4",
+        "timeLabel": "6–7:30 p.m.",
+        "venue": "The 5th Avenue Theatre",
+        "venueAddress": "1308 Fifth Ave., Seattle",
+        "highlights": [
+          "Bluey舞台剧上演，超大木偶与大师级木偶师同台演绎。魔法木琴、可爱侏儒等熟悉元素齐聚。用全新现场体验开启Heeler一家的奇趣冒险。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/blueys-big-play/2026-10-02/"
+      },
+      {
+        "city": "Seattle",
+        "title": "Spooky Science at the Burke Museum",
+        "date": "2026-10-02",
+        "dateLabel": "Friday–Sunday, Oct. 2–4",
+        "timeLabel": "10–5 p.m.",
+        "venue": "Burke Museum",
+        "venueAddress": "4303 Memorial Way N.E., Seattle",
+        "highlights": [
+          "拼接动物身体部件，还能亲手做只小蝙蝠带回家。探索会发光的矿石与各种“吓人”生物，边玩边学怪奇科学。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/spooky-science-burke-museum/2026-10-02/"
+      },
+      {
+        "city": "Tacoma",
+        "title": "Tacoma Honk Fest",
+        "date": "2026-10-03",
+        "dateLabel": "Saturday, Oct. 3",
+        "timeLabel": "12–7 p.m.",
+        "venue": "McKinley Hill Business District",
+        "venueAddress": "McKinley Avenue and East Division Lane, Tacoma",
+        "highlights": [
+          "鼓队、行进乐队与铜管乐队走上街头，一整天热闹开演。和他们一起摇摆，逛社区摊位、买周边，亲子同乐。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/tacoma-honk-fest/"
+      },
+      {
+        "city": "Shoreline",
+        "title": "Ching Garden Grand Opening",
+        "date": "2026-10-03",
+        "dateLabel": "Saturday, Oct. 3",
+        "timeLabel": "11–2 p.m.",
+        "venue": "Ching Garden",
+        "venueAddress": "16034 Greenwood Ave. N., Shoreline",
+        "highlights": [
+          "社区花园开幕，听食物森林的故事并跟随导览走一圈。还能把多年生植物和种子带回家，现场有适合孩子的活动。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/ching-garden-grand-opening/"
+      },
+      {
+        "city": "Bellevue",
+        "title": "Fiesta del Maíz",
+        "date": "2026-10-03",
+        "dateLabel": "Saturday, Oct. 3",
+        "timeLabel": "12–5 p.m.",
+        "venue": "Crossroads Park",
+        "venueAddress": "999 164th Ave. N.E., Bellevue",
+        "highlights": [
+          "免费庆典，走近中美洲原住民文化。通过特别展示学习玉米的传统种植与烹饪方式。还有舞蹈表演、缤纷艺术、讲故事与手工，适合全家同乐。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/fiesta-del-maiz/"
+      }
+    ],
+    "startDate": "2026-10-02",
+    "endDate": "2026-10-04",
+    "author": "SproutCue"
+  },
+  "source": "parentmap",
+  "sourceUrl": "https://www.parentmap.com/things-to-do/the-weekender/",
+  "searchMode": "recommendations-url",
+  "maxDistanceMiles": null,
+  "slotCount": 10,
+  "generatedAt": "2026-10-02T17:20:20.875Z",
+  "statuses": [
+    {
+      "city": "Seattle",
+      "day": "2026-10-02",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/blueys-big-play/2026-10-02/"
+    },
+    {
+      "city": "Seattle",
+      "day": "2026-10-02",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/spooky-science-burke-museum/2026-10-02/"
+    },
+    {
+      "city": "Tacoma",
+      "day": "2026-10-03",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/tacoma-honk-fest/"
+    },
+    {
+      "city": "Bellevue",
+      "day": "2026-10-03",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/kelsey-creek-farm-fair-0/"
+    },
+    {
+      "city": "Shoreline",
+      "day": "2026-10-03",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/ching-garden-grand-opening/"
+    },
+    {
+      "city": "Bellevue",
+      "day": "2026-10-03",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/fiesta-del-maiz/"
+    },
+    {
+      "city": "Seattle",
+      "day": "2026-10-03",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/little-beats-concert-series/2026-10-03/"
+    },
+    {
+      "city": "Issaquah",
+      "day": "2026-10-03",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/issaquah-salmon-days/2026-10-03/"
+    },
+    {
+      "city": "Eatonville",
+      "day": "2026-10-03",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/pumpkin-chomp-stomp/2026-10-03/"
+    },
+    {
+      "city": "Seattle",
+      "day": "2026-10-04",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/otoberfest-kids-day/"
+    }
+  ],
+  "imageDirectory": "/Users/iriswei/Documents/AaronDaily/output/social-posts",
+  "imageGenCommand": "/Users/iriswei/.codex/skills/.system/imagegen/scripts/image_gen.py",
+  "posterLimit": 8,
+  "existingPosterCount": 22,
+  "skippedExistingPosterCount": 0,
+  "regenerationRequests": [],
+  "feedback": "",
+  "rejectedEvents": [
+    {
+      "city": "seattle",
+      "date": "2026-09-20",
+      "title": "aiweiweicircleofanimalszodiacheads",
+      "normalizedTitle": "aiweiweicircleofanimalszodiacheads",
+      "family": "",
+      "reason": ""
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-09-19",
+      "title": "downtownissaquahstorystrollwatercress",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "family": "downtownissaquahstorystrollw",
+      "reason": "duplicated events in history"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-20",
+      "title": "salmonseeson",
+      "normalizedTitle": "salmonseeson",
+      "family": "",
+      "reason": "too many relevant events"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-20",
+      "title": "salmonseesonatnorthcreektrailpark",
+      "normalizedTitle": "salmonseesonatnorthcreektrailpark",
+      "family": "salmonseeson",
+      "reason": "too many relevant events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-09-26",
+      "title": "Salmon SEEson at Issaquah Creek",
+      "normalizedTitle": "salmonseesonatissaquahcreek",
+      "family": "salmonseeson",
+      "reason": ""
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-09-26",
+      "title": "Fall Festival at Bob’s Corn and Pumpkin Farm",
+      "normalizedTitle": "fallfestivalatbobscornandpumpkinfarm",
+      "family": "fallfestival",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-26",
+      "title": "Ai Weiwei: Circle of Animals/Zodiac Heads",
+      "normalizedTitle": "aiweiweicircleofanimalszodiacheads",
+      "family": "aiweiwei",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-26",
+      "title": "Renton parkrun",
+      "normalizedTitle": "rentonparkrun",
+      "family": "",
+      "reason": "not attractive"
+    },
+    {
+      "city": "tacoma",
+      "date": "2026-09-26",
+      "title": "Tumwater Falls Festival",
+      "normalizedTitle": "tumwaterfallsfestival",
+      "family": "",
+      "reason": "too far"
+    },
+    {
+      "city": "edmonds",
+      "date": "2026-09-27",
+      "title": "Sky Valley Heritage Hunt",
+      "normalizedTitle": "skyvalleyheritagehunt",
+      "family": "",
+      "reason": "not attractive"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-09-26",
+      "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "family": "downtownissaquahstorystroll",
+      "reason": "duplicated event"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-09-26",
+      "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "family": "downtownissaquahstorystroll",
+      "reason": "duplicated event"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-09-27",
+      "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "family": "downtownissaquahstorystroll",
+      "reason": "duplicated event"
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-10-03",
+      "title": "Craven Farm Fall Festival",
+      "normalizedTitle": "cravenfarmfallfestival",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-10-03",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-10-04",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-03",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-04",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-03",
+      "title": "Issaquah Salmon Days",
+      "normalizedTitle": "issaquahsalmondays",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-03",
+      "title": "Renton parkrun",
+      "normalizedTitle": "rentonparkrun",
+      "family": "",
+      "reason": "too many relevent events"
+    }
+  ],
+  "unmatchedRegenerationRequests": [],
+  "sampleRun": false,
+  "posterPostIds": [
+    "social-bellevue-2026-10-03-kelsey-creek-farm-fair",
+    "social-eatonville-2026-10-03-pumpkin-chomp-stomp",
+    "social-seattle-2026-10-04-oktoberfest-kid-s-day",
+    "social-seattle-2026-10-02-bluey-s-big-play",
+    "social-seattle-2026-10-02-spooky-science-at-the-burke-museum",
+    "social-tacoma-2026-10-03-tacoma-honk-fest",
+    "social-shoreline-2026-10-03-ching-garden-grand-opening",
+    "social-bellevue-2026-10-03-fiesta-del-ma-z"
+  ],
+  "posterSetPostIds": [
+    "social-bellevue-2026-10-03-kelsey-creek-farm-fair",
+    "social-eatonville-2026-10-03-pumpkin-chomp-stomp",
+    "social-seattle-2026-10-04-oktoberfest-kid-s-day",
+    "social-seattle-2026-10-02-bluey-s-big-play",
+    "social-seattle-2026-10-02-spooky-science-at-the-burke-museum",
+    "social-tacoma-2026-10-03-tacoma-honk-fest",
+    "social-shoreline-2026-10-03-ching-garden-grand-opening",
+    "social-bellevue-2026-10-03-fiesta-del-ma-z"
+  ],
+  "summaryPoster": {
+    "filename": "recommendations-2026-10-02-all-events.png",
+    "eventCount": 10,
+    "eventPostIds": [
+      "social-seattle-2026-10-02-bluey-s-big-play",
+      "social-seattle-2026-10-02-spooky-science-at-the-burke-museum",
+      "social-tacoma-2026-10-03-tacoma-honk-fest",
+      "social-bellevue-2026-10-03-kelsey-creek-farm-fair",
+      "social-shoreline-2026-10-03-ching-garden-grand-opening",
+      "social-bellevue-2026-10-03-fiesta-del-ma-z",
+      "social-seattle-2026-10-03-little-beats-concert-series",
+      "social-issaquah-2026-10-03-issaquah-salmon-days",
+      "social-eatonville-2026-10-03-pumpkin-chomp-stomp",
+      "social-seattle-2026-10-04-oktoberfest-kid-s-day"
+    ],
+    "generatedThisRun": true
+  },
+  "posterLimitByCity": {
+    "Bellevue": 2,
+    "Eatonville": 1,
+    "Seattle": 2,
+    "Tacoma": 1,
+    "Shoreline": 1
+  },
+  "roundupPostIds": [
+    "social-bellevue-2026-10-03-kelsey-creek-farm-fair",
+    "social-eatonville-2026-10-03-pumpkin-chomp-stomp",
+    "social-seattle-2026-10-04-oktoberfest-kid-s-day",
+    "social-seattle-2026-10-02-bluey-s-big-play",
+    "social-seattle-2026-10-02-spooky-science-at-the-burke-museum",
+    "social-tacoma-2026-10-03-tacoma-honk-fest",
+    "social-shoreline-2026-10-03-ching-garden-grand-opening",
+    "social-bellevue-2026-10-03-fiesta-del-ma-z"
+  ],
+  "roundupWordLimit": 670
+}
