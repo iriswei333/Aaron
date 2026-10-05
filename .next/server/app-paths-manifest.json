@@ -1,6 +1,3 @@
 {
-  "/api/notifications/route": "app/api/notifications/route.js",
-  "/api/family-assets/practice-stories/route": "app/api/family-assets/practice-stories/route.js",
-  "/api/ai-jobs/route": "app/api/ai-jobs/route.js",
-  "/[...slug]/page": "app/[...slug]/page.js"
+  "/api/notifications/route": "app/api/notifications/route.js"
 }

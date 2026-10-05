@@ -35,10 +35,23 @@ export async function POST(request) {
   try {
     const current = await getCurrentProfile(request);
     if (!current.user) return profileErrorResponse(current);
-    if (!(request.headers.get('content-type') || '').includes('multipart/form-data')) {
-      return Response.json({ error: 'Use multipart/form-data with 2–5 uploaded photos and/or savedPhotoIds.' }, { status: 400 });
+    const contentType = request.headers.get('content-type') || '';
+    let formData;
+    if (contentType.includes('application/json')) {
+      const body = await request.json() || {};
+      formData = new FormData();
+      formData.set('childName', String(body.childName || ''));
+      formData.set('templateSlug', String(body.templateSlug || ''));
+      if (body.childId) formData.set('childId', String(body.childId));
+      for (const photoId of Array.isArray(body.savedPhotoIds) ? body.savedPhotoIds : []) {
+        formData.append('savedPhotoIds', String(photoId));
+      }
+    } else if (contentType.includes('multipart/form-data')) {
+      formData = await request.formData();
+    } else {
+      return Response.json({ error: 'Use JSON savedPhotoIds or multipart/form-data with 2–5 reference photos.' }, { status: 400 });
     }
-    const book = await createFamilyPictureBook(current, await request.formData());
+    const book = await createFamilyPictureBook(current, formData);
     return Response.json({ book: serializeFamilyPictureBook(book) }, { status: 201 });
   } catch (error) {
     return uploadFailure(error);

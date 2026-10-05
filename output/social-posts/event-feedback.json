@@ -158,5 +158,85 @@
     "normalizedTitle": "rentonparkrun",
     "family": "",
     "reason": "too many relevent events"
+  },
+  {
+    "city": "seattle",
+    "date": "2026-10-11",
+    "title": "Family Game Dayattractive",
+    "normalizedTitle": "familygamedayattractive",
+    "family": "familygameday",
+    "reason": ""
+  },
+  {
+    "city": "seattle",
+    "date": "2026-10-11",
+    "title": "Family Game Day",
+    "normalizedTitle": "familygameday",
+    "family": "",
+    "reason": "not attractive"
+  },
+  {
+    "city": "seattle",
+    "date": "2026-10-11",
+    "title": "Spooky Science at the Burke Museum",
+    "normalizedTitle": "spookyscienceattheburkemuseum",
+    "family": "spookyscience",
+    "reason": "duplicated events"
+  },
+  {
+    "city": "bellevue",
+    "date": "2026-10-11",
+    "title": "Pumpkin Farm and Puzzle Patch",
+    "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+    "family": "",
+    "reason": "duplicated events"
+  },
+  {
+    "city": "tacoma",
+    "date": "2026-10-10",
+    "title": "Storywalk at Alderwood Park: César’s Cerulean Surprise",
+    "normalizedTitle": "storywalkatalderwoodparkcsarsceruleansurprise",
+    "family": "storywalk",
+    "reason": "duplicated events"
+  },
+  {
+    "city": "tacoma",
+    "date": "Picha Farms Fall Festival",
+    "title": "2026-10-10",
+    "normalizedTitle": "20261010",
+    "family": "",
+    "reason": "|duplicated events"
+  },
+  {
+    "city": "kirkland",
+    "date": "2026-10-11",
+    "title": "Pumpkin Farm and Puzzle Patch",
+    "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+    "family": "",
+    "reason": "duplicated events"
+  },
+  {
+    "city": "bellevue",
+    "date": "2026-10-10",
+    "title": "October Weekends at Jubilee Harvest Festival",
+    "normalizedTitle": "octoberweekendsatjubileeharvestfestival",
+    "family": "octoberweekends",
+    "reason": "duplicated events"
+  },
+  {
+    "city": "tacoma",
+    "date": "2026-10-11",
+    "title": "Picha Farms Fall Festival",
+    "normalizedTitle": "pichafarmsfallfestival",
+    "family": "",
+    "reason": "duplicated events--reject-event"
+  },
+  {
+    "city": "edmonds",
+    "date": "2026-10-11",
+    "title": "Stocker Farms Fall Festival",
+    "normalizedTitle": "stockerfarmsfallfestival",
+    "family": "",
+    "reason": "duplicated events"
   }
 ]

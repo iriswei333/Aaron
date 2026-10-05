@@ -1,10 +1,12 @@
 import { apiRequest, escapeAttribute, escapeHtml, readFirstStoredValue } from '../shared.js';
 import { childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
+import { createSupabaseBrowserClient } from '../../lib/supabase/client.js';
 import { startAiJobWait } from '../ai-jobs.js';
 
 const DEFAULT_TEMPLATE = 'career-recognition-v1';
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
 const MAX_TOTAL_PHOTO_BYTES = 90 * 1024 * 1024;
+const PICTURE_BOOK_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']);
 
 const FALLBACK_PRACTICE_TOPICS = [
   ['calm-with-caregiver', 'Settle with a caregiver', 0, 18], ['sleep-routine', 'Follow the bedtime routine', 0, 71],
@@ -89,6 +91,51 @@ function pictureBookCreateError(response, result, photos) {
   }
   if (response.status === 415) return 'Those photos use a format we cannot read. Choose JPEG, PNG, WebP, HEIC, or HEIF photos.';
   return result.error || result.help || `Request failed with ${response.status}`;
+}
+
+function photoMimeType(photo) {
+  const declared = String(photo?.type || '').toLowerCase();
+  if (declared === 'image/jpg') return 'image/jpeg';
+  if (declared) return declared;
+  const name = String(photo?.name || '').toLowerCase();
+  if (/\.jpe?g$/.test(name)) return 'image/jpeg';
+  if (name.endsWith('.png')) return 'image/png';
+  if (name.endsWith('.webp')) return 'image/webp';
+  if (name.endsWith('.heic')) return 'image/heic';
+  if (name.endsWith('.heif')) return 'image/heif';
+  return '';
+}
+
+async function saveDirectPictureBookPhoto(photo, childName, index, total) {
+  const supabase = createSupabaseBrowserClient();
+  if (!supabase) throw new Error('Private photo storage is unavailable.');
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error('Sign in again before uploading photos.');
+  const suffix = String(photo.name || '').toLowerCase().match(/\.(jpe?g|png|webp|heic|heif)$/)?.[1] || 'image';
+  const uploadId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const storagePath = `${user.id}/incoming/${uploadId}.${suffix}`;
+  const mimeType = photoMimeType(photo);
+  const { error: uploadError } = await supabase.storage.from('family-assets').upload(storagePath, photo, {
+    contentType: mimeType || 'application/octet-stream',
+    upsert: false,
+  });
+  if (uploadError) throw new Error(`Photo ${index + 1} of ${total} could not upload: ${uploadError.message}`);
+  try {
+    const result = await apiRequest('/family-assets/photos/direct-upload', {
+      method: 'POST',
+      body: JSON.stringify({
+        storagePath,
+        originalName: photo.name,
+        mimeType,
+        byteSize: photo.size,
+        label: childName ? `${childName} picture-book photo` : photo.name,
+      }),
+    });
+    return result.photo;
+  } catch (error) {
+    await supabase.storage.from('family-assets').remove([storagePath]);
+    throw error;
+  }
 }
 
 function statusLabel(status) {
@@ -217,6 +264,11 @@ async function createBook(ctx, form) {
     ctx.renderCurrent();
     return;
   }
+  if (photos.some((photo) => !PICTURE_BOOK_IMAGE_TYPES.has(photoMimeType(photo)))) {
+    state.pictureBookStatus = 'Choose JPEG, PNG, WebP, HEIC, or HEIF photos.';
+    ctx.renderCurrent();
+    return;
+  }
   if (photos.some((photo) => photo.size > MAX_PHOTO_BYTES)) {
     state.pictureBookStatus = 'Each reference photo must be 20 MB or smaller.';
     ctx.renderCurrent();
@@ -228,13 +280,33 @@ async function createBook(ctx, form) {
     return;
   }
   const data = new FormData();
-  data.set('childName', form.elements.childName.value.trim());
-  data.set('templateSlug', form.elements.templateSlug.value || DEFAULT_TEMPLATE);
+  const childName = form.elements.childName.value.trim();
+  const templateSlug = form.elements.templateSlug.value || DEFAULT_TEMPLATE;
+  data.set('childName', childName);
+  data.set('templateSlug', templateSlug);
   photos.forEach((photo) => data.append('photos', photo));
-  state.pictureBookStatus = 'Saving the private reference photos…';
+  state.pictureBookStatus = state.authMode === 'supabase' ? `Uploading photo 1 of ${photos.length}…` : 'Saving the private reference photos…';
   ctx.renderCurrent();
   try {
-    const response = await fetch('/api/family-assets/picture-books', { method: 'POST', body: data, headers: localHeaders() });
+    let response;
+    if (state.authMode === 'supabase') {
+      const savedPhotoIds = [];
+      for (const [index, photo] of photos.entries()) {
+        state.pictureBookStatus = `Uploading photo ${index + 1} of ${photos.length}…`;
+        ctx.renderCurrent();
+        const saved = await saveDirectPictureBookPhoto(photo, childName, index, photos.length);
+        savedPhotoIds.push(saved.id);
+      }
+      state.pictureBookStatus = 'Creating the private picture book…';
+      ctx.renderCurrent();
+      response = await fetch('/api/family-assets/picture-books', {
+        method: 'POST',
+        body: JSON.stringify({ childName, templateSlug, savedPhotoIds }),
+        headers: { 'content-type': 'application/json', ...localHeaders() },
+      });
+    } else {
+      response = await fetch('/api/family-assets/picture-books', { method: 'POST', body: data, headers: localHeaders() });
+    }
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(pictureBookCreateError(response, result, photos));
     state.pictureBookStatus = 'Book created. You can make the whole book or work one page at a time.';
@@ -443,7 +515,7 @@ function studioCreate(state, childName) {
   const templates = state.pictureBookTemplates || [];
   const selected = templates.find((template) => template.slug === state.pictureBookTemplateSlug) || templates[0];
   const options = templates.map((template) => `<option value="${escapeAttribute(template.slug)}" ${template.slug === selected?.slug ? 'selected' : ''}>${escapeHtml(template.name)}${template.pageCount ? ` · ${template.pageCount} pages` : ''}</option>`).join('');
-  return `<main class="studio-page studio-subpage"><button type="button" class="studio-back" data-studio-view="landing">← Back to Play Studio</button><header class="studio-subpage-heading"><div><p class="eyebrow">A book starring them</p><h1>Start a picture book</h1><p>${escapeHtml(selected?.description || 'Choose a private picture-book template for your family.')}</p></div><button type="button" class="secondary-button" data-studio-view="library">View existing books</button></header><section class="studio-create"><div><span class="studio-create-icon" aria-hidden="true">${selected?.slug?.includes('kindergarten') ? '🎒' : '🌈'}</span><h2>${escapeHtml(selected?.name || 'Loading templates…')}</h2><p>Use 2–5 clear photos from different angles to help keep ${escapeHtml(childName)} recognizable across the story.</p></div><form id="picture-book-form" class="studio-form"><label>Picture-book template<select name="templateSlug" ${state.pictureBookTemplatesLoading ? 'disabled' : ''}>${options || '<option>Loading templates…</option>'}</select></label><label>Child’s name<input name="childName" maxlength="80" value="${escapeAttribute(childName)}" /></label><label>Reference photos<input name="photos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" multiple required /><small>JPEG, PNG, WebP, or HEIC · 2–5 photos · up to 20 MB each · 90 MB combined · HEIC converts privately to JPEG</small></label><button type="submit" ${selected ? '' : 'disabled'}>Create private book <span aria-hidden="true">→</span></button></form></section>${state.pictureBookStatus ? `<p class="studio-message" role="status">${escapeHtml(state.pictureBookStatus)}</p>` : ''}</main>`;
+  return `<main class="studio-page studio-subpage"><button type="button" class="studio-back" data-studio-view="landing">← Back to Play Studio</button><header class="studio-subpage-heading"><div><p class="eyebrow">A book starring them</p><h1>Start a picture book</h1><p>${escapeHtml(selected?.description || 'Choose a private picture-book template for your family.')}</p></div><button type="button" class="secondary-button" data-studio-view="library">View existing books</button></header><section class="studio-create"><div><span class="studio-create-icon" aria-hidden="true">${selected?.slug?.includes('kindergarten') ? '🎒' : '🌈'}</span><h2>${escapeHtml(selected?.name || 'Loading templates…')}</h2><p>Use 2–5 clear photos from different angles to help keep ${escapeHtml(childName)} recognizable across the story.</p></div><form id="picture-book-form" class="studio-form"><label>Picture-book template<select name="templateSlug" ${state.pictureBookTemplatesLoading ? 'disabled' : ''}>${options || '<option>Loading templates…</option>'}</select></label><label>Child’s name<input name="childName" maxlength="80" value="${escapeAttribute(childName)}" /></label><label>Reference photos<input name="photos" type="file" accept="image/*,.heic,.heif" multiple required /><small id="picture-book-photo-help">JPEG, PNG, WebP, or HEIC · 2–5 photos · up to 20 MB each · uploaded privately one at a time</small></label><button type="submit" ${selected ? '' : 'disabled'}>Create private book <span aria-hidden="true">→</span></button></form></section>${state.pictureBookStatus ? `<p class="studio-message" role="status">${escapeHtml(state.pictureBookStatus)}</p>` : ''}</main>`;
 }
 
 function studioLibrary(state) {
@@ -582,7 +654,14 @@ export function renderStudio(ctx) {
   document.querySelector('[data-start-picture-book]')?.addEventListener('click', () => { state.showPictureBookChooser = false; state.studioView = 'create'; globalThis.history.pushState({}, '', '/play-studio?create=picture-book'); ctx.renderCurrent(); });
   document.querySelector('[data-view-picture-books]')?.addEventListener('click', () => { state.showPictureBookChooser = false; state.studioView = 'library'; globalThis.history.pushState({}, '', '/picture-books'); ctx.renderCurrent(); });
   document.getElementById('picture-book-form')?.addEventListener('submit', (event) => { event.preventDefault(); createBook(ctx, event.currentTarget); });
-  document.querySelector('[name="templateSlug"]')?.addEventListener('change', (event) => { state.pictureBookTemplateSlug = event.currentTarget.value; ctx.renderCurrent(); });
+  document.querySelector('#picture-book-form input[name="photos"]')?.addEventListener('change', (event) => {
+    const files = Array.from(event.currentTarget.files || []);
+    const help = document.getElementById('picture-book-photo-help');
+    if (!help) return;
+    const totalMb = files.reduce((total, file) => total + file.size, 0) / (1024 * 1024);
+    help.textContent = files.length ? `${files.length} photos selected · ${totalMb.toFixed(1)} MB total` : 'JPEG, PNG, WebP, or HEIC · choose 2–5 photos';
+  });
+  document.querySelector('[name="templateSlug"]')?.addEventListener('change', (event) => { state.pictureBookTemplateSlug = event.currentTarget.value; });
   document.getElementById('refresh-picture-books')?.addEventListener('click', () => loadBooks(ctx));
   document.getElementById('close-book-preview')?.addEventListener('click', () => { URL.revokeObjectURL(state.pictureBookPreviewUrl); state.pictureBookPreviewUrl = ''; state.pictureBookPreviewTitle = ''; ctx.renderCurrent(); });
   document.querySelectorAll('[data-generate-book]').forEach((button) => button.addEventListener('click', async () => {
