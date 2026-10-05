@@ -238,5 +238,37 @@
     "normalizedTitle": "stockerfarmsfallfestival",
     "family": "",
     "reason": "duplicated events"
+  },
+  {
+    "city": "lynnwood",
+    "date": "2026-10-10",
+    "title": "Craven Farm Fall Festival",
+    "normalizedTitle": "cravenfarmfallfestival",
+    "family": "",
+    "reason": "duplicated events"
+  },
+  {
+    "city": "edmonds",
+    "date": "2026-10-10",
+    "title": "Stocker Farms Fall Festival",
+    "normalizedTitle": "stockerfarmsfallfestival",
+    "family": "",
+    "reason": "duplicated events"
+  },
+  {
+    "city": "edmonds",
+    "date": "2026-10-10",
+    "title": "Harvest Festival at Swans Trail Farms",
+    "normalizedTitle": "harvestfestivalatswanstrailfarms",
+    "family": "harvestfestival",
+    "reason": "duplicated events"
+  },
+  {
+    "city": "lynnwood",
+    "date": "2026-10-10",
+    "title": "Thomas Family Farm",
+    "normalizedTitle": "thomasfamilyfarm",
+    "family": "",
+    "reason": "duplicated events"
   }
 ]

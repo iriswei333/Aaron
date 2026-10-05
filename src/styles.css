@@ -2163,6 +2163,14 @@ input, select, textarea { border-color: #e8c9b4; border-radius: var(--radius-con
 .studio-form label small { color: var(--color-muted); font-size: .72rem; font-weight: 600; }
 .studio-form input { background: #fffdf9; min-width: 0; width: 100%; }
 .studio-form input[type="file"] { padding: 9px; }
+.picture-book-photo-picker { align-items: center; background: #fffdf9; border: 1px dashed #b8b2a8; border-radius: 13px; cursor: pointer; display: flex; gap: 10px; min-height: 50px; overflow: hidden; padding: 10px 12px; position: relative; }
+.picture-book-photo-picker:hover { background: #f7f4ed; border-color: var(--color-brand); }
+.picture-book-photo-picker.selected { background: #edf5e8; border-color: #8da875; }
+.picture-book-photo-picker > span { align-items: center; background: #f0eee8; border-radius: 50%; color: var(--color-brand-strong); display: flex; flex: 0 0 28px; height: 28px; justify-content: center; }
+.picture-book-photo-picker.selected > span { background: #fff; color: #39724d; }
+.picture-book-photo-picker > strong { font-size: .78rem; }
+.picture-book-photo-picker input { height: 1px; opacity: 0; position: absolute; width: 1px; }
+.picture-book-photo-picker:focus-within { outline: 2px solid var(--color-brand); outline-offset: 2px; }
 .studio-message { background: #fff6e8; border: 1px solid #f1d8ad; border-radius: 16px; color: #86501d; margin: 0; padding: 13px 16px; }
 .studio-library { display: grid; gap: 16px; }
 .studio-library-heading, .studio-book-heading, .studio-preview { align-items: flex-start; display: flex; gap: 18px; justify-content: space-between; }
