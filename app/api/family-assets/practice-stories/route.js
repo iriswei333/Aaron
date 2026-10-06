@@ -29,8 +29,20 @@ export async function POST(request) {
   try {
     const current = await getCurrentProfile(request);
     if (!current.user) return profileErrorResponse(current);
-    if (!(request.headers.get('content-type') || '').includes('multipart/form-data')) return Response.json({ error: 'Use multipart/form-data with goal, interests, and up to 5 optional photos and/or savedPhotoIds.' }, { status: 400 });
-    const formData = await request.formData();
+    const contentType = request.headers.get('content-type') || '';
+    let formData;
+    if (contentType.includes('application/json')) {
+      const body = await request.json() || {};
+      formData = new FormData();
+      formData.set('goal', String(body.goal || ''));
+      formData.set('interests', String(body.interests || ''));
+      formData.set('language', body.language === 'zh-CN' ? 'zh-CN' : 'en');
+      for (const photoId of Array.isArray(body.savedPhotoIds) ? body.savedPhotoIds : []) formData.append('savedPhotoIds', String(photoId));
+    } else if (contentType.includes('multipart/form-data')) {
+      formData = await request.formData();
+    } else {
+      return Response.json({ error: 'Use JSON savedPhotoIds or multipart/form-data with up to 5 optional photos.' }, { status: 400 });
+    }
     const ids = savedPhotoIds(formData);
     const uploads = [...formData.getAll('photos'), ...formData.getAll('photo')]
       .filter((photo) => photo && typeof photo.arrayBuffer === 'function' && photo.size);

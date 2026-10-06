@@ -170,7 +170,10 @@ describe('ParentMap venue distance filtering', () => {
       highlights: ['适合全家一起探索。'],
     }], '2026-09-26', '2026-09-27');
 
-    expect(roundup.caption).toContain('地点：Seattle Aquarium · 1483 Alaskan Way Pier 59, Seattle, WA, 98101-2015, United States');
+    expect(roundup.caption).toContain('- Seattle：Aquarium Family Day');
+    expect(roundup.caption).toContain('地点：Seattle Aquarium · 1483 Alaskan Way Pier 59, Seattle, WA 98101-2015');
+    expect(roundup.caption).not.toContain('趋势关键词');
+    expect(roundup.caption).not.toContain('United States');
     expect(roundup.posts[0].venueAddress).toBe('1483 Alaskan Way Pier 59, Seattle, WA, 98101-2015, United States');
   });
 });

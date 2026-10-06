@@ -270,5 +270,37 @@
     "normalizedTitle": "thomasfamilyfarm",
     "family": "",
     "reason": "duplicated events"
+  },
+  {
+    "city": "lynnwood",
+    "date": "2026-10-10",
+    "title": "Thomas Family Farm Fall Festival Fun Park",
+    "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
+    "family": "",
+    "reason": "duplicated events"
+  },
+  {
+    "city": "edmonds",
+    "date": "2026-10-10",
+    "title": "Thomas Family Farm Fall Festival Fun Park",
+    "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
+    "family": "",
+    "reason": "duplicated events"
+  },
+  {
+    "city": "edmonds",
+    "date": "2026-10-11",
+    "title": "Thomas Family Farm Fall Festival Fun Park",
+    "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
+    "family": "",
+    "reason": "duplicated events"
+  },
+  {
+    "city": "lynnwood",
+    "date": "2026-10-10",
+    "title": "Stocker Farms Fall Festival",
+    "normalizedTitle": "stockerfarmsfallfestival",
+    "family": "",
+    "reason": "duplicated events"
   }
 ]

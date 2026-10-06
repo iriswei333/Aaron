@@ -28,14 +28,6 @@ function cacheResponse(entry, current, cached) {
   });
 }
 
-function pageForRequestId(requestId) {
-  const digits = String(Math.abs(requestId));
-  const hash = [...digits].reduce((total, digit, index) => (
-    total + Number(digit) * (index + 1)
-  ), 0);
-  return (hash % 5) + 1;
-}
-
 export async function GET(request) {
   try {
     const current = await getCurrentProfile(request);
@@ -43,15 +35,12 @@ export async function GET(request) {
 
     const url = new URL(request.url);
     const { locationCity, locationZip, startDate, endDate } = normalizeFamilyEventRequest(current.user, url.searchParams);
-    const requestId = Number(url.searchParams.get('request'));
-    const page = Number.isFinite(requestId) ? pageForRequestId(requestId) : 1;
     const filters = {
       provider: 'parentmap',
       secondaryProvider: 'seattles-child',
       range: 'weekend',
-      page,
       locationZip,
-      version: 3,
+      version: 4,
     };
     const cacheKey = familyEventCacheKey({ locationCity, startDate, endDate, filters });
     const refresh = url.searchParams.get('refresh') === '1';
@@ -74,7 +63,6 @@ export async function GET(request) {
       startDate,
       endDate,
       childProfile: getChildProfile(current.user),
-      page,
       locationZip,
     });
     const entry = {

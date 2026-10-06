@@ -10,8 +10,18 @@ export async function POST(request) {
   try {
     const current = await getCurrentProfile(request);
     if (!current.user) return profileErrorResponse(current);
-    if (!(request.headers.get('content-type') || '').includes('multipart/form-data')) return Response.json({ error: 'Use multipart/form-data with one photo or savedPhotoId.' }, { status: 400 });
-    const formData = await request.formData();
+    const contentType = request.headers.get('content-type') || '';
+    let formData;
+    if (contentType.includes('application/json')) {
+      const body = await request.json() || {};
+      formData = new FormData();
+      formData.set('savedPhotoId', String(body.savedPhotoId || ''));
+      formData.set('language', body.language === 'zh-CN' ? 'zh-CN' : 'en');
+    } else if (contentType.includes('multipart/form-data')) {
+      formData = await request.formData();
+    } else {
+      return Response.json({ error: 'Use JSON with savedPhotoId or multipart/form-data with one photo.' }, { status: 400 });
+    }
     let savedPhotoId = String(formData.get('savedPhotoId') || '').trim();
     if (!savedPhotoId) {
       const photo = await createFamilyPhoto(current, await photoInputFromForm(formData), { label: 'Toy play photo', sourceKind: 'toy_play' });

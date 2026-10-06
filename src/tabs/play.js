@@ -1663,7 +1663,7 @@ export function renderPlay(ctx) {
   const discoverView = state.discoverView === 'list' ? 'list' : 'map';
   const discoverLocationLabel = location?.address || location?.label || childProfile?.homeCity || 'Choose a search location';
   const discoverResultsMarkup = filteredDiscoverItems.length
-    ? filteredDiscoverItems.slice(0, 30).map((item) => renderDiscoverCard(item, state)).join('')
+    ? filteredDiscoverItems.map((item) => renderDiscoverCard(item, state)).join('')
     : `<div class="discover-empty"><span aria-hidden="true">⌖</span><strong>${discoverTodayOnly && state.todayFamilyEventsLoading ? 'Checking today’s events…' : discoverTodayOnly ? 'No matching adventures scheduled today' : discoverPlaygroundOnly ? 'No nearby playgrounds found' : 'No adventures in this category yet'}</strong><p>${discoverTodayOnly && state.todayFamilyEventsLoading ? 'Looking for same-day playdates, events, and story times.' : discoverTodayOnly ? 'Try another event type or come back after refreshing the providers.' : discoverPlaygroundOnly ? 'Update your location or increase your playground search distance.' : 'Try another category, refresh the providers, or update your location.'}</p></div>`;
   const discoverContentMarkup = discoverView === 'map'
     ? `<div class="discover-map-layout">${discoverMapMarkup(filteredDiscoverItems, selectedDiscoverItem?.id || '', searchRadiusMiles)}<aside class="discover-map-selection">${renderDiscoverSelection(selectedDiscoverItem, state)}</aside></div>`

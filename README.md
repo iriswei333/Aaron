@@ -148,7 +148,7 @@ The app stores a few browser-local values such as the login email and selected H
 - `PUT /api/profile` updates the current signed-in profile display name, children, and active child.
 - `PUT /api/social-links` updates saved social links.
 - `PUT /api/location` updates the saved location.
-- `GET /api/family-events` returns cached weekend family events for the profile city and current weekend; `refresh=1` forces a refresh. Request-specific provider rows last 12 hours. The weekly social agent also writes city/region rows to the shared cache, which remain fresh through the event weekend and are reused before another provider fetch.
+- `GET /api/family-events` returns all matched cached weekend family events for the profile city and current weekend; `refresh=1` forces a refresh. Provider rows last 12 hours. The weekly social agent also writes city/region rows to the shared cache, which remain fresh through the event weekend and are reused before another provider fetch.
 - `GET /api/story-times` merges all Seattle Public Library and King County Library System story times with physical ParentMap search results, without a saved-location or radius restriction; `refresh=1` forces a refresh. ParentMap results include event-page addresses and card thumbnails, and the server cache lasts 24 hours.
 - Saved weekend-event decisions persist through `/api/family-plans`.
 - `GET /api/playdates?playgroundKey=...` returns upcoming visible play dates for a selected playground.

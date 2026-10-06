@@ -188,6 +188,7 @@ function posterPrompt(post) {
   const revisionFeedback = feedback ? `\nRevision feedback to address: ${feedback}\n` : '';
   const featureTiles = eventFeatureTiles(post);
   const featureTileText = featureTiles.map((tile, index) => `${index + 1}. “${tile.title}” / “${tile.subtitle}”`).join('\n');
+  const headline = post.headline || `${post.city} · 周末亲子精选`;
   return `Use case: ads-marketing
 Asset type: fixed-format vertical ${POSTER_FORMAT.aspectRatio} Mandarin social media event poster
 Primary request: Create a polished family-event poster for ${post.title} in ${post.city} using the exact reusable SproutCue template modeled on the supplied reference layout.
@@ -197,7 +198,7 @@ Fixed reference layout, from top to bottom: (1) top 11% — a centered navy swal
 Feature tile copy: use these exact three event-specific feature tiles in the three equal feature tiles, in this order:
 ${featureTileText}
 Text rules: render only the following text blocks in their assigned template sections, with no extra copy, labels, QR codes, logos, watermarks, or decorative lettering:
-“${post.headline}”
+“${headline}”
 “${post.title}”
 “周末亲子精选”
 ${featureTiles.map((tile) => `“${tile.title}”\n“${tile.subtitle}”`).join('\n')}
@@ -437,7 +438,15 @@ async function main() {
     ? [...run.posts].sort((a, b) => (b.recommendationScore || 0) - (a.recommendationScore || 0)).slice(0, posterLimit)
     : selectPosterSet(run.posts, posterLimit, run.weekKey, regenerationTargets);
   const includeTitleInFilename = isRecommendationRun;
-  const filenameFor = (post) => posterFilename(post, run.weekKey, includeTitleInFilename);
+  const filenameSlotCounts = new Map();
+  for (const post of posterSet) {
+    const slot = `${post.city.toLowerCase()}|${post.date || run.weekKey}`;
+    filenameSlotCounts.set(slot, (filenameSlotCounts.get(slot) || 0) + 1);
+  }
+  const filenameFor = (post) => {
+    const slot = `${post.city.toLowerCase()}|${post.date || run.weekKey}`;
+    return posterFilename(post, run.weekKey, includeTitleInFilename || filenameSlotCounts.get(slot) > 1);
+  };
   const posterPosts = posterSet.filter((post) => forcedInputEvents.length
     || regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)
     || !existingPosterNames.has(filenameFor(post)));
