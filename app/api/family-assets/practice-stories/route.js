@@ -3,6 +3,7 @@ import { after } from 'next/server';
 import { enqueueAiJob, processAiJob } from '../../../../lib/ai-jobs.js';
 import { createFamilyPhoto, photoInputFromForm } from '../../../../lib/family-photos.js';
 import { getCurrentProfile, profileErrorResponse } from '../../../../lib/profile-session.js';
+import { practiceStoryChallenge, practiceStoryLength, practiceStoryParentGoals, practiceStoryTheme } from '../../../../lib/practice-story-options.js';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -37,6 +38,10 @@ export async function POST(request) {
       formData.set('goal', String(body.goal || ''));
       formData.set('interests', String(body.interests || ''));
       formData.set('language', body.language === 'zh-CN' ? 'zh-CN' : 'en');
+      formData.set('challenge', String(body.challenge || ''));
+      formData.set('parentGoals', Array.isArray(body.parentGoals) ? body.parentGoals.join(',') : String(body.parentGoals || ''));
+      formData.set('storyTheme', String(body.storyTheme || ''));
+      formData.set('adventureLength', String(body.adventureLength || ''));
       for (const photoId of Array.isArray(body.savedPhotoIds) ? body.savedPhotoIds : []) formData.append('savedPhotoIds', String(photoId));
     } else if (contentType.includes('multipart/form-data')) {
       formData = await request.formData();
@@ -53,8 +58,18 @@ export async function POST(request) {
       const saved = await createFamilyPhoto(current, await photoInputFromForm(single), { label: 'Practice story photo', sourceKind: 'practice_story' });
       ids.push(saved.id);
     }
-    const payload = { goal: String(formData.get('goal') || '').trim(), interests: String(formData.get('interests') || '').trim(), language: formData.get('language') === 'zh-CN' ? 'zh-CN' : 'en', savedPhotoIds: ids };
-    if (!payload.goal || !payload.interests) return Response.json({ error: 'Choose one goal and add at least one interest.' }, { status: 400 });
+    const challenge = practiceStoryChallenge(formData.get('challenge'));
+    const payload = {
+      goal: String(formData.get('goal') || '').trim(),
+      challenge: challenge?.id || '',
+      interests: String(formData.get('interests') || '').trim(),
+      parentGoals: practiceStoryParentGoals(formData.get('parentGoals')).map((item) => item.id),
+      storyTheme: practiceStoryTheme(formData.get('storyTheme'))?.id || '',
+      adventureLength: practiceStoryLength(formData.get('adventureLength')).id,
+      language: formData.get('language') === 'zh-CN' ? 'zh-CN' : 'en',
+      savedPhotoIds: ids,
+    };
+    if ((!payload.goal && !payload.challenge) || !payload.interests) return Response.json({ error: 'Choose a current challenge and add at least one favorite thing.' }, { status: 400 });
     const queued = await enqueueAiJob(current, { jobType: 'practice_story', payload, estimatedSeconds: ids.length ? 75 : 30 });
     after(() => processAiJob(current, queued.job.id));
     return Response.json(queued, { status: 202 });

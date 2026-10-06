@@ -25,6 +25,7 @@ import {
   normalizeChild,
   normalizeChildProfile,
   normalizePlayPreferences,
+  FAVORITE_INTEREST_OPTIONS,
 } from '../lib/profile-defaults.js';
 
 let root = document.getElementById('root');
@@ -607,7 +608,7 @@ function renderOnboarding() {
   const meta = onboardingMetaFromUser();
   const step = state.onboardingStep || 1;
   const days = [['mon','M'],['tue','T'],['wed','W'],['thu','T'],['fri','F'],['sat','S'],['sun','S']];
-  const interests = [['sandbox','🏖️ Sandbox'],['bikes','🚲 Bikes'],['climbing','🧗 Climbing'],['crafts','🎨 Crafts'],['ball games','⚽ Ball games'],['quiet play','🌿 Quiet play']];
+  const interests = FAVORITE_INTEREST_OPTIONS;
   const practicingSteps = [['brushing teeth','🪥 Brushing teeth'],['washing hands','🫧 Washing hands'],['potty learning','🚽 Potty learning'],['leaving the playground','👋 Leaving the playground'],['meeting new friends','☺ Meeting friends'],['bedtime','🌙 Bedtime']];
   const selected = (list, value) => list.includes(value) ? ' selected' : '';
   const chips = (items, values, attr = 'data-value') => items.map(([value, label]) => `<button type="button" class="welcome-chip${selected(values, value)}" ${attr}="${escapeAttribute(value)}">${label}</button>`).join('');

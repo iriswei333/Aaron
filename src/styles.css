@@ -2238,7 +2238,19 @@ input, select, textarea { border-color: #e8c9b4; border-radius: var(--radius-con
 .practice-story-field input:focus { border-color: #8c80c2; box-shadow: 0 0 0 3px rgba(103, 93, 155, .12); outline: 0; }
 .practice-story-field small, .practice-photo-section p { color: var(--color-muted); font-size: .7rem; line-height: 1.45; margin: 0; }
 .practice-interest-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: -9px; }
-.practice-interest-chips button { background: #f2f0fa; color: #625990; font-size: .7rem; margin: 0; min-height: 34px; padding: 7px 10px; }
+.practice-interest-chips button { background: #f2f0fa; color: #625990; font-size: .7rem; margin: 0; min-height: 34px; border: 1px solid transparent; padding: 7px 10px; }
+.practice-interest-chips button.selected { background: #625990; border-color: #625990; color: #fff; }
+.practice-tag-group { border: 0; display: grid; gap: 9px; margin: 0; min-width: 0; padding: 0; }
+.practice-tag-group legend { color: var(--color-ink); font-size: .86rem; font-weight: 850; margin-bottom: 8px; width: 100%; }
+.practice-tag-group legend em, .practice-story-field small em { color: var(--color-muted); font-size: .7rem; font-style: normal; font-weight: 600; margin-left: 4px; }
+.practice-tag-group .practice-interest-chips { margin-top: 0; }
+.practice-story-language.practice-story-length { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.practice-story-length label > span { min-height: 58px; }
+.practice-story-mission { color: #625990; font-weight: 750; }
+.practice-say-together { color: #625990; font-size: .8rem; font-style: italic; font-weight: 700; }
+.practice-story-reflection { background: #faf8f4; border: 1px solid var(--color-line); border-radius: 14px; padding: 12px 16px; }
+.practice-story-reflection h3 { font-size: .86rem; margin: 0 0 6px; }
+.practice-story-reflection ul { margin: 0; padding-left: 18px; }
 .practice-story-language { border: 0; display: grid; gap: 9px; grid-template-columns: 1fr 1fr; margin: 0; padding: 0; }
 .practice-story-language legend { color: var(--color-ink); font-size: .86rem; font-weight: 850; margin-bottom: 8px; width: 100%; }
 .practice-story-language label { cursor: pointer; position: relative; }

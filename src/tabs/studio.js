@@ -1,7 +1,11 @@
 import { apiRequest, escapeAttribute, escapeHtml, readFirstStoredValue } from '../shared.js';
-import { childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
+import { FAVORITE_INTEREST_OPTIONS, childDisplayName, getChildProfile } from '../../lib/profile-defaults.js';
 import { createSupabaseBrowserClient } from '../../lib/supabase/client.js';
 import { startAiJobWait } from '../ai-jobs.js';
+import {
+  DEFAULT_PRACTICE_STORY_LENGTH, MAX_PRACTICE_STORY_PARENT_GOALS, PRACTICE_STORY_CHALLENGES, PRACTICE_STORY_LENGTHS,
+  PRACTICE_STORY_PARENT_GOALS, PRACTICE_STORY_THEMES, challengeFromPracticingStep,
+} from '../../lib/practice-story-options.js';
 
 const DEFAULT_TEMPLATE = 'career-recognition-v1';
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
@@ -54,8 +58,12 @@ async function generatePracticeStory(ctx, form) {
   const { state } = ctx;
   const goal = form.elements.goal.value.trim();
   const interests = form.elements.interests.value.trim();
-  if (!goal || !interests) {
-    state.practiceStoryStatus = 'Choose one goal and add at least one favorite thing.';
+  const challenge = state.practiceStoryChallenge || '';
+  const parentGoals = state.practiceStoryParentGoals || [];
+  const storyTheme = state.practiceStoryTheme || '';
+  const adventureLength = state.practiceStoryLength || DEFAULT_PRACTICE_STORY_LENGTH;
+  if ((!goal && !challenge) || !interests) {
+    state.practiceStoryStatus = 'Choose a current challenge and add at least one favorite thing.';
     ctx.renderCurrent();
     return;
   }
@@ -64,6 +72,10 @@ async function generatePracticeStory(ctx, form) {
   data.set('goal', goal);
   data.set('interests', interests);
   data.set('language', language);
+  data.set('challenge', challenge);
+  data.set('parentGoals', parentGoals.join(','));
+  data.set('storyTheme', storyTheme);
+  data.set('adventureLength', adventureLength);
   (state.practiceStorySelectedPhotoIds || []).forEach((photoId) => data.append('savedPhotoIds', photoId));
   (state.practiceStoryPhotoFiles || []).forEach((photo) => data.append('photos', photo));
   const hasPhotos = (state.practiceStorySelectedPhotoIds?.length || 0) + (state.practiceStoryPhotoFiles?.length || 0) > 0;
@@ -87,7 +99,7 @@ async function generatePracticeStory(ctx, form) {
       }
       result = await apiRequest('/family-assets/practice-stories', {
         method: 'POST',
-        body: JSON.stringify({ goal, interests, language, savedPhotoIds: [...(state.practiceStorySelectedPhotoIds || []), ...uploadedIds] }),
+        body: JSON.stringify({ goal, challenge, interests, parentGoals, storyTheme, adventureLength, language, savedPhotoIds: [...(state.practiceStorySelectedPhotoIds || []), ...uploadedIds] }),
       });
     } else {
       const response = await fetch('/api/family-assets/practice-stories', { method: 'POST', body: data, headers: localHeaders() });
@@ -497,7 +509,12 @@ function practiceStoryModal(state, childName, ageMonths, child) {
     .filter((topic) => ageMonths >= topic.minMonths && ageMonths <= topic.maxMonths);
   const allTopics = state.practiceStoryTopics?.length ? state.practiceStoryTopics : FALLBACK_PRACTICE_TOPICS;
   const topicOptions = (topics.length ? topics : allTopics).map((topic) => `<option value="${escapeAttribute(topic.label)}"></option>`).join('');
-  const suggestions = [...new Set([...(child?.favoriteActivities || []), 'cars', 'animals', 'trains', 'dinosaurs', 'music', 'space'])].slice(0, 8);
+  const knownInterests = new Set(FAVORITE_INTEREST_OPTIONS.map(([value]) => value));
+  const suggestions = [
+    ...FAVORITE_INTEREST_OPTIONS,
+    ...(child?.favoriteActivities || []).filter((value) => value && !knownInterests.has(value.toLowerCase())).map((value) => [value, value]),
+  ];
+  const chosenInterests = (state.practiceStoryInterests || '').split(',').map((item) => item.trim().toLowerCase()).filter(Boolean);
   const photos = state.practiceStoryPhotos || [];
   const result = state.practiceStoryResult;
   const selectedIds = state.practiceStorySelectedPhotoIds || [];
@@ -511,10 +528,19 @@ function practiceStoryModal(state, childName, ageMonths, child) {
   const photoChoice = photoCount
     ? `<span class="practice-photo-selection">${previewItems || '<span aria-hidden="true">✓</span>'}</span><span>${photoCount} of 5 photos selected</span>`
     : '<span class="practice-photo-placeholder" aria-hidden="true">＋</span><span>Add 1–5 photos for an illustration</span>';
+  const disabled = state.practiceStoryGenerating ? 'disabled' : '';
+  const tagButton = (attr, value, label, on) => `<button type="button" class="${on ? 'selected' : ''}" aria-pressed="${on}" ${attr}="${escapeAttribute(value)}" ${disabled}>${escapeHtml(label)}</button>`;
+  const parentGoals = state.practiceStoryParentGoals || [];
+  const lengthId = state.practiceStoryLength || DEFAULT_PRACTICE_STORY_LENGTH;
+  const storyInputs = `<fieldset class="practice-tag-group"><legend>1 · Current challenge</legend><div class="practice-interest-chips">${PRACTICE_STORY_CHALLENGES.map((item) => tagButton('data-story-challenge', item.id, item.label, state.practiceStoryChallenge === item.id)).join('')}</div><label class="practice-story-field"><small>Or describe a specific step <em>(optional)</em></small><input name="goal" list="practice-story-goals" maxlength="120" placeholder="e.g. Wash hands before dinner" value="${escapeAttribute(state.practiceStoryGoal || '')}" ${disabled} /><datalist id="practice-story-goals">${topicOptions}</datalist></label></fieldset>`
+    + `<fieldset class="practice-tag-group"><legend>2 · What does ${escapeHtml(childName)} love?</legend><div class="practice-interest-chips">${suggestions.map(([interest, label]) => tagButton('data-add-story-interest', interest, label, chosenInterests.includes(interest.toLowerCase()))).join('')}</div><label class="practice-story-field"><input name="interests" maxlength="300" required placeholder="Tap tags above or type, e.g. cars, animals, music" value="${escapeAttribute(state.practiceStoryInterests || '')}" ${disabled} /><small>Up to five favorite things, separated by commas.</small></label></fieldset>`
+    + `<fieldset class="practice-tag-group"><legend>3 · Parent goal <em>Choose up to ${MAX_PRACTICE_STORY_PARENT_GOALS}</em></legend><div class="practice-interest-chips">${PRACTICE_STORY_PARENT_GOALS.map((item) => tagButton('data-story-parent-goal', item.id, item.label, parentGoals.includes(item.id))).join('')}</div></fieldset>`
+    + `<fieldset class="practice-tag-group"><legend>4 · Story theme <em>Optional — we’ll pick one if you skip</em></legend><div class="practice-interest-chips">${PRACTICE_STORY_THEMES.map((item) => tagButton('data-story-theme', item.id, item.label, state.practiceStoryTheme === item.id)).join('')}</div></fieldset>`
+    + `<fieldset class="practice-story-language practice-story-length"><legend>5 · Adventure length</legend>${PRACTICE_STORY_LENGTHS.map((item) => `<label><input type="radio" name="practiceStoryLength" value="${item.id}" ${lengthId === item.id ? 'checked' : ''} ${disabled} /><span><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.detail)}</small></span></label>`).join('')}</fieldset>`;
   const mandarin = state.practiceStoryLanguage === 'zh-CN';
-  const languageChoice = `<fieldset class="practice-story-language"><legend>3 · Story language</legend><label><input type="radio" name="practiceStoryLanguage" value="en" ${mandarin ? '' : 'checked'} ${state.practiceStoryGenerating ? 'disabled' : ''} /><span><strong>English</strong><small>Generate the full story in English</small></span></label><label><input type="radio" name="practiceStoryLanguage" value="zh-CN" ${mandarin ? 'checked' : ''} ${state.practiceStoryGenerating ? 'disabled' : ''} /><span><strong>中文（普通话）</strong><small>生成简体中文故事</small></span></label></fieldset>`;
-  const storyMarkup = result ? `<section class="practice-story-preview"><div class="practice-story-preview-heading">${result.coverUrl ? `<img src="${escapeAttribute(result.coverUrl)}" alt="Illustration for ${escapeAttribute(result.title)}" />` : '<span aria-hidden="true">✦</span>'}<div><p class="eyebrow">Saved to Family AI Assets</p><h2>${escapeHtml(result.story?.title || result.title)}</h2><p>${escapeHtml(result.story?.summary || '')}</p></div></div><div class="practice-story-scenes">${(result.story?.scenes || []).map((scene, index) => `<article><span>${index + 1}</span><div><h3>${escapeHtml(scene.heading)}</h3><p>${escapeHtml(scene.storyText)}</p><small>Try together: ${escapeHtml(scene.practiceCue)}</small></div></article>`).join('')}</div><blockquote>${escapeHtml(result.story?.celebration || '')}</blockquote><div class="practice-story-actions"><button type="button" class="secondary-button" data-new-practice-story>Make another story</button><button type="button" data-view-family-assets>View Family AI Assets →</button></div></section>` : '';
-  return `<div class="modal-backdrop studio-modal-backdrop practice-story-backdrop" data-close-practice-story tabindex="-1"><section class="modal-dialog practice-story-dialog" role="dialog" aria-modal="true" aria-labelledby="practice-story-title"><button type="button" class="icon-button studio-modal-close" data-close-practice-story aria-label="Close story maker">×</button><header><p class="eyebrow">Little stories, big steps</p><h2 id="practice-story-title">A story made for ${escapeHtml(childName)}</h2><p>Choose one everyday goal, then add a few favorite things to turn practice into a familiar adventure.</p><span>${escapeHtml(String(ageMonths))} months · suggestions matched to age</span></header>${result ? storyMarkup : `<form id="practice-story-form" class="practice-story-form"><label class="practice-story-field"><span>1 · What are we practicing?</span><input name="goal" list="practice-story-goals" maxlength="120" required placeholder="e.g. Wash hands" value="${escapeAttribute(state.practiceStoryGoal || '')}" ${state.practiceStoryGenerating ? 'disabled' : ''} /><datalist id="practice-story-goals">${topicOptions}</datalist><small>Choose a suggestion or describe one clear, positive goal.</small></label><label class="practice-story-field"><span>2 · What does ${escapeHtml(childName)} love?</span><input name="interests" maxlength="300" required placeholder="e.g. cars, elephants, music" value="${escapeAttribute(state.practiceStoryInterests || '')}" ${state.practiceStoryGenerating ? 'disabled' : ''} /><small>Add up to five interests, separated by commas.</small></label><div class="practice-interest-chips">${suggestions.map((interest) => `<button type="button" data-add-story-interest="${escapeAttribute(interest)}" ${state.practiceStoryGenerating ? 'disabled' : ''}>+ ${escapeHtml(interest)}</button>`).join('')}</div>${languageChoice}<section class="practice-photo-section"><div><strong>4 · Add an illustration <em>Optional</em></strong><p>Use 1–5 new or saved photos from different angles to keep ${escapeHtml(childName)} recognizable. The story also works without photos.</p></div><label class="practice-photo-upload" for="practice-story-photo">${photoChoice}<input id="practice-story-photo" type="file" accept="image/*,.heic,.heif" multiple ${state.practiceStoryGenerating ? 'disabled' : ''} /></label>${photoCount ? '<button type="button" class="text-button practice-photo-clear" data-clear-practice-photo>Use story without photos</button>' : ''}<small>JPEG, PNG, WebP, or HEIC · up to 5 photos · 20 MB each · uploaded privately one at a time</small>${photos.length ? `<div class="practice-saved-photos"><span>Or choose saved photos (${photoCount}/5 selected)</span><div>${photos.slice(0, 12).map((photo) => `<button type="button" data-practice-photo-id="${escapeAttribute(photo.id)}" class="${selectedIds.includes(photo.id) ? 'selected' : ''}" aria-pressed="${selectedIds.includes(photo.id)}" ${state.practiceStoryGenerating ? 'disabled' : ''}><img src="${escapeAttribute(photo.contentUrl)}" alt="${escapeAttribute(photo.label)}" /><small>${escapeHtml(photo.label)}</small></button>`).join('')}</div></div>` : state.practiceStoryPhotosLoaded ? '<small class="muted">No saved photos yet. You can upload photos above.</small>' : '<small class="muted">Loading saved photos…</small>'}</section><div class="practice-story-submit"><p><span aria-hidden="true">♡</span> Your story is private and will be saved to Family AI Assets.</p><button type="submit" ${state.practiceStoryGenerating ? 'disabled' : ''}>${state.practiceStoryGenerating ? (mandarin ? '正在生成故事…' : 'Creating the story…') : mandarin ? '生成普通话故事' : 'Create my story'} <span aria-hidden="true">→</span></button></div></form>`}${state.practiceStoryStatus ? `<p class="studio-message" role="status">${escapeHtml(state.practiceStoryStatus)}</p>` : ''}</section></div>`;
+  const languageChoice = `<fieldset class="practice-story-language"><legend>6 · Story language</legend><label><input type="radio" name="practiceStoryLanguage" value="en" ${mandarin ? '' : 'checked'} ${state.practiceStoryGenerating ? 'disabled' : ''} /><span><strong>English</strong><small>Generate the full story in English</small></span></label><label><input type="radio" name="practiceStoryLanguage" value="zh-CN" ${mandarin ? 'checked' : ''} ${state.practiceStoryGenerating ? 'disabled' : ''} /><span><strong>中文（普通话）</strong><small>生成简体中文故事</small></span></label></fieldset>`;
+  const storyMarkup = result ? `<section class="practice-story-preview"><div class="practice-story-preview-heading">${result.coverUrl ? `<img src="${escapeAttribute(result.coverUrl)}" alt="Illustration for ${escapeAttribute(result.title)}" />` : '<span aria-hidden="true">✦</span>'}<div><p class="eyebrow">Saved to Family AI Assets</p><h2>${escapeHtml(result.story?.title || result.title)}</h2><p>${escapeHtml(result.story?.summary || '')}</p>${result.story?.mission ? `<p class="practice-story-mission">${escapeHtml(result.story.mission)}</p>` : ''}</div></div><div class="practice-story-scenes">${(result.story?.scenes || []).map((scene, index) => `<article><span>${index + 1}</span><div><h3>${escapeHtml(scene.heading)}</h3><p>${escapeHtml(scene.storyText)}</p>${scene.sayTogether ? `<p class="practice-say-together">Say it together: “${escapeHtml(scene.sayTogether)}”</p>` : ''}<small>Try together: ${escapeHtml(scene.practiceCue)}</small></div></article>`).join('')}</div><blockquote>${escapeHtml(result.story?.celebration || '')}</blockquote>${result.story?.reflectionQuestions?.length ? `<section class="practice-story-reflection"><h3>Talk about it</h3><ul>${result.story.reflectionQuestions.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>` : ''}<div class="practice-story-actions"><button type="button" class="secondary-button" data-new-practice-story>Make another story</button><button type="button" data-view-family-assets>View Family AI Assets →</button></div></section>` : '';
+  return `<div class="modal-backdrop studio-modal-backdrop practice-story-backdrop" data-close-practice-story tabindex="-1"><section class="modal-dialog practice-story-dialog" role="dialog" aria-modal="true" aria-labelledby="practice-story-title"><button type="button" class="icon-button studio-modal-close" data-close-practice-story aria-label="Close story maker">×</button><header><p class="eyebrow">Little stories, big steps</p><h2 id="practice-story-title">A story made for ${escapeHtml(childName)}</h2><p>Pick the challenge, their favorite things, and how you’d like them to grow — we’ll turn practice into a step-by-step adventure.</p><span>${escapeHtml(String(ageMonths))} months · suggestions matched to age</span></header>${result ? storyMarkup : `<form id="practice-story-form" class="practice-story-form">${storyInputs}${languageChoice}<section class="practice-photo-section"><div><strong>7 · Add an illustration <em>Optional</em></strong><p>Use 1–5 new or saved photos from different angles to keep ${escapeHtml(childName)} recognizable. The story also works without photos.</p></div><label class="practice-photo-upload" for="practice-story-photo">${photoChoice}<input id="practice-story-photo" type="file" accept="image/*,.heic,.heif" multiple ${state.practiceStoryGenerating ? 'disabled' : ''} /></label>${photoCount ? '<button type="button" class="text-button practice-photo-clear" data-clear-practice-photo>Use story without photos</button>' : ''}<small>JPEG, PNG, WebP, or HEIC · up to 5 photos · 20 MB each · uploaded privately one at a time</small>${photos.length ? `<div class="practice-saved-photos"><span>Or choose saved photos (${photoCount}/5 selected)</span><div>${photos.slice(0, 12).map((photo) => `<button type="button" data-practice-photo-id="${escapeAttribute(photo.id)}" class="${selectedIds.includes(photo.id) ? 'selected' : ''}" aria-pressed="${selectedIds.includes(photo.id)}" ${state.practiceStoryGenerating ? 'disabled' : ''}><img src="${escapeAttribute(photo.contentUrl)}" alt="${escapeAttribute(photo.label)}" /><small>${escapeHtml(photo.label)}</small></button>`).join('')}</div></div>` : state.practiceStoryPhotosLoaded ? '<small class="muted">No saved photos yet. You can upload photos above.</small>' : '<small class="muted">Loading saved photos…</small>'}</section><div class="practice-story-submit"><p><span aria-hidden="true">♡</span> Your story is private and will be saved to Family AI Assets.</p><button type="submit" ${state.practiceStoryGenerating ? 'disabled' : ''}>${state.practiceStoryGenerating ? (mandarin ? '正在生成故事…' : 'Creating the story…') : mandarin ? '生成普通话故事' : 'Create my story'} <span aria-hidden="true">→</span></button></div></form>`}${state.practiceStoryStatus ? `<p class="studio-message" role="status">${escapeHtml(state.practiceStoryStatus)}</p>` : ''}</section></div>`;
 }
 
 function featureNotice(state) {
@@ -602,6 +628,10 @@ export function resetStudioState(state) {
   state.practiceStoryPhotosLoaded = false;
   state.practiceStoryGoal = '';
   state.practiceStoryInterests = '';
+  state.practiceStoryChallenge = '';
+  state.practiceStoryParentGoals = [];
+  state.practiceStoryTheme = '';
+  state.practiceStoryLength = '';
   state.practiceStoryLanguage = 'en';
   state.selectedPracticeStoryAssetId = '';
   resetPracticeStoryDraft(state, { close: true });
@@ -638,7 +668,13 @@ export function renderStudio(ctx) {
     else if (button.dataset.studioFeature === 'story') {
       state.showPracticeStory = true;
       state.studioFeatureNotice = '';
-      if (!state.practiceStoryGoal) state.practiceStoryGoal = child?.practicingSteps?.[0] || '';
+      if (!state.practiceStoryChallenge && !state.practiceStoryGoal) {
+        const practicing = child?.practicingSteps || [];
+        const matched = practicing.map(challengeFromPracticingStep).find(Boolean);
+        if (matched) state.practiceStoryChallenge = matched.id;
+        else state.practiceStoryGoal = practicing[0] || '';
+      }
+      if (!state.practiceStoryLength) state.practiceStoryLength = DEFAULT_PRACTICE_STORY_LENGTH;
       if (!state.practiceStoryInterests) state.practiceStoryInterests = (child?.favoriteActivities || []).slice(0, 3).join(', ');
       if (!state.practiceStoryResult) state.practiceStoryLanguage = child?.storyLanguage === 'zh-CN' ? 'zh-CN' : 'en';
       loadPracticeStoryOptions(ctx);
@@ -668,9 +704,34 @@ export function renderStudio(ctx) {
     state.practiceStoryStatus = '';
     ctx.renderCurrent();
   }));
+  document.querySelectorAll('[data-story-challenge]').forEach((button) => button.addEventListener('click', () => {
+    const value = button.dataset.storyChallenge;
+    state.practiceStoryChallenge = state.practiceStoryChallenge === value ? '' : value;
+    state.practiceStoryStatus = '';
+    ctx.renderCurrent();
+  }));
+  document.querySelectorAll('[data-story-parent-goal]').forEach((button) => button.addEventListener('click', () => {
+    const value = button.dataset.storyParentGoal;
+    const selected = state.practiceStoryParentGoals || [];
+    if (selected.includes(value)) state.practiceStoryParentGoals = selected.filter((item) => item !== value);
+    else if (selected.length < MAX_PRACTICE_STORY_PARENT_GOALS) state.practiceStoryParentGoals = [...selected, value];
+    else state.practiceStoryStatus = `Choose up to ${MAX_PRACTICE_STORY_PARENT_GOALS} parent goals.`;
+    ctx.renderCurrent();
+  }));
+  document.querySelectorAll('[data-story-theme]').forEach((button) => button.addEventListener('click', () => {
+    const value = button.dataset.storyTheme;
+    state.practiceStoryTheme = state.practiceStoryTheme === value ? '' : value;
+    ctx.renderCurrent();
+  }));
+  document.querySelectorAll('[name="practiceStoryLength"]').forEach((input) => input.addEventListener('change', (event) => {
+    state.practiceStoryLength = event.currentTarget.value;
+  }));
   document.querySelectorAll('[data-add-story-interest]').forEach((button) => button.addEventListener('click', () => {
-    const interests = state.practiceStoryInterests.split(',').map((item) => item.trim()).filter(Boolean);
-    if (!interests.some((item) => item.toLowerCase() === button.dataset.addStoryInterest.toLowerCase()) && interests.length < 5) interests.push(button.dataset.addStoryInterest);
+    const value = button.dataset.addStoryInterest;
+    let interests = (state.practiceStoryInterests || '').split(',').map((item) => item.trim()).filter(Boolean);
+    if (interests.some((item) => item.toLowerCase() === value.toLowerCase())) interests = interests.filter((item) => item.toLowerCase() !== value.toLowerCase());
+    else if (interests.length < 5) interests.push(value);
+    else state.practiceStoryStatus = 'Choose up to five favorite things.';
     state.practiceStoryInterests = interests.join(', ');
     ctx.renderCurrent();
   }));
