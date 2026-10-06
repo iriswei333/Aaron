@@ -6,7 +6,7 @@ Redesign SproutCue around one promise:
 
 > Find a little adventure, enjoy it together, and keep the play going at home.
 
-The current application already supplies most of the difficult operational pieces: authentication, family profiles, location, weather, playground discovery, story times, weekend events, public and private playdates, chat, privacy controls, and persistent storage. The Little Adventures prototype supplies a clearer parent journey, stronger mobile navigation, more focused writing, and a home for the planned AI features.
+The current application already supplies most of the difficult operational pieces: authentication, family profiles, location, weather, playground discovery, story times, family events, public and private playdates, chat, privacy controls, and persistent storage. The Little Adventures prototype supplies a clearer parent journey, stronger mobile navigation, more focused writing, and a home for the planned AI features.
 
 The redesign should combine those strengths. It should not port the static prototype literally or discard working product behavior.
 
@@ -32,7 +32,7 @@ The redesign should combine those strengths. It should not port the static proto
 1. **Authentication and persistence.** The current email/Supabase flow, profile storage, local fallback, and account lifecycle are production capabilities absent from the prototype.
 2. **Location and nearby discovery.** The current application already handles current-location permission, manual address entry, weather, search radius, live map support, fallback map searches, and failure messages.
 3. **Playdate lifecycle.** Creating, joining, editing, declining, cancelling, sharing, and chatting around playdates should remain intact.
-4. **Real discovery sources.** Playground results, story times, weekend event aggregation, caching, and saved attendance should power the new Discover screen.
+4. **Real discovery sources.** Playground results, story times, family event aggregation, caching, and saved attendance should power the new Discover screen.
 5. **Safety controls.** Visibility, blocked families, city-level versus precise location behavior, private playdates, and profile privacy should stay explicit and testable.
 6. **Multiple-child support.** The active-child model should remain, even though the prototype only demonstrates one child.
 
@@ -51,7 +51,7 @@ The redesign should combine those strengths. It should not port the static proto
 
 First viewport:
 
-1. Upcoming plans: saved story times, weekend events, hosted or joined playdates.
+1. Upcoming plans: saved story times, family events, hosted or joined playdates.
 2. When there are no plans: one personalized nearby suggestion with a direct action.
 3. Three intent shortcuts: Go somewhere, Meet playmates, Play at home.
 
@@ -66,7 +66,7 @@ Below the fold:
 Controls:
 
 - Location summary with Use current location and Input address.
-- All, Playgrounds, Playdates, Weekend events, Story times.
+- All, Playgrounds, Playdates, Family events, Story times.
 - Map/List switch.
 - Today/Weekend time filter where it applies.
 

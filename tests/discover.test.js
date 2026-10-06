@@ -1,32 +1,34 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createDiscoverClient } from '../src/discover/client.js';
-import { discoverGeocodeQuery, discoverMapUrl } from '../src/google-map.js';
+import { discoverGeocodeQuery, discoverMapUrl, resolveDiscoverLocations } from '../src/google-map.js';
 import {
+  discoverItemHasCoordinates,
   discoverItemOccursOnDate,
   filterDiscoverItems,
   nextDiscoverFilterState,
   normalizePlaydate,
   normalizePlayground,
   normalizeStoryTime,
-  normalizeWeekendEvent,
+  normalizeFamilyEvent,
+  sortDiscoverItemsByDistance,
 } from '../src/discover/normalizers.js';
 
 describe('Discover normalizers', () => {
   it('normalizes each supported source into a namespaced DiscoverItem', () => {
     expect(normalizePlayground({ key: 'park-1', name: 'Tiny Park', latitude: 47.6, longitude: -122.3 }).id).toBe('playground:park-1');
     expect(normalizePlaydate({ id: 'date-1', playgroundName: 'Tiny Park', visibility: 'public' }).kind).toBe('playdate');
-    expect(normalizeWeekendEvent({ id: 'event-1', title: 'Festival' }).actions).toContain('save');
+    expect(normalizeFamilyEvent({ id: 'event-1', title: 'Festival' }).actions).toContain('save');
     expect(normalizeStoryTime({ id: 'story-1', title: 'Toddler Stories', distanceMiles: 1.25 }).distance.miles).toBe(1.25);
-    expect(normalizeWeekendEvent({ id: 'event-without-location' }).location).toMatchObject({
+    expect(normalizeFamilyEvent({ id: 'event-without-location' }).location).toMatchObject({
       latitude: null,
       longitude: null,
     });
-    expect(normalizeWeekendEvent({ id: 'event-address', venueAddress: '123 Main St, Seattle, WA' }).location.address)
+    expect(normalizeFamilyEvent({ id: 'event-address', venueAddress: '123 Main St, Seattle, WA' }).location.address)
       .toBe('123 Main St, Seattle, WA');
   });
 
   it('does not make a search link saveable', () => {
-    expect(normalizeWeekendEvent({ id: 'search-1', resultType: 'search-link' }).actions).toEqual(['open_external']);
+    expect(normalizeFamilyEvent({ id: 'search-1', resultType: 'search-link' }).actions).toEqual(['open_external']);
   });
 
   it('matches only scheduled playdates, events, and story times for the local day', () => {
@@ -41,12 +43,12 @@ describe('Discover normalizers', () => {
     });
 
     expect(discoverItemOccursOnDate(todayPlaydate, today)).toBe(true);
-    expect(discoverItemOccursOnDate(normalizeWeekendEvent({ id: 'today-event', date: '2026-10-02' }), today)).toBe(true);
+    expect(discoverItemOccursOnDate(normalizeFamilyEvent({ id: 'today-event', date: '2026-10-02' }), today)).toBe(true);
     expect(discoverItemOccursOnDate(normalizeStoryTime({ id: 'today-story', date: '2026-10-02' }), today)).toBe(true);
     expect(discoverItemOccursOnDate(tomorrowPlaydate, today)).toBe(false);
     expect(discoverItemOccursOnDate(normalizePlayground({ key: 'park' }), today)).toBe(false);
-    expect(discoverItemOccursOnDate(normalizeWeekendEvent({ id: 'undated' }), today)).toBe(false);
-    expect(discoverItemOccursOnDate(normalizeWeekendEvent({ id: 'search', date: '2026-10-02', resultType: 'search-link' }), today)).toBe(false);
+    expect(discoverItemOccursOnDate(normalizeFamilyEvent({ id: 'undated' }), today)).toBe(false);
+    expect(discoverItemOccursOnDate(normalizeFamilyEvent({ id: 'search', date: '2026-10-02', resultType: 'search-link' }), today)).toBe(false);
   });
 
   it('combines the Today toggle with each Discover category', () => {
@@ -55,7 +57,7 @@ describe('Discover normalizers', () => {
       normalizePlaydate({ id: 'today-playdate', startsAt: new Date(2026, 9, 2, 9, 0, 0).toISOString() }),
       normalizePlaydate({ id: 'tomorrow-playdate', startsAt: new Date(2026, 9, 3, 9, 0, 0).toISOString() }),
       normalizeStoryTime({ id: 'today-story', date: '2026-10-02' }),
-      normalizeWeekendEvent({ id: 'today-event', date: '2026-10-02' }),
+      normalizeFamilyEvent({ id: 'today-event', date: '2026-10-02' }),
       normalizePlayground({ key: 'park' }),
     ];
 
@@ -64,8 +66,8 @@ describe('Discover normalizers', () => {
       .toEqual(['playdate:today-playdate']);
     expect(filterDiscoverItems(items, { kind: 'story_time', todayOnly: true, date: today }).map((item) => item.id))
       .toEqual(['story_time:today-story']);
-    expect(filterDiscoverItems(items, { kind: 'weekend_event', todayOnly: true, date: today }).map((item) => item.id))
-      .toEqual(['weekend_event:today-event']);
+    expect(filterDiscoverItems(items, { kind: 'family_event', todayOnly: true, date: today }).map((item) => item.id))
+      .toEqual(['family_event:today-event']);
     expect(filterDiscoverItems(items, {
       kinds: ['playdate', 'story_time'],
       todayOnly: true,
@@ -102,9 +104,56 @@ describe('Discover normalizers', () => {
     expect(nextDiscoverFilterState(playground, 'playground'))
       .toEqual({ todayOnly: false, playgroundOnly: false, kinds: [] });
   });
+
+  it('sorts list items by venue distance from the active user location', () => {
+    const origin = { latitude: 47.61, longitude: -122.33 };
+    const unknown = normalizeFamilyEvent({ id: 'unknown', title: 'Unknown distance' });
+    const farther = normalizeStoryTime({ id: 'farther', title: 'Farther', latitude: 47.68, longitude: -122.33 });
+    const closer = normalizePlayground({ key: 'closer', name: 'Closer', latitude: 47.611, longitude: -122.33 });
+
+    const sorted = sortDiscoverItemsByDistance([unknown, farther, closer], origin);
+
+    expect(sorted.map((item) => item.id)).toEqual(['playground:closer', 'story_time:farther', 'family_event:unknown']);
+    expect(sorted[0].distance.label).toMatch(/mi$/);
+  });
+
+  it('does not treat missing venue coordinates as zero coordinates', () => {
+    expect(discoverItemHasCoordinates(normalizeFamilyEvent({ id: 'missing' }))).toBe(false);
+    expect(discoverItemHasCoordinates(normalizeFamilyEvent({
+      id: 'known',
+      latitude: 47.61,
+      longitude: -122.2,
+    }))).toBe(true);
+  });
 });
 
 describe('Discover map geocoding', () => {
+  it('resolves every venue in server-sized batches for list sorting', async () => {
+    const items = Array.from({ length: 25 }, (_, index) => normalizeFamilyEvent({
+      id: `batch-event-${index}`,
+      title: `Event ${index}`,
+      venueName: `Venue ${index}`,
+      venueAddress: `${100 + index} Main St, Seattle, WA`,
+    }));
+    const request = vi.fn(async (_path, options) => ({
+      locations: JSON.parse(options.body).items.map((item, index) => ({
+        id: item.id,
+        latitude: 47.6 + (index / 1000),
+        longitude: -122.3,
+      })),
+    }));
+
+    const resolved = await resolveDiscoverLocations({
+      items,
+      searchLocationLabel: 'Seattle, WA',
+      center: { lat: 47.6, lng: -122.3 },
+      request,
+    });
+
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(Object.keys(resolved)).toHaveLength(25);
+  });
+
   it('anchors KCLS venue-only story times to King County, Washington', () => {
     const item = normalizeStoryTime({
       id: 'kidsquest-skyway',
@@ -131,7 +180,7 @@ describe('Discover map geocoding', () => {
   });
 
   it('creates a Google Maps link from coordinates or a provider-aware venue query', () => {
-    const positioned = normalizeWeekendEvent({
+    const positioned = normalizeFamilyEvent({
       id: 'festival',
       latitude: 47.61,
       longitude: -122.2,
@@ -162,7 +211,7 @@ describe('Discover client', () => {
     expect(result.groups.playgrounds).toHaveLength(1);
     expect(result.groups.playdates).toHaveLength(1);
     expect(result.groups.storyTimes).toHaveLength(1);
-    expect(result.sources.weekendEvents.status).toBe('error');
+    expect(result.sources.familyEvents.status).toBe('error');
     expect(result.partial).toBe(true);
   });
 
@@ -199,13 +248,30 @@ describe('Discover client', () => {
     expect(request).toHaveBeenCalledWith('/story-times', {});
   });
 
+  it('does not treat missing saved coordinates as latitude and longitude zero', async () => {
+    const request = vi.fn(async (path) => {
+      if (path.startsWith('/family-events')) return { events: [] };
+      throw new Error(`Unexpected request: ${path}`);
+    });
+    const { loadDiscover } = createDiscoverClient(request);
+
+    const result = await loadDiscover({
+      location: { address: 'Bellevue', latitude: null, longitude: null },
+      kinds: ['playground', 'family_event'],
+    });
+
+    expect(request).toHaveBeenCalledOnce();
+    expect(request).toHaveBeenCalledWith('/family-events?location=Bellevue', {});
+    expect(result.sources.playgrounds.status).toBe('skipped');
+  });
+
   it('passes an explicit date range when loading same-day family events', async () => {
     const request = vi.fn(async () => ({ events: [] }));
     const { loadDiscover } = createDiscoverClient(request);
 
     await loadDiscover({
       location: { address: 'Seattle, WA' },
-      kinds: ['weekend_event'],
+      kinds: ['family_event'],
       startDate: '2026-10-02',
       endDate: '2026-10-02',
     });

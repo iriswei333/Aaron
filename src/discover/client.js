@@ -3,10 +3,10 @@ import {
   normalizePlaydate,
   normalizePlayground,
   normalizeStoryTime,
-  normalizeWeekendEvent,
+  normalizeFamilyEvent,
 } from './normalizers.js';
 
-const ALL_KINDS = ['playground', 'playdate', 'weekend_event', 'story_time'];
+const ALL_KINDS = ['playground', 'playdate', 'family_event', 'story_time'];
 
 function queryString(values) {
   const query = new URLSearchParams();
@@ -76,15 +76,19 @@ export function createDiscoverClient(request = apiRequest) {
     signal,
   } = {}) {
     const requested = requestedKinds(kinds);
-    const groups = { playgrounds: [], playdates: [], weekendEvents: [], storyTimes: [] };
+    const groups = { playgrounds: [], playdates: [], familyEvents: [], storyTimes: [] };
     const sources = {
       playgrounds: skippedState('Playgrounds were not requested.'),
       playdates: skippedState('Playdates were not requested.'),
-      weekendEvents: skippedState('Weekend events were not requested.'),
+      familyEvents: skippedState('Family events were not requested.'),
       storyTimes: skippedState('Story times were not requested.'),
     };
-    const latitude = Number(location?.latitude);
-    const longitude = Number(location?.longitude);
+    const latitude = location?.latitude === null || location?.latitude === undefined || location?.latitude === ''
+      ? null
+      : Number(location.latitude);
+    const longitude = location?.longitude === null || location?.longitude === undefined || location?.longitude === ''
+      ? null
+      : Number(location.longitude);
     const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
     const locationLabel = location?.address || location?.label || '';
     const options = { ...(forceRefresh ? { cache: 'no-store' } : {}), ...(signal ? { signal } : {}) };
@@ -101,13 +105,13 @@ export function createDiscoverClient(request = apiRequest) {
         if (requested.has('playdate')) sources.playdates = skippedState('Playgrounds are required to load nearby playdates.');
       }
     }
-    if (requested.has('weekend_event')) {
+    if (requested.has('family_event')) {
       if (locationLabel) {
         tasks.push({
-          source: 'weekendEvents',
+          source: 'familyEvents',
           promise: request(`/family-events${queryString({ refresh: forceRefresh ? 1 : undefined, location: locationLabel, start: startDate, end: endDate })}`, options),
         });
-      } else sources.weekendEvents = skippedState('A location is required to load weekend events.');
+      } else sources.familyEvents = skippedState('A location is required to load family events.');
     }
     if (requested.has('story_time')) {
       tasks.push({
@@ -125,7 +129,7 @@ export function createDiscoverClient(request = apiRequest) {
       }
       const payload = result.value || {};
       if (source === 'playgrounds') groups.playgrounds = (payload.playgrounds || []).map(normalizePlayground);
-      if (source === 'weekendEvents') groups.weekendEvents = (payload.events || []).map(normalizeWeekendEvent);
+      if (source === 'familyEvents') groups.familyEvents = (payload.events || []).map(normalizeFamilyEvent);
       if (source === 'storyTimes') groups.storyTimes = (payload.events || []).map(normalizeStoryTime);
       const group = groups[source];
       sources[source] = sourceState(group.length ? 'ready' : 'empty', payload);
@@ -142,11 +146,11 @@ export function createDiscoverClient(request = apiRequest) {
     const items = [
       ...groups.playgrounds,
       ...groups.playdates,
-      ...groups.weekendEvents,
+      ...groups.familyEvents,
       ...groups.storyTimes,
     ];
     const activeSources = Object.entries(sources).filter(([key]) => {
-      const kind = key === 'playgrounds' ? 'playground' : key === 'playdates' ? 'playdate' : key === 'weekendEvents' ? 'weekend_event' : 'story_time';
+      const kind = key === 'playgrounds' ? 'playground' : key === 'playdates' ? 'playdate' : key === 'familyEvents' ? 'family_event' : 'story_time';
       return requested.has(kind);
     });
     return {

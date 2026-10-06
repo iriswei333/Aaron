@@ -7,6 +7,14 @@ let activeMarkers = [];
 let activeMapRadiusMeters = 0;
 let activeRadiusCircle;
 let activeDiscoverRenderToken = 0;
+let activeMapKind = '';
+let activeDiscoverViewport = {
+  originKey: '',
+  center: null,
+  zoom: null,
+  userMoved: false,
+  hasFitted: false,
+};
 
 const discoverGeocodeCache = new Map();
 
@@ -100,12 +108,12 @@ function distanceInMeters(origin, destination) {
 function discoverMarkerLabel(kind) {
   if (kind === 'playground') return '🛝';
   if (kind === 'playdate') return '☺';
-  if (kind === 'weekend_event') return '🎟';
+  if (kind === 'family_event') return '🎟';
   return '▤';
 }
 
 export function discoverGeocodeQuery(item, searchLocationLabel = '') {
-  if (!['weekend_event', 'story_time'].includes(item?.kind)) return '';
+  if (!['family_event', 'story_time'].includes(item?.kind)) return '';
   const address = String(item?.location?.address || '').trim();
   const venue = String(item?.location?.venue || '').trim();
   const place = address || venue;
@@ -123,7 +131,7 @@ export function discoverGeocodeQuery(item, searchLocationLabel = '') {
 }
 
 export function discoverMapUrl(item, searchLocationLabel = '') {
-  if (!['weekend_event', 'story_time'].includes(item?.kind)) return '';
+  if (!['family_event', 'story_time'].includes(item?.kind)) return '';
   const latitude = Number(item?.location?.latitude);
   const longitude = Number(item?.location?.longitude);
   const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude)
@@ -162,34 +170,65 @@ function geocodeDiscoverItem({ maps, geocoder, item, searchLocationLabel }) {
   return request;
 }
 
-async function loadServerDiscoverLocations(items, searchLocationLabel, center, radiusMeters) {
+async function loadServerDiscoverLocations(items, searchLocationLabel, center, radiusMeters, {
+  request = apiRequest,
+  resolveAll = false,
+} = {}) {
   const candidates = items.map((item) => ({
     item,
     query: discoverGeocodeQuery(item, searchLocationLabel),
   })).filter(({ item, query }) => query && !discoverCoordinates(item));
   const uncached = candidates.filter(({ query }) => !discoverGeocodeCache.has(query.toLocaleLowerCase()));
   if (!uncached.length) return;
-  try {
-    const payload = await apiRequest('/discover-locations', {
-      method: 'POST',
-      body: JSON.stringify({
-        items: uncached.map(({ item, query }) => ({ id: item.id, query })),
-        center,
-        radiusMeters,
-      }),
-    });
-    const byId = new Map((payload.locations || []).map((location) => [location.id, location]));
-    uncached.forEach(({ item, query }) => {
-      const location = byId.get(item.id);
-      if (!location) return;
-      discoverGeocodeCache.set(query.toLocaleLowerCase(), Promise.resolve({
-        lat: Number(location.latitude),
-        lng: Number(location.longitude),
-      }));
-    });
-  } catch {
-    // The browser geocoder below remains available when server-side Places lookup fails.
+  const candidatesToResolve = resolveAll ? uncached : uncached.slice(0, 20);
+  for (let index = 0; index < candidatesToResolve.length; index += 20) {
+    const batch = candidatesToResolve.slice(index, index + 20);
+    try {
+      const payload = await request('/discover-locations', {
+        method: 'POST',
+        body: JSON.stringify({
+          items: batch.map(({ item, query }) => ({ id: item.id, query })),
+          center,
+          radiusMeters,
+        }),
+      });
+      const byId = new Map((payload.locations || []).map((location) => [location.id, location]));
+      batch.forEach(({ item, query }) => {
+        const location = byId.get(item.id);
+        if (!location) return;
+        discoverGeocodeCache.set(query.toLocaleLowerCase(), Promise.resolve({
+          lat: Number(location.latitude),
+          lng: Number(location.longitude),
+        }));
+      });
+    } catch {
+      // The browser geocoder below remains available when server-side Places lookup fails.
+    }
   }
+}
+
+export async function resolveDiscoverLocations({
+  items = [],
+  searchLocationLabel = '',
+  center,
+  radiusMeters = 4828,
+  request = apiRequest,
+}) {
+  if (!center) return {};
+  const candidates = items.map((item) => ({
+    item,
+    query: discoverGeocodeQuery(item, searchLocationLabel),
+  })).filter(({ item, query }) => query && !discoverCoordinates(item));
+  if (!candidates.length) return {};
+  await loadServerDiscoverLocations(items, searchLocationLabel, center, radiusMeters, {
+    request,
+    resolveAll: true,
+  });
+  const resolved = await Promise.all(candidates.map(async ({ item, query }) => {
+    const location = await discoverGeocodeCache.get(query.toLocaleLowerCase());
+    return location ? [item.id, location] : null;
+  }));
+  return Object.fromEntries(resolved.filter(Boolean));
 }
 
 function createMapMarker({ maps, AdvancedMarkerElement, map, position, title, content, label, onClick }) {
@@ -224,12 +263,30 @@ export async function renderGoogleDiscoverMap({ element, center, radiusMeters = 
     }
     if (!MapConstructor) return false;
     const isNewMap = activeMapElement !== element;
+    const originKey = `${Number(center.lat).toFixed(6)}|${Number(center.lng).toFixed(6)}`;
+    const sameOrigin = activeDiscoverViewport.originKey === originKey;
+    if (isNewMap && activeMapKind === 'discover' && sameOrigin && activeMap) {
+      const previousCenter = activeMap.getCenter?.();
+      activeDiscoverViewport.center = previousCenter
+        ? { lat: previousCenter.lat(), lng: previousCenter.lng() }
+        : activeDiscoverViewport.center;
+      activeDiscoverViewport.zoom = activeMap.getZoom?.() ?? activeDiscoverViewport.zoom;
+    }
+    if (!sameOrigin) {
+      activeDiscoverViewport = {
+        originKey,
+        center: null,
+        zoom: null,
+        userMoved: false,
+        hasFitted: false,
+      };
+    }
     if (isNewMap) {
       activeRadiusCircle?.setMap(null);
       activeRadiusCircle = null;
       activeMap = new MapConstructor(element, {
-        center,
-        zoom: 13,
+        center: activeDiscoverViewport.center || center,
+        zoom: activeDiscoverViewport.zoom ?? 13,
         mapId: 'DEMO_MAP_ID',
         mapTypeControl: false,
         streetViewControl: false,
@@ -237,6 +294,17 @@ export async function renderGoogleDiscoverMap({ element, center, radiusMeters = 
         zoomControl: true,
       });
       activeMapElement = element;
+      activeMapKind = 'discover';
+      const markUserMovement = () => { activeDiscoverViewport.userMoved = true; };
+      element.addEventListener('pointerdown', markUserMovement, { passive: true });
+      element.addEventListener('wheel', markUserMovement, { passive: true });
+      element.addEventListener('touchstart', markUserMovement, { passive: true });
+      activeMap.addListener?.('idle', () => {
+        if (activeMapKind !== 'discover') return;
+        const mapCenter = activeMap.getCenter?.();
+        if (mapCenter) activeDiscoverViewport.center = { lat: mapCenter.lat(), lng: mapCenter.lng() };
+        activeDiscoverViewport.zoom = activeMap.getZoom?.() ?? activeDiscoverViewport.zoom;
+      });
     }
     if (!activeRadiusCircle) {
       activeRadiusCircle = new maps.Circle({
@@ -253,7 +321,7 @@ export async function renderGoogleDiscoverMap({ element, center, radiusMeters = 
       activeRadiusCircle.setCenter(center);
       activeRadiusCircle.setRadius(radiusMeters);
     }
-    activeMap.setCenter(center);
+    if (!activeDiscoverViewport.userMoved && !activeDiscoverViewport.hasFitted) activeMap.setCenter(center);
     activeMapRadiusMeters = radiusMeters;
     clearMarkers();
     activeMarkers.push(createMapMarker({
@@ -284,7 +352,7 @@ export async function renderGoogleDiscoverMap({ element, center, radiusMeters = 
       const { item, position } = result.value;
       if (!position) return;
       const maximumEventDistance = Math.max(radiusMeters * 4, 50000);
-      if (item.kind === 'weekend_event'
+      if (item.kind === 'family_event'
         && distanceInMeters(center, position) > maximumEventDistance) return;
       locatedItemCount += 1;
       visibleBounds?.extend(position);
@@ -303,7 +371,10 @@ export async function renderGoogleDiscoverMap({ element, center, radiusMeters = 
       });
       activeMarkers.push(marker);
     });
-    if (visibleBounds && locatedItemCount > 0) activeMap.fitBounds(visibleBounds, 56);
+    if (visibleBounds && locatedItemCount > 0 && !activeDiscoverViewport.hasFitted && !activeDiscoverViewport.userMoved) {
+      activeMap.fitBounds(visibleBounds, 56);
+      activeDiscoverViewport.hasFitted = true;
+    }
     return true;
   } catch (error) {
     console.warn(error);
@@ -345,6 +416,7 @@ export async function renderGooglePlayMap({ element, center, radiusMeters = 4828
         styles: sproutMapStyles,
       });
       activeMapElement = element;
+      activeMapKind = 'play';
     }
     if (!activeRadiusCircle) {
       activeRadiusCircle = new maps.Circle({

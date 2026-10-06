@@ -53,6 +53,9 @@ export function startAiJobWait(ctx, job, usage = null) {
 export async function loadNotifications(ctx, { quiet = false } = {}) {
   const { state } = ctx;
   if (!state.user || state.notificationsLoading) return;
+  const previousNotifications = JSON.stringify(state.notifications || []);
+  const previousUnreadCount = Number(state.notificationUnreadCount) || 0;
+  const wasLoaded = Boolean(state.notificationsLoaded);
   state.notificationsLoading = true;
   try {
     const result = await apiRequest('/notifications');
@@ -63,7 +66,10 @@ export async function loadNotifications(ctx, { quiet = false } = {}) {
     if (!quiet) state.notificationStatus = error.message;
   }
   state.notificationsLoading = false;
-  ctx.renderCurrent();
+  const notificationsChanged = previousNotifications !== JSON.stringify(state.notifications || [])
+    || previousUnreadCount !== (Number(state.notificationUnreadCount) || 0)
+    || !wasLoaded;
+  if (!quiet || notificationsChanged || state.showNotifications) ctx.renderCurrent();
 }
 
 export function startNotificationPolling(ctx) {

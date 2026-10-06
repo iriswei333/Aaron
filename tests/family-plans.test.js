@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { normalizeFamilyPlan, sortFamilyPlans } from '../app/api/family-plans/route.js';
 
 describe('family plans contract', () => {
-  it('accepts weekend events and story times', () => {
+  it('accepts family events and story times', () => {
     expect(normalizeFamilyPlan({ kind: 'external_event', title: 'Festival' }).kind).toBe('external_event');
     expect(normalizeFamilyPlan({ kind: 'story_time', title: 'Toddler Stories', dueDate: '2026-09-24' })).toMatchObject({
       kind: 'story_time',

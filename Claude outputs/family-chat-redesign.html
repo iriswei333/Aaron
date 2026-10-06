@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+<title>SproutCue Family Chat</title>
+<style>
+  :root {
+    --color-ink: #34281f;
+    --color-muted: #75685e;
+    --color-brand: #e86f3d;
+    --color-brand-strong: #c84f23;
+    --color-brand-soft: #fff0e5;
+    --color-sun: #f5b942;
+    --color-paper: #fffaf4;
+    --color-surface: #ffffff;
+    --color-surface-soft: #fff6ed;
+    --color-line: #edd9ca;
+    --color-success: #387158;
+    --color-green-soft: #eaf1da;
+    --shadow-card: 0 10px 30px rgba(101, 61, 29, .08);
+    --shadow-float: 0 18px 48px rgba(83, 48, 23, .18);
+    --radius-card: 22px;
+    --radius-control: 14px;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-width: 320px; min-height: 100vh; color: var(--color-ink);
+    background: radial-gradient(circle at 12% 0%, rgba(255, 213, 176, .42), transparent 30rem), var(--color-paper);
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; background: none; margin: 0; padding: 0; }
+  .emoji { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; line-height: 1; }
+
+  /* ---------- App shell (context only) ---------- */
+  .app-shell { max-width: 1440px; width: min(1440px, calc(100% - 48px)); margin: 24px auto; }
+  .app-frame { background: #fbf7ef; border: 1px solid var(--color-line); border-radius: 18px; display: flex; min-height: 820px; overflow: hidden; }
+  .app-rail { background: #fffdf8; border-right: 1px solid var(--color-line); display: flex; flex: 0 0 228px; flex-direction: column; padding: 22px 14px 18px; }
+  .rail-brand { align-items: center; color: #1f4a36; display: flex; font-size: 23px; font-weight: 700; gap: 10px; padding: 0 12px 24px; }
+  .rail-brand svg { height: 30px; width: 30px; }
+  .rail-nav { display: grid; gap: 2px; }
+  .rail-nav-button { align-items: center; border-radius: 12px; color: #5c6b60; display: flex; font-size: 14px; font-weight: 800; gap: 12px; min-height: 44px; padding: 10px 12px; width: 100%; }
+  .rail-nav-button:hover, .rail-nav-button.active { background: var(--color-brand-soft); }
+  .rail-nav-button.active { color: var(--color-brand-strong); }
+  .rail-count { align-items: center; background: #e2643b; border-radius: 999px; color: #fff; display: inline-flex; font-size: 11px; height: 20px; justify-content: center; margin-left: auto; min-width: 20px; padding: 0 6px; }
+  .app-content { flex: 1; min-width: 0; padding: 26px 30px 38px; }
+  .eyebrow { color: var(--color-brand-strong); font-size: .78rem; font-weight: 800; letter-spacing: .11em; margin: 0 0 8px; text-transform: uppercase; }
+  .family-heading h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); letter-spacing: -.055em; line-height: .96; margin: 4px 0 10px; }
+  .family-heading p.lede { color: var(--color-muted); margin: 0 0 22px; max-width: 640px; }
+
+  /* ---------- Chat panel ---------- */
+  .panel { background: rgba(255,255,255,.9); border: 1px solid var(--color-line); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 22px; }
+  .chat-panel-heading { align-items: flex-end; display: flex; gap: 16px; justify-content: space-between; margin-bottom: 18px; }
+  .chat-panel-heading h2 { color: var(--color-ink); font-size: clamp(1.35rem, 2vw, 1.8rem); letter-spacing: -.02em; margin: 0 0 4px; }
+  .chat-panel-heading p:not(.eyebrow) { color: var(--color-muted); font-size: .9rem; margin: 0; }
+  .new-chat-button { align-items: center; background: var(--color-brand); border-radius: var(--radius-control); box-shadow: 0 7px 18px rgba(200,79,35,.2); color: #fff; display: inline-flex; flex: 0 0 auto; font-size: .88rem; font-weight: 800; gap: 6px; padding: 11px 16px; }
+  .new-chat-button:hover { background: var(--color-brand-strong); }
+
+  .chat-layout { border: 1px solid var(--color-line); border-radius: 20px; display: grid; grid-template-columns: 300px minmax(0, 1fr); height: 640px; overflow: hidden; background: var(--color-surface); }
+
+  /* Thread list */
+  .chat-sidebar { background: var(--color-surface-soft); border-right: 1px solid var(--color-line); display: flex; flex-direction: column; min-height: 0; }
+  .chat-search { padding: 14px 14px 10px; }
+  .chat-search label { align-items: center; background: #fff; border: 1px solid #e8c9b4; border-radius: 999px; display: flex; gap: 8px; padding: 9px 14px; }
+  .chat-search label:focus-within { border-color: var(--color-brand); box-shadow: 0 0 0 3px rgba(232,111,61,.14); }
+  .chat-search svg { color: var(--color-muted); flex: 0 0 16px; height: 16px; width: 16px; }
+  .chat-search input { background: none; border: 0; flex: 1; font-size: .86rem; min-width: 0; outline: none; }
+  .chat-filters { display: flex; gap: 6px; padding: 0 14px 12px; }
+  .chat-filter { border: 1.5px solid var(--color-line); border-radius: 999px; color: var(--color-muted); font-size: .75rem; font-weight: 800; padding: 6px 12px; background: #fff; }
+  .chat-filter.active { background: var(--color-ink); border-color: var(--color-ink); color: #fff; }
+  .chat-thread-list { display: grid; align-content: start; gap: 4px; overflow-y: auto; padding: 0 8px 12px; }
+  .chat-section-label { color: #9a7f6c; font-size: .66rem; font-weight: 850; letter-spacing: .12em; padding: 10px 8px 4px; text-transform: uppercase; }
+  .chat-contact { align-items: center; border: 1px solid transparent; border-radius: 16px; display: grid; gap: 11px; grid-template-columns: auto minmax(0,1fr) auto; padding: 10px; text-align: left; width: 100%; }
+  .chat-contact:hover { background: #fff; }
+  .chat-contact.selected { background: #fff; border-color: var(--color-line); box-shadow: 0 4px 14px rgba(101,61,29,.07); }
+  .thread-tile { align-items: center; background: var(--color-brand-soft); border-radius: 14px; display: flex; font-size: 1.3rem; height: 44px; justify-content: center; position: relative; width: 44px; }
+  .thread-tile.green { background: var(--color-green-soft); }
+  .thread-tile.sun { background: #fff3df; }
+  .thread-tile.avatar { border-radius: 50%; color: #fff; font-size: .95rem; font-weight: 850; }
+  .thread-copy { display: grid; gap: 2px; min-width: 0; }
+  .thread-copy strong { font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .thread-copy small { color: var(--color-muted); font-size: .76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .thread-copy .thread-when { color: var(--color-brand-strong); font-size: .68rem; font-weight: 800; }
+  .thread-meta { align-items: flex-end; display: grid; gap: 6px; justify-items: end; }
+  .thread-meta time { color: #9a8b80; font-size: .68rem; }
+  .unread-badge { align-items: center; background: var(--color-brand); border-radius: 999px; color: #fff; display: inline-flex; font-size: .66rem; font-weight: 850; height: 18px; justify-content: center; min-width: 18px; padding: 0 5px; }
+  .chat-contact.unread strong { font-weight: 850; }
+  .chat-contact.unread small { color: var(--color-ink); }
+
+  /* Thread */
+  .chat-thread { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0,1fr) auto; min-height: 0; min-width: 0; background: var(--color-paper); }
+  .chat-thread-heading { align-items: center; background: #fff; border-bottom: 1px solid var(--color-line); display: flex; gap: 12px; padding: 12px 18px; }
+  .chat-back { align-items: center; border-radius: 10px; color: var(--color-brand-strong); display: none; font-size: 1.3rem; height: 36px; justify-content: center; width: 36px; }
+  .chat-back:hover { background: var(--color-brand-soft); }
+  .chat-thread-title { display: grid; flex: 1; gap: 2px; min-width: 0; }
+  .chat-thread-title strong { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chat-thread-title small { color: var(--color-muted); font-size: .76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .avatar-stack { display: flex; }
+  .avatar-stack span { align-items: center; border: 2px solid #fff; border-radius: 50%; color: #fff; display: flex; font-size: .7rem; font-weight: 850; height: 30px; justify-content: center; margin-left: -8px; width: 30px; }
+  .icon-button { align-items: center; border: 1px solid var(--color-line); border-radius: 12px; color: var(--color-muted); display: flex; height: 36px; justify-content: center; width: 36px; background: #fff; }
+  .icon-button:hover { background: var(--color-brand-soft); color: var(--color-brand-strong); }
+  .icon-button svg { height: 18px; width: 18px; }
+
+  /* Pinned playdate card */
+  .pinned-playdate { align-items: center; background: linear-gradient(135deg, #fff7ee, #fffdf9 60%, #f8efe4); border-bottom: 1px solid var(--color-line); display: grid; gap: 14px; grid-template-columns: auto minmax(0,1fr) auto; padding: 12px 18px; }
+  .date-pin { background: #fff; border: 1px solid var(--color-line); border-radius: 14px; display: grid; justify-items: center; line-height: 1.05; padding: 7px 10px; min-width: 54px; }
+  .date-pin small { color: var(--color-brand-strong); font-size: .62rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+  .date-pin b { font-size: 1.3rem; }
+  .pinned-copy { display: grid; gap: 3px; min-width: 0; }
+  .pinned-copy strong, .pinned-copy > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pinned-copy strong { font-size: .88rem; }
+  .pinned-copy span { color: var(--color-muted); font-size: .76rem; }
+  .pinned-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+  .pinned-tags em { background: var(--color-green-soft); border-radius: 999px; color: #49603a; font-size: .66rem; font-style: normal; font-weight: 800; padding: 4px 8px; }
+  .pinned-actions { display: flex; gap: 6px; }
+  .pinned-expand { display: none; }
+  .soft-button { background: #fff; border: 1px solid #e8c9b4; border-radius: 12px; color: var(--color-brand-strong); font-size: .76rem; font-weight: 800; padding: 8px 11px; white-space: nowrap; }
+  .soft-button:hover { background: var(--color-brand-soft); }
+
+  /* Messages */
+  .chat-messages { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; padding: 18px 20px 10px; }
+  .day-divider { align-items: center; color: #9a8b80; display: flex; font-size: .7rem; font-weight: 800; gap: 10px; letter-spacing: .06em; margin: 10px 0; text-transform: uppercase; }
+  .day-divider::before, .day-divider::after { background: var(--color-line); content: ''; flex: 1; height: 1px; }
+  .system-note { align-self: center; background: #fff3df; border-radius: 999px; color: #8a5a13; font-size: .74rem; font-weight: 700; margin: 4px 0 10px; padding: 6px 12px; }
+  .msg-group { align-items: flex-end; display: flex; gap: 8px; margin-top: 8px; max-width: 78%; }
+  .msg-group.mine { align-self: flex-end; flex-direction: row-reverse; }
+  .msg-avatar { align-items: center; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 2px 6px rgba(101,61,29,.12); color: #fff; display: flex; flex: 0 0 30px; font-size: .72rem; font-weight: 850; height: 30px; justify-content: center; }
+  .msg-stack { display: grid; gap: 3px; justify-items: start; min-width: 0; }
+  .msg-group.mine .msg-stack { justify-items: end; }
+  .msg-sender { color: var(--color-muted); font-size: .7rem; font-weight: 700; padding: 0 4px 2px; }
+  .msg-sender b { color: var(--color-ink); font-weight: 800; }
+  .bubble { background: #fff; border: 1px solid #f0dfd1; border-radius: 18px 18px 18px 6px; font-size: .9rem; line-height: 1.45; padding: 9px 13px; white-space: pre-wrap; word-wrap: break-word; }
+  .bubble + .bubble { border-top-left-radius: 6px; }
+  .msg-group.mine .bubble { background: var(--color-brand); border-color: var(--color-brand); border-radius: 18px 18px 6px 18px; color: #fff; }
+  .msg-group.mine .bubble + .bubble { border-top-right-radius: 6px; border-top-left-radius: 18px; }
+  .bubble.photo { padding: 4px; overflow: hidden; }
+  .photo-card { align-items: flex-end; background: linear-gradient(160deg, #ffd9b8 0%, #f6b98e 45%, #9fd1a8 100%); border-radius: 14px; display: flex; height: 150px; padding: 10px; position: relative; width: 230px; }
+  .photo-card .emoji { font-size: 2.6rem; left: 50%; position: absolute; top: 42%; transform: translate(-50%,-50%); }
+  .photo-card span:last-child { background: rgba(255,255,255,.85); border-radius: 999px; color: var(--color-ink); font-size: .68rem; font-weight: 800; padding: 4px 8px; }
+  .msg-time { color: #9a8b80; font-size: .66rem; padding: 0 4px; }
+  .reaction { background: #fff; border: 1px solid var(--color-line); border-radius: 999px; font-size: .72rem; margin-top: -8px; padding: 2px 7px; justify-self: start; position: relative; }
+  .typing { align-items: center; color: var(--color-muted); display: flex; font-size: .74rem; gap: 8px; margin-top: 10px; }
+  .typing-dots { background: #fff; border: 1px solid #f0dfd1; border-radius: 999px; display: flex; gap: 3px; padding: 8px 10px; }
+  .typing-dots i { animation: bob 1.2s infinite ease-in-out; background: #c9b3a3; border-radius: 50%; height: 6px; width: 6px; }
+  .typing-dots i:nth-child(2) { animation-delay: .15s; } .typing-dots i:nth-child(3) { animation-delay: .3s; }
+  @keyframes bob { 0%,60%,100% { transform: translateY(0); opacity: .6; } 30% { transform: translateY(-3px); opacity: 1; } }
+
+  /* Composer */
+  .chat-compose-area { background: #fff; border-top: 1px solid var(--color-line); padding: 10px 16px 14px; }
+  .quick-replies { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+  .quick-replies::-webkit-scrollbar { display: none; }
+  .quick-label { align-items: center; color: var(--color-brand-strong); display: flex; flex: 0 0 auto; font-size: .7rem; font-weight: 850; gap: 4px; padding-right: 2px; }
+  .quick-reply { background: var(--color-surface-soft); border: 1px solid var(--color-line); border-radius: 999px; color: #5f4a3d; flex: 0 0 auto; font-size: .76rem; font-weight: 700; padding: 6px 11px; }
+  .quick-reply:hover { background: var(--color-brand-soft); border-color: #e8c9b4; color: var(--color-brand-strong); }
+  .chat-compose { align-items: center; background: var(--color-paper); border: 1.5px solid #e8c9b4; border-radius: 18px; display: flex; gap: 6px; padding: 5px 5px 5px 6px; }
+  .chat-compose:focus-within { border-color: var(--color-brand); box-shadow: 0 0 0 3px rgba(232,111,61,.14); }
+  .compose-tool { align-items: center; border-radius: 12px; color: var(--color-brand-strong); display: flex; flex: 0 0 38px; height: 38px; justify-content: center; }
+  .compose-tool:hover { background: var(--color-brand-soft); }
+  .compose-tool svg { height: 20px; width: 20px; }
+  .chat-compose input[type="text"] { background: none; border: 0; flex: 1; font-size: .92rem; min-width: 0; outline: none; padding: 8px 4px; }
+  .send-button { align-items: center; background: var(--color-brand); border-radius: 14px; color: #fff; display: flex; flex: 0 0 auto; font-size: .86rem; font-weight: 800; gap: 6px; height: 40px; padding: 0 16px; }
+  .send-button:hover { background: var(--color-brand-strong); }
+  .send-button svg { height: 16px; width: 16px; }
+  .compose-note { color: #9a8b80; font-size: .68rem; margin: 8px 4px 0; display: flex; gap: 5px; align-items: center; }
+
+  /* Avatar palette */
+  .c1 { background: #e86f3d; } .c2 { background: #62b486; } .c3 { background: #f5b942; } .c4 { background: #8d7bd1; } .c5 { background: #4fa3c7; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1100px) { .pinned-actions .soft-button:first-child { display: none; } }
+  @media (max-width: 860px) {
+    .app-shell { margin: 0; width: 100%; }
+    .app-frame { border: 0; border-radius: 0; display: block; min-height: 100dvh; }
+    .app-rail { border-right: 0; border-bottom: 1px solid var(--color-line); padding: 12px 14px; }
+    .rail-brand { padding: 0 4px 10px; font-size: 19px; }
+    .rail-nav { display: flex; overflow-x: auto; }
+    .rail-nav-button { flex: 1 0 auto; justify-content: center; min-width: 84px; width: auto; }
+    .app-content { padding: 18px 16px 28px; }
+    .panel { padding: 16px; }
+    .chat-panel-heading { align-items: flex-start; }
+    .chat-panel-heading p:not(.eyebrow) { display: none; }
+    .new-chat-button { min-height: 44px; min-width: 44px; justify-content: center; }
+    .new-chat-button span.label { display: none; }
+
+    /* 2. Chat list flows with the page (no scroll-inside-scroll) */
+    .chat-layout { grid-template-columns: minmax(0, 1fr); height: auto; }
+    .chat-thread-list { overflow: visible; }
+    .chat-layout .chat-thread { display: none; }
+
+    /* 2. Opened chat becomes a full-screen view */
+    .chat-layout.show-thread .chat-thread {
+      display: grid; position: fixed; z-index: 50; left: 0; right: 0; top: var(--vv-top, 0px);
+      height: var(--vv-height, 100dvh); border-radius: 0;
+      padding-top: env(safe-area-inset-top);
+    }
+    body.thread-open { overflow: hidden; }
+    .chat-thread-heading { padding: 8px 10px 8px 6px; gap: 8px; }
+    .chat-back { display: flex; }
+    .avatar-stack { display: none; }
+
+    /* 1. 44px touch targets */
+    .chat-back, .icon-button, .pinned-expand { height: 44px; width: 44px; flex: 0 0 44px; }
+    .chat-search label { min-height: 44px; }
+    .chat-search input { font-size: 16px; }
+    .chat-filters { gap: 8px; }
+    .chat-filter { min-height: 44px; padding: 0 16px; font-size: .82rem; }
+    .chat-contact { min-height: 64px; }
+    .quick-reply { min-height: 44px; padding: 0 14px; font-size: .82rem; }
+    .soft-button { min-height: 44px; }
+    .compose-tool { flex-basis: 44px; height: 44px; }
+    .send-button { height: 44px; min-width: 44px; padding: 0 12px; justify-content: center; }
+    .send-button span { display: none; }
+
+    /* 3. Keyboard: 16px input stops iOS zoom; safe-area padding under the composer */
+    .chat-compose input[type="text"] { font-size: 16px; min-height: 44px; }
+    .chat-compose-area { padding: 8px 10px calc(10px + env(safe-area-inset-bottom)); }
+    body.keyboard-open .compose-note { display: none; }
+    body.keyboard-open .chat-compose-area { padding-bottom: 8px; }
+
+    /* 4. Pinned playdate collapses to one line; tap to expand */
+    .pinned-playdate { grid-template-columns: auto minmax(0,1fr) auto; gap: 10px; padding: 8px 6px 8px 12px; cursor: pointer; }
+    .date-pin { flex-direction: row; display: flex; gap: 5px; align-items: baseline; padding: 6px 9px; min-width: 0; border-radius: 12px; }
+    .date-pin b { font-size: 1rem; }
+    .pinned-copy > span, .pinned-tags, .pinned-actions { display: none; }
+    .pinned-expand { grid-column: 3; grid-row: 1; align-self: start; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: var(--color-brand-strong); }
+    .pinned-expand svg { height: 20px; width: 20px; transition: transform .2s ease; }
+    .pinned-playdate.expanded { padding-bottom: 12px; }
+    .pinned-playdate.expanded .pinned-copy > span { display: block; }
+    .pinned-playdate.expanded .pinned-tags { display: flex; }
+    .pinned-playdate.expanded .pinned-actions { display: flex; grid-column: 1 / -1; padding-right: 6px; }
+    .pinned-playdate.expanded .pinned-expand svg { transform: rotate(180deg); }
+    .pinned-actions .soft-button { flex: 1; }
+    .pinned-actions .soft-button:first-child { display: block; }
+
+    .chat-messages { padding: 14px 12px 8px; }
+    .msg-group { max-width: 88%; }
+    .photo-card { width: min(230px, 60vw); }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="app-frame">
+    <aside class="app-rail">
+      <div class="rail-brand">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="18" fill="#fff4e8"/><path d="M18 38c0-8.8 6.3-15.2 14.5-15.2S47 29.2 47 38c0 7.8-6.4 13-14.5 13S18 45.8 18 38Z" fill="#ffab8f"/><path d="M32 39c-.4-8.6 1-16.5 6.9-22.1 3.2-3 7.2-4.2 10.8-4.4-.3 5.2-2.2 9.7-5.8 12.9-3.2 2.8-7.2 4-11.9 3.6Z" fill="#62b486"/><path d="M31.7 39c.2-7.9-2.1-13.9-7-17.1-2.8-1.8-5.8-2.4-8.6-2.3.6 4.7 2.5 8.3 5.7 10.7 2.8 2.1 6.1 3 9.9 2.7" fill="#3d956d"/><path d="M32 39V20" fill="none" stroke="#2e7658" stroke-linecap="round" stroke-width="3"/></svg>
+        <span>SproutCue</span>
+      </div>
+      <nav class="rail-nav">
+        <button class="rail-nav-button">Today</button>
+        <button class="rail-nav-button">Discover</button>
+        <button class="rail-nav-button">Play Studio</button>
+        <button class="rail-nav-button active">Family <span class="rail-count">3</span></button>
+      </nav>
+    </aside>
+
+    <main class="app-content">
+      <header class="family-heading">
+        <p class="eyebrow">Your family, your pace</p>
+        <h1>Nick</h1>
+        <p class="lede">One private home for Aaron’s profile, play plans, and family conversations.</p>
+      </header>
+
+      <section class="panel">
+        <div class="chat-panel-heading">
+          <div>
+            <p class="eyebrow">Family conversations</p>
+            <h2>Chats and playdate details</h2>
+            <p>Hellos, timing, and meetup notes, kept beside your family plans.</p>
+          </div>
+          <button class="new-chat-button" type="button"><span aria-hidden="true">＋</span><span class="label">New chat</span></button>
+        </div>
+
+        <div class="chat-layout" id="chat-layout">
+          <!-- Thread list -->
+          <aside class="chat-sidebar">
+            <div class="chat-search">
+              <label>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input type="search" id="thread-search" placeholder="Search chats" aria-label="Search chats" />
+              </label>
+            </div>
+            <div class="chat-filters" role="tablist" aria-label="Filter chats">
+              <button class="chat-filter active" data-filter="all" role="tab">All</button>
+              <button class="chat-filter" data-filter="playdate" role="tab">Playdates</button>
+              <button class="chat-filter" data-filter="direct" role="tab">Direct</button>
+            </div>
+            <div class="chat-thread-list" id="thread-list">
+              <p class="chat-section-label" data-section="playdate">Upcoming playdates</p>
+              <button class="chat-contact selected unread" data-type="playdate" data-thread="licton">
+                <span class="thread-tile emoji">🛝</span>
+                <span class="thread-copy"><strong>Licton Springs morning play</strong><span class="thread-when">Sat, Oct 10 · 10:00 AM</span><small>Priya: We’ll bring the dump truck 🚚</small></span>
+                <span class="thread-meta"><time>9:42 AM</time><span class="unread-badge">2</span></span>
+              </button>
+              <button class="chat-contact" data-type="playdate" data-thread="library">
+                <span class="thread-tile green emoji">📚</span>
+                <span class="thread-copy"><strong>Story time at Greenwood Library</strong><span class="thread-when">Tue, Oct 13 · 10:30 AM</span><small>You: See you there!</small></span>
+                <span class="thread-meta"><time>Mon</time></span>
+              </button>
+              <p class="chat-section-label" data-section="direct">Families</p>
+              <button class="chat-contact unread" data-type="direct" data-thread="maya">
+                <span class="thread-tile avatar c2">P</span>
+                <span class="thread-copy"><strong>Priya · Maya’s family</strong><small>Maya keeps asking about the train table</small></span>
+                <span class="thread-meta"><time>Yesterday</time><span class="unread-badge">1</span></span>
+              </button>
+              <button class="chat-contact" data-type="direct" data-thread="leo">
+                <span class="thread-tile avatar c4">J</span>
+                <span class="thread-copy"><strong>Jordan · Leo’s family</strong><small>Thanks for the dinosaur book tip!</small></span>
+                <span class="thread-meta"><time>Oct 2</time></span>
+              </button>
+            </div>
+          </aside>
+
+          <!-- Active thread -->
+          <section class="chat-thread" aria-label="Licton Springs morning play chat">
+            <div class="chat-thread-heading">
+              <button class="chat-back" id="chat-back" aria-label="Back to chats">‹</button>
+              <span class="thread-tile emoji">🛝</span>
+              <div class="chat-thread-title">
+                <strong>Licton Springs morning play</strong>
+                <small>3 families · everyone in this playdate is included</small>
+              </div>
+              <div class="avatar-stack" aria-label="Families in this chat"><span class="c1">N</span><span class="c2">P</span><span class="c5">S</span></div>
+              <button class="icon-button" aria-label="Chat details"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></button>
+            </div>
+
+            <div class="pinned-playdate" id="pinned-playdate">
+              <div class="date-pin"><small>Sat</small><b>10</b></div>
+              <div class="pinned-copy">
+                <strong>10:00–11:30 AM · Licton Springs Playground</strong>
+                <span>0.8 mi away · Toddler area by the north gate</span>
+                <div class="pinned-tags"><em>☀️ Dry, 58°F</em><em>3 going</em><em>Ages 2–3</em></div>
+              </div>
+              <div class="pinned-actions">
+                <button class="soft-button">Directions</button>
+                <button class="soft-button">View playdate →</button>
+              </div>
+              <button class="pinned-expand" id="pinned-expand" type="button" aria-expanded="false" aria-controls="pinned-playdate" aria-label="Show playdate details"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+            </div>
+
+            <div class="chat-messages" id="messages">
+              <div class="day-divider">Thursday</div>
+              <p class="system-note">🌱 Nick created this playdate · first names only</p>
+
+              <div class="msg-group">
+                <span class="msg-avatar c2">P</span>
+                <div class="msg-stack">
+                  <span class="msg-sender"><b>Priya</b> · Maya’s mom</span>
+                  <div class="bubble">Hi! Maya is so excited 🎉 Does 10 still work for everyone?</div>
+                  <span class="msg-time">4:12 PM</span>
+                </div>
+              </div>
+
+              <div class="msg-group mine">
+                <span class="msg-avatar c1">N</span>
+                <div class="msg-stack">
+                  <div class="bubble">10 is perfect for us. Aaron naps at 12:30 so we’ll head out around 11:30.</div>
+                  <div class="bubble">We can bring snacks — anyone have allergies?</div>
+                  <span class="msg-time">4:20 PM · Seen by 2</span>
+                </div>
+              </div>
+
+              <div class="msg-group">
+                <span class="msg-avatar c5">S</span>
+                <div class="msg-stack">
+                  <span class="msg-sender"><b>Sam</b> · Noah’s dad</span>
+                  <div class="bubble">No allergies here! Noah is all about trains right now 🚂</div>
+                  <span class="reaction emoji">❤️ 2</span>
+                  <span class="msg-time">5:03 PM</span>
+                </div>
+              </div>
+
+              <div class="day-divider">Today</div>
+
+              <div class="msg-group">
+                <span class="msg-avatar c2">P</span>
+                <div class="msg-stack">
+                  <span class="msg-sender"><b>Priya</b> · Maya’s mom</span>
+                  <div class="bubble photo"><div class="photo-card"><span class="emoji">🚚</span><span>Packed and ready</span></div></div>
+                  <div class="bubble">We’ll bring the dump truck 🚚 for the sand pit</div>
+                  <span class="msg-time">9:42 AM</span>
+                </div>
+              </div>
+
+              <div class="typing" aria-live="polite"><span class="msg-avatar c5">S</span><span class="typing-dots"><i></i><i></i><i></i></span>Sam is typing…</div>
+            </div>
+
+            <div class="chat-compose-area">
+              <div class="quick-replies" aria-label="Quick reply suggestions">
+                <span class="quick-label">✦ Suggested</span>
+                <button class="quick-reply">See you at the playground!</button>
+                <button class="quick-reply">We can bring snacks.</button>
+                <button class="quick-reply">We may be a few minutes late.</button>
+                <button class="quick-reply">What time works best?</button>
+              </div>
+              <form class="chat-compose" id="chat-form">
+                <button type="button" class="compose-tool" aria-label="Attach photo or short video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-8 8"/></svg></button>
+                <input type="text" id="chat-text" placeholder="Message, emoji, or meetup note…" maxlength="2000" autocomplete="off" />
+                <button type="button" class="compose-tool emoji" aria-label="Add emoji" id="emoji-btn">🙂</button>
+                <button type="submit" class="send-button"><span>Send</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+              </form>
+              <p class="compose-note">🔒 Only the 3 families in this playdate can see these messages.</p>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+  const layout = document.getElementById('chat-layout');
+  const messages = document.getElementById('messages');
+  const input = document.getElementById('chat-text');
+  const scrollDown = () => { messages.scrollTop = messages.scrollHeight; };
+  const mobile = window.matchMedia('(max-width: 860px)');
+  scrollDown();
+
+  // Thread selection (mobile switches to thread view)
+  document.querySelectorAll('.chat-contact').forEach((btn) => btn.addEventListener('click', () => {
+    document.querySelectorAll('.chat-contact').forEach((b) => b.classList.remove('selected'));
+    btn.classList.add('selected', 'read');
+    btn.classList.remove('unread');
+    btn.querySelector('.unread-badge')?.remove();
+    layout.classList.add('show-thread');
+    if (mobile.matches) document.body.classList.add('thread-open');
+    scrollDown();
+  }));
+  document.getElementById('chat-back').addEventListener('click', () => {
+    layout.classList.remove('show-thread');
+    document.body.classList.remove('thread-open', 'keyboard-open');
+    input.blur();
+  });
+  mobile.addEventListener('change', () => { if (!mobile.matches) document.body.classList.remove('thread-open'); });
+
+  // Pinned playdate: collapsed on phones, tap to expand
+  const pinned = document.getElementById('pinned-playdate');
+  const pinnedToggle = document.getElementById('pinned-expand');
+  pinned.addEventListener('click', (e) => {
+    if (!mobile.matches || e.target.closest('.soft-button')) return;
+    const open = pinned.classList.toggle('expanded');
+    pinnedToggle.setAttribute('aria-expanded', String(open));
+    pinnedToggle.setAttribute('aria-label', open ? 'Hide playdate details' : 'Show playdate details');
+  });
+
+  // Keyboard: size the full-screen chat to the visible viewport so the composer stays above the keyboard
+  const vv = window.visualViewport;
+  const syncViewport = () => {
+    if (!vv) return;
+    const root = document.documentElement.style;
+    root.setProperty('--vv-height', vv.height + 'px');
+    root.setProperty('--vv-top', vv.offsetTop + 'px');
+    const keyboardOpen = window.innerHeight - vv.height > 150;
+    document.body.classList.toggle('keyboard-open', keyboardOpen);
+    if (keyboardOpen && document.activeElement === input) scrollDown();
+  };
+  if (vv) { vv.addEventListener('resize', syncViewport); vv.addEventListener('scroll', syncViewport); syncViewport(); }
+  input.addEventListener('focus', () => setTimeout(scrollDown, 250));
+
+  // Filters + search
+  let filter = 'all';
+  const applyFilter = () => {
+    const q = document.getElementById('thread-search').value.trim().toLowerCase();
+    document.querySelectorAll('.chat-contact').forEach((b) => {
+      const okType = filter === 'all' || b.dataset.type === filter;
+      const okText = !q || b.textContent.toLowerCase().includes(q);
+      b.hidden = !(okType && okText);
+    });
+    document.querySelectorAll('.chat-section-label').forEach((l) => {
+      l.hidden = ![...document.querySelectorAll(`.chat-contact[data-type="${l.dataset.section}"]`)].some((b) => !b.hidden);
+    });
+  };
+  document.querySelectorAll('.chat-filter').forEach((f) => f.addEventListener('click', () => {
+    document.querySelectorAll('.chat-filter').forEach((x) => x.classList.remove('active'));
+    f.classList.add('active'); filter = f.dataset.filter; applyFilter();
+  }));
+  document.getElementById('thread-search').addEventListener('input', applyFilter);
+
+  // Quick replies + emoji
+  document.querySelectorAll('.quick-reply').forEach((b) => b.addEventListener('click', () => { input.value = b.textContent; input.focus(); }));
+  document.getElementById('emoji-btn').addEventListener('click', () => { input.value += '🙂'; input.focus(); });
+
+  // Send (local preview only)
+  const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  document.getElementById('chat-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    document.querySelector('.typing')?.remove();
+    const time = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const group = document.createElement('div');
+    group.className = 'msg-group mine';
+    group.innerHTML = `<span class="msg-avatar c1">N</span><div class="msg-stack"><div class="bubble">${escapeHtml(text)}</div><span class="msg-time">${time} · Sent</span></div>`;
+    messages.appendChild(group);
+    input.value = '';
+    scrollDown();
+  });
+</script>
+</body>
+</html>

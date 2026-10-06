@@ -79,8 +79,8 @@ async function loadHomeSocialPoster(ctx) {
 function renderHomeSocialPoster(ctx) {
   const { state } = ctx;
   const poster = state.homeSocialPoster;
-  if (!poster) return `<div class="home-utility-card home-social-poster-empty"><p class="eyebrow">Weekend social post</p><strong>Generated poster</strong><span>${escapeHtml(state.homeSocialPosterStatus || 'Run the weekly social agent to create a location-matched poster.')}</span><button type="button" class="secondary-button" data-home-tab="profile">Open Family</button></div>`;
-  return `<div class="home-utility-card home-social-poster-card"><div class="home-social-poster-heading"><p class="eyebrow">Weekend social post</p><span>Nearby match</span></div><a href="${escapeAttribute(poster.url)}" target="_blank" rel="noreferrer"><img src="${escapeAttribute(poster.url)}" alt="Generated weekend social poster ${escapeAttribute(poster.name)}" loading="lazy" /></a><strong>${escapeHtml(poster.name.replace(/[-_]/g, ' ').replace(/\.\w+$/, ''))}</strong><span>${escapeHtml(state.homeSocialPosterStatus)}</span></div>`;
+  if (!poster) return `<div class="home-utility-card home-social-poster-empty"><p class="eyebrow">Family event social post</p><strong>Generated poster</strong><span>${escapeHtml(state.homeSocialPosterStatus || 'Run the weekly social agent to create a location-matched poster.')}</span><button type="button" class="secondary-button" data-home-tab="profile">Open Family</button></div>`;
+  return `<div class="home-utility-card home-social-poster-card"><div class="home-social-poster-heading"><p class="eyebrow">Family event social post</p><span>Nearby match</span></div><a href="${escapeAttribute(poster.url)}" target="_blank" rel="noreferrer"><img src="${escapeAttribute(poster.url)}" alt="Generated family event social poster ${escapeAttribute(poster.name)}" loading="lazy" /></a><strong>${escapeHtml(poster.name.replace(/[-_]/g, ' ').replace(/\.\w+$/, ''))}</strong><span>${escapeHtml(state.homeSocialPosterStatus)}</span></div>`;
 }
 
 export async function loadHomeBackground(ctx) {
@@ -226,9 +226,9 @@ function homeObjects(state) {
     .slice(0, 3)
     .forEach((item) => {
     const isStoryTime = item.kind === 'story_time';
-    const detail = [item.dateLabel, item.timeLabel, item.venue].filter(Boolean).join(' • ') || (isStoryTime ? 'Saved story time' : 'Saved weekend event');
+    const detail = [item.dateLabel, item.timeLabel, item.venue].filter(Boolean).join(' • ') || (isStoryTime ? 'Saved story time' : 'Saved family event');
     const eventDetail = [item.metadata?.dateLabel, item.metadata?.timeLabel, item.venue].filter(Boolean).join(' • ') || detail;
-    objects.push({ icon: isStoryTime ? '📖' : '🎟️', type: isStoryTime ? 'Saved story time' : 'Attending weekend event', title: item.title, detail: eventDetail, tab: 'play', focus: isStoryTime ? 'story-times' : 'family-events' });
+    objects.push({ icon: isStoryTime ? '📖' : '🎟️', type: isStoryTime ? 'Saved story time' : 'Attending family event', title: item.title, detail: eventDetail, tab: 'play', focus: isStoryTime ? 'story-times' : 'family-events' });
     });
   return objects.slice(0, 5);
 }
@@ -346,7 +346,7 @@ function homePlanView(plan) {
     : plan.metadata?.dateLabel || plan.dateLabel || 'Date to be decided';
   return {
     icon: isStoryTime ? '📖' : '🎟️',
-    type: isStoryTime ? 'Story time' : 'Weekend event',
+    type: isStoryTime ? 'Story time' : 'Family event',
     title: plan.title || (isStoryTime ? 'Story time' : 'Family event'),
     when: `${dateLabel} · ${plan.metadata?.timeLabel || plan.timeLabel || 'Time TBD'}`,
     where: plan.venue || plan.summary || 'Family-friendly place nearby',
@@ -362,7 +362,7 @@ function renderTodayPlans(plans) {
   const remaining = plans.slice(1, 4);
   const remainingMarkup = remaining.length
     ? `<div class="today-plan-list">${remaining.map((plan) => { const view = homePlanView(plan); return `<button type="button" class="today-plan-row" data-home-tab="play" data-home-focus="${view.focus}"><span aria-hidden="true">${view.icon}</span><span><small>${escapeHtml(view.type)} · ${escapeHtml(view.when)}</small><strong>${escapeHtml(view.title)}</strong><em>${escapeHtml(view.where)}</em></span><b aria-hidden="true">→</b></button>`; }).join('')}</div>`
-    : '<div class="today-plan-list-empty"><span aria-hidden="true">＋</span><strong>Room for another little adventure</strong><small>Find a playdate, weekend event, or story time to add here.</small></div>';
+    : '<div class="today-plan-list-empty"><span aria-hidden="true">＋</span><strong>Room for another little adventure</strong><small>Find a playdate, family event, or story time to add here.</small></div>';
   return `<section class="today-plans" aria-labelledby="today-plans-title"><div class="today-section-title"><div><p class="eyebrow">Something to look forward to</p><h2 id="today-plans-title">Your family’s plans</h2><p>Playdates, events, and story times in one calm place.</p></div><button type="button" class="text-button" data-home-tab="play">View all →</button></div><div class="today-plan-layout"><aside class="today-plan-sidebar" aria-label="More upcoming plans"><div class="today-plan-sidebar-heading"><p class="eyebrow">Coming up next</p><h3>More family plans</h3></div>${remainingMarkup}<button type="button" class="secondary-button today-plan-explore" data-home-tab="play">Explore more plans</button></aside><button type="button" class="today-plan-feature" style="--today-plan-image: url('${escapeAttribute(featured.image)}')" data-home-tab="play" data-home-focus="${featured.focus}" aria-label="Open ${escapeAttribute(featured.title)}"><span class="today-plan-badge">${featured.icon} Your next plan</span><span class="today-plan-copy"><small>${escapeHtml(featured.type)} · ${escapeHtml(featured.when)}</small><strong>${escapeHtml(featured.title)}</strong><span>${escapeHtml(featured.where)}</span>${featured.detail && featured.detail !== featured.where ? `<span class="today-plan-detail">${escapeHtml(featured.detail)}</span>` : ''}<span class="today-plan-open">View plan <b aria-hidden="true">↗</b></span></span></button></div></section>`;
 }
 
@@ -386,20 +386,20 @@ function todayRecommendation(state, childName) {
   };
 }
 
-function homeWeekendEvents(state) {
+function homeFamilyEvents(state) {
   const selected = selectedHomeFamilyPlans(state);
   if (selected.length) return selected;
   return state.familyEvents || [];
 }
 
 function renderHomeEventCards(state) {
-  const events = homeWeekendEvents(state).slice(0, 5);
-  if (!events.length) return `<div class="home-empty-card"><span aria-hidden="true">🎟️</span><div><strong>No family plans saved yet</strong><small>Open Play to save weekend events and story times near your home base.</small></div></div>`;
-  return `<div class="home-weekend-list">${events.map((event) => {
+  const events = homeFamilyEvents(state).slice(0, 5);
+  if (!events.length) return `<div class="home-empty-card"><span aria-hidden="true">🎟️</span><div><strong>No family plans saved yet</strong><small>Open Discover to save family events and story times near your home base.</small></div></div>`;
+  return `<div class="home-family-list">${events.map((event) => {
     const date = event.date ? new Date(`${event.date}T12:00:00`) : null;
     const dateLabel = date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) : event.dateLabel || 'This weekend';
     const isStoryTime = event.kind === 'story_time';
-    return `<button type="button" class="home-weekend-card" data-home-tab="play" data-home-focus="${isStoryTime ? 'story-times' : 'family-events'}"><span class="home-weekend-icon" aria-hidden="true">${isStoryTime ? '📖' : '🎟️'}</span><span><small>${escapeHtml(dateLabel)} · ${escapeHtml(event.timeLabel || 'Time TBD')} · ${isStoryTime ? 'Story time' : 'Weekend event'}</small><strong>${escapeHtml(event.title || (isStoryTime ? 'Story time' : 'Family event'))}</strong><span>${escapeHtml(event.venue || event.summary || 'Family-friendly event nearby')}</span></span><b aria-hidden="true">→</b></button>`;
+    return `<button type="button" class="home-family-card" data-home-tab="play" data-home-focus="${isStoryTime ? 'story-times' : 'family-events'}"><span class="home-family-icon" aria-hidden="true">${isStoryTime ? '📖' : '🎟️'}</span><span><small>${escapeHtml(dateLabel)} · ${escapeHtml(event.timeLabel || 'Time TBD')} · ${isStoryTime ? 'Story time' : 'Family event'}</small><strong>${escapeHtml(event.title || (isStoryTime ? 'Story time' : 'Family event'))}</strong><span>${escapeHtml(event.venue || event.summary || 'Family-friendly event nearby')}</span></span><b aria-hidden="true">→</b></button>`;
   }).join('')}</div>`;
 }
 

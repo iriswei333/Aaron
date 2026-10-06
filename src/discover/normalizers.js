@@ -34,6 +34,55 @@ function distance(value, label = '') {
   };
 }
 
+function coordinates(value) {
+  const latitude = finiteNumber(value?.latitude);
+  const longitude = finiteNumber(value?.longitude);
+  if (latitude == null || longitude == null || (latitude === 0 && longitude === 0)) return null;
+  return { latitude, longitude };
+}
+
+export function discoverItemHasCoordinates(item) {
+  return Boolean(coordinates(item?.location));
+}
+
+function distanceMilesBetween(origin, destination) {
+  const earthRadiusMiles = 3958.8;
+  const toRadians = (degrees) => degrees * (Math.PI / 180);
+  const latitudeDelta = toRadians(destination.latitude - origin.latitude);
+  const longitudeDelta = toRadians(destination.longitude - origin.longitude);
+  const originLatitude = toRadians(origin.latitude);
+  const destinationLatitude = toRadians(destination.latitude);
+  const haversine = Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(originLatitude) * Math.cos(destinationLatitude) * Math.sin(longitudeDelta / 2) ** 2;
+  return earthRadiusMiles * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
+function distanceLabel(miles) {
+  if (miles < 0.1) return '<0.1 mi';
+  return `${miles.toFixed(miles < 10 ? 1 : 0)} mi`;
+}
+
+// Keep proximity ordering in the Discover domain model so web and future mobile
+// views do not each invent their own rendering-time sort behavior.
+export function sortDiscoverItemsByDistance(items = [], origin = null) {
+  const originCoordinates = coordinates(origin);
+  return (Array.isArray(items) ? items : []).map((item, index) => {
+    const venueCoordinates = coordinates(item?.location);
+    const suppliedMiles = finiteNumber(item?.distance?.miles);
+    const miles = originCoordinates && venueCoordinates
+      ? distanceMilesBetween(originCoordinates, venueCoordinates)
+      : suppliedMiles;
+    return {
+      item: miles == null ? item : {
+        ...item,
+        distance: { miles, label: distanceLabel(miles) },
+      },
+      index,
+      miles: miles ?? Number.POSITIVE_INFINITY,
+    };
+  }).sort((a, b) => a.miles - b.miles || a.index - b.index).map(({ item }) => item);
+}
+
 export function normalizePlayground(playground = {}) {
   const id = sourceId(playground.key, playground.name);
   return {
@@ -135,8 +184,8 @@ function normalizeScheduledEvent(event, kind) {
   };
 }
 
-export function normalizeWeekendEvent(event = {}) {
-  return normalizeScheduledEvent(event, 'weekend_event');
+export function normalizeFamilyEvent(event = {}) {
+  return normalizeScheduledEvent(event, 'family_event');
 }
 
 export function normalizeStoryTime(event = {}) {
@@ -144,7 +193,7 @@ export function normalizeStoryTime(event = {}) {
 }
 
 export function discoverItemOccursOnDate(item, date = new Date()) {
-  if (!['playdate', 'weekend_event', 'story_time'].includes(item?.kind)) return false;
+  if (!['playdate', 'family_event', 'story_time'].includes(item?.kind)) return false;
   if (item.source?.resultType === 'search-link') return false;
   const targetDate = localDateKey(date);
   if (!targetDate) return false;
@@ -155,7 +204,7 @@ export function discoverItemOccursOnDate(item, date = new Date()) {
   return text(item.schedule?.date).slice(0, 10) === targetDate;
 }
 
-const scheduledDiscoverKinds = ['playdate', 'weekend_event', 'story_time'];
+const scheduledDiscoverKinds = ['playdate', 'family_event', 'story_time'];
 
 function normalizedDiscoverKinds(kinds, kind) {
   if (Array.isArray(kinds)) return [...new Set(kinds.filter((value) => scheduledDiscoverKinds.includes(value)))];

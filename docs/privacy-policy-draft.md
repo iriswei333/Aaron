@@ -25,7 +25,7 @@ We collect only information needed for the purposes described below.
 
 - Account information, such as email address, display name, authentication records, and sign-in or verification information.
 - Child-profile information entered by the parent, such as a child’s nickname or name, birthday or age, home city, diaper size, daycare days, favorite activities, caption language and tone, and the parent’s choice about using the child’s real name in captions.
-- Saved external weekend-event decisions, such as attendance status, event title, venue, date/time labels, and the source URL.
+- Saved external family-event decisions, such as attendance status, event title, venue, date/time labels, and the source URL.
 - Location information, such as a city, address or place entered by the user, and precise latitude/longitude when the user chooses “Use current location.”
 - Play-date information, such as playground, address, coordinates, date and time, visibility, age range, capacity, notes, host, and participants.
 - Parent-to-parent messages and media shared in chat. Media selected for chat may be encoded in the message and stored by the service.
@@ -46,7 +46,7 @@ We use information to:
 
 - authenticate parent accounts and provide the SproutCue service;
 - personalize play planning, resources, and locally drafted captions for the selected child;
-- save and display attended weekend events and user-created content;
+- save and display attended family events and user-created content;
 - find nearby playgrounds, weather, and family events when the user requests those features;
 - create, display, and manage public or private play dates;
 - enable parent-to-parent chat for people connected through a play date;

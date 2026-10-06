@@ -1,6 +1,6 @@
 # SproutCue
 
-A small Next.js daily planner for parents of young kids. The app keeps separate parent profiles, captures each child's setup details, and helps organize play, saved weekend events, social resources, and private family chat.
+A small Next.js daily planner for parents of young kids. The app keeps separate parent profiles, captures each child's setup details, and helps organize play, saved family events, social resources, and private family chat.
 
 ## Weekly social-post agent
 
@@ -25,7 +25,7 @@ npm run social:weekly -- --from-roundup output/social-posts/weekly-2026-09-19-ro
 npm run social:weekly -- --recommendations-url "https://www.parentmap.com/things-to-do/the-weekender/"
 ```
 
-Image generation requires `OPENAI_API_KEY`. The command uses the bundled GPT Image CLI; set `IMAGE_GEN=/path/to/image_gen.py` if the default Codex skill path is different. Existing `{city}-{date}.png` files in the output directory are skipped, so rerunning the agent only generates missing posters. Normal weekend runs create one `weekly-YYYY-MM-DD-all-events.png` summary image, and recommendation-URL runs create `recommendations-YYYY-MM-DD-all-events.png`; both list every matched event with its date and venue. Use `--reject-event "City|YYYY-MM-DD|Event name|Reason for rejection"` to persistently exclude an unsuitable event from future picks for that city/day and save the reason; the registry is stored in `event-feedback.json`. The weekly roundup contains only the up-to-eight events represented by the poster set, lists each event’s city, name, venue, and detailed address without exact event times, uses one sentence of highlights per event, includes a Mandarin invitation to create a family card and discover nearby playdates, playgrounds, storytimes, and weekend events, and is capped at 670 words. If a poster is not good enough, pass `--regenerate City,YYYY-MM-DD` to search that same city/day again, select a different eligible event, and replace that poster; the weekly roundup and all-events poster are regenerated as well when an alternate event is found. Repeat the flag for multiple posters. Add `--feedback "..."` to include the critique in the replacement prompt. Use `--sample` to write one weekly roundup and generate only one missing sample poster plus the all-events summary. A weekly run is saved as `weekly-YYYY-MM-DD.json`, with prompts in the matching `.jsonl` file and generated posters in the same output directory. Use cron, launchd, or GitHub Actions to run it weekly.
+Image generation requires `OPENAI_API_KEY`. The command uses the bundled GPT Image CLI; set `IMAGE_GEN=/path/to/image_gen.py` if the default Codex skill path is different. Existing `{city}-{date}.png` files in the output directory are skipped, so rerunning the agent only generates missing posters. Normal weekend runs create one `weekly-YYYY-MM-DD-all-events.png` summary image, and recommendation-URL runs create `recommendations-YYYY-MM-DD-all-events.png`; both list every matched event with its date and venue. Use `--reject-event "City|YYYY-MM-DD|Event name|Reason for rejection"` to persistently exclude an unsuitable event from future picks for that city/day and save the reason; the registry is stored in `event-feedback.json`. The weekly roundup contains only the up-to-eight events represented by the poster set, lists each event’s city, name, venue, and detailed address without exact event times, uses one sentence of highlights per event, includes a Mandarin invitation to create a family card and discover nearby playdates, playgrounds, storytimes, and family events, and is capped at 670 words. If a poster is not good enough, pass `--regenerate City,YYYY-MM-DD` to search that same city/day again, select a different eligible event, and replace that poster; the weekly roundup and all-events poster are regenerated as well when an alternate event is found. Repeat the flag for multiple posters. Add `--feedback "..."` to include the critique in the replacement prompt. Use `--sample` to write one weekly roundup and generate only one missing sample poster plus the all-events summary. A weekly run is saved as `weekly-YYYY-MM-DD.json`, with prompts in the matching `.jsonl` file and generated posters in the same output directory. Use cron, launchd, or GitHub Actions to run it weekly.
 
 The event recommender boosts geographically relevant state fairs and seasonal fall festival, pumpkin, harvest, and Mid-Autumn/Moon Festival events; matching keywords and recommendation reasons are included in the manifest and roundup. Official partnership events can be force-injected for an exact city/date from `lib/social-partnership-events.js` and take priority over ordinary search results. To generate posters from an existing roundup without searching for events again, use `--from-roundup path/to/weekly-YYYY-MM-DD-roundup.md`; the agent loads the companion JSON manifest for the full event facts.
 
@@ -36,7 +36,7 @@ See [docs/weekly-social-agent.md](docs/weekly-social-agent.md) for environment a
 - Parent profile login backed by Supabase Auth when configured, with a local JSON fallback for development
 - Multi-child onboarding for nickname, age or birthday, home city, favorite activities, caption preferences, and caption privacy
 - Playground discovery with saved location, Open-Meteo weather, weekend family events, public/private play dates, and public play-date joining
-- Attend buttons for weekend events; attended events persist as Home family objects and link back to the Play weekend-events section
+- Attend buttons for family events; attended events persist as Home family objects and link back to the Discover family-events section
 - Social tab with private playdate chat, media sharing, and age-matched parenting resources cached for one day
 - Home background picker with local-session uploads and family event objects positioned over the hero background
 - Social post helper that drafts captions locally from the parent’s selected preferences
@@ -101,7 +101,7 @@ When Supabase is configured, the backend stores signed-in user data in:
 - `public.family_event_cache`
 - `public.playground_cache`
 - `public.parenting_resource_cache`
-- `public.family_events` stores saved external weekend-event decisions only
+- `public.family_events` stores saved external family-event decisions only
 
 Apply all migrations in `supabase/migrations/` in filename order. The current sequence includes:
 
@@ -120,7 +120,7 @@ supabase/migrations/202608050003_parenting_resource_cache.sql
 supabase/migrations/202608190001_deprecate_legacy_family_planning.sql
 ```
 
-When Supabase is not configured, the backend writes profile data, generated post history, saved weekend-event decisions, play dates, and local cache entries to:
+When Supabase is not configured, the backend writes profile data, generated post history, saved family-event decisions, play dates, and local cache entries to:
 
 ```text
 data/app-state.json
@@ -150,7 +150,7 @@ The app stores a few browser-local values such as the login email and selected H
 - `PUT /api/location` updates the saved location.
 - `GET /api/family-events` returns all matched cached weekend family events for the profile city and current weekend; `refresh=1` forces a refresh. Provider rows last 12 hours. The weekly social agent also writes city/region rows to the shared cache, which remain fresh through the event weekend and are reused before another provider fetch.
 - `GET /api/story-times` merges all Seattle Public Library and King County Library System story times with physical ParentMap search results, without a saved-location or radius restriction; `refresh=1` forces a refresh. ParentMap results include event-page addresses and card thumbnails, and the server cache lasts 24 hours.
-- Saved weekend-event decisions persist through `/api/family-plans`.
+- Saved family-event decisions persist through `/api/family-plans`.
 - `GET /api/playdates?playgroundKey=...` returns upcoming visible play dates for a selected playground.
 - `POST /api/playdates` creates a public or private play date at the selected playground.
 - `PUT /api/playdates` joins an existing public play date using `playDateId` from `public.play_dates`.
@@ -224,5 +224,5 @@ data/
 - Weather uses Open-Meteo from the browser after a profile has saved latitude and longitude.
 - Weekend family events are fetched server-side only. The API uses the saved profile city or location city, queries ParentMap and Seattle's Child (using a saved ZIP when available), caches merged results for 12 hours, and falls back to clearly labeled search links when no parsed event cards are available.
 - Parenting resources are fetched and parsed server-side by child age group, then cached in `parenting_resource_cache` for 24 hours. Social’s Refresh button bypasses that cache.
-- Meal planning, grocery shopping events, and recurring family-logistics events were retired in the 202608190001 cutoff migration. The migration removes their stored profile/table data and narrows saved family events to external weekend events.
+- Meal planning, grocery shopping events, and recurring family-logistics events were retired in the 202608190001 cutoff migration. The migration removes their stored profile/table data and narrows saved family events to external family events.
 - Photos and videos selected for local caption drafting are previewed locally in the browser. Media is uploaded only when the parent explicitly shares it in parent-to-parent chat.

@@ -901,15 +901,15 @@ time { color: #e26f39; font-weight: 900; }
 .home-participant-stack span:nth-child(2) { background: #4a8fa8; }
 .home-participant-stack span:nth-child(3) { background: rgba(255,255,255,.24); }
 .home-invites-heading { margin-top: 10px; }
-.home-weekend-list { display: grid; gap: 8px; }
-.home-weekend-card { align-items: center; background: #fff; border: 1px solid #e7e0d2; border-radius: 15px; color: #263229; display: grid; gap: 11px; grid-template-columns: auto minmax(0, 1fr) auto; margin: 0; padding: 12px 14px; text-align: left; }
-.home-weekend-card:hover { border-color: #2f6b4e; transform: translateY(-1px); }
-.home-weekend-card > span:nth-child(2) { display: grid; gap: 2px; min-width: 0; }
-.home-weekend-card small { color: #2f6b4e; font-size: .68rem; font-weight: 800; }
-.home-weekend-card strong, .home-weekend-card > span:nth-child(2) > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.home-weekend-card > span:nth-child(2) > span { color: #6d7b80; font-size: .75rem; }
-.home-weekend-icon { align-items: center; background: #e4efe6; border-radius: 11px; display: flex; font-size: 1.2rem; height: 38px; justify-content: center; width: 38px; }
-.home-weekend-card > b { color: #2f6b4e; font-size: 1.1rem; }
+.home-family-list { display: grid; gap: 8px; }
+.home-family-card { align-items: center; background: #fff; border: 1px solid #e7e0d2; border-radius: 15px; color: #263229; display: grid; gap: 11px; grid-template-columns: auto minmax(0, 1fr) auto; margin: 0; padding: 12px 14px; text-align: left; }
+.home-family-card:hover { border-color: #2f6b4e; transform: translateY(-1px); }
+.home-family-card > span:nth-child(2) { display: grid; gap: 2px; min-width: 0; }
+.home-family-card small { color: #2f6b4e; font-size: .68rem; font-weight: 800; }
+.home-family-card strong, .home-family-card > span:nth-child(2) > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-family-card > span:nth-child(2) > span { color: #6d7b80; font-size: .75rem; }
+.home-family-icon { align-items: center; background: #e4efe6; border-radius: 11px; display: flex; font-size: 1.2rem; height: 38px; justify-content: center; width: 38px; }
+.home-family-card > b { color: #2f6b4e; font-size: 1.1rem; }
 .home-utility-card { background: #fffdf8; border: 1px solid #e7e0d2; border-radius: 18px; display: grid; gap: 6px; padding: 18px; }
 .home-utility-card strong { color: #1f4a36; font-size: 1.25rem; }
 .home-utility-card > span { color: #6d7b80; font-size: .82rem; line-height: 1.45; }
@@ -1759,12 +1759,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .rail-account-avatar { background: var(--color-brand); }
 .app-status.ready { color: var(--color-success); }
 
-.panel, .hero-card, .mini-card, .event-card, .home-weekend-card, .home-utility-card,
+.panel, .hero-card, .mini-card, .event-card, .home-family-card, .home-utility-card,
 .profile-playdate, .family-member, .chat-contact, .home-empty-card {
   border-color: var(--color-line);
 }
 .panel, .hero-card { background: rgba(255, 255, 255, .9); border-radius: var(--radius-card); box-shadow: var(--shadow-card); }
-.mini-card, .event-card, .home-weekend-card, .home-utility-card, .profile-playdate, .family-member {
+.mini-card, .event-card, .home-family-card, .home-utility-card, .profile-playdate, .family-member {
   background: var(--color-surface);
 }
 .eyebrow, time { color: var(--color-brand-strong); }
@@ -1776,9 +1776,9 @@ input, select, textarea { border-color: #e8c9b4; border-radius: var(--radius-con
 .home-today-badge { background: rgba(255, 255, 255, .2); }
 .home-next-footer button { background: #fff4dc; color: #8a4d13; }
 .home-participant-stack span { border-color: #df6839; }
-.home-weekend-icon, .story-time-icon { background: var(--color-brand-soft); }
-.home-weekend-card small, .home-weekend-card > b { color: var(--color-brand-strong); }
-.home-weekend-card:hover { border-color: var(--color-brand); }
+.home-family-icon, .story-time-icon { background: var(--color-brand-soft); }
+.home-family-card small, .home-family-card > b { color: var(--color-brand-strong); }
+.home-family-card:hover { border-color: var(--color-brand); }
 .home-utility-soft { background: #fff3df; border-color: #edd2a2; }
 .result-count, .privacy-pill, .story-time-card .eyebrow { background: var(--color-brand-soft); color: var(--color-brand-strong); }
 .play-map-chips span.active, .play-map-chips button.active { background: var(--color-brand); }
@@ -1874,7 +1874,7 @@ input, select, textarea { border-color: #e8c9b4; border-radius: var(--radius-con
   .home-primary-column { order: 1; }
   .home-secondary-column { order: 2; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .home-next-playdate { border-radius: 22px; padding: 20px; }
-  .home-weekend-card { min-height: 72px; padding: 13px; }
+  .home-family-card { min-height: 72px; padding: 13px; }
   .home-utility-card { min-height: 160px; padding: 17px; }
 
   .app-content > .playdates-workspace { display: flex; flex-direction: column; min-height: 0; }
@@ -2656,7 +2656,7 @@ input, select, textarea { border-color: #e8c9b4; border-radius: var(--radius-con
   width: 38px;
 }
 .google-map-discover-pin.kind-playdate { background: #fff1dd; }
-.google-map-discover-pin.kind-weekend-event { background: #fff0ea; }
+.google-map-discover-pin.kind-family-event { background: #fff0ea; }
 .google-map-discover-pin.kind-story-time { background: #f1e9fb; }
 .google-map-discover-pin.selected { background: var(--color-brand); box-shadow: 0 0 0 5px rgba(232, 111, 61, .24), 0 8px 20px rgba(72, 49, 31, .3); color: #fff; transform: scale(1.15); }
 .discover-map .map-grid, .discover-map .map-water, .discover-map .map-road { position: absolute; }
@@ -2688,7 +2688,7 @@ input, select, textarea { border-color: #e8c9b4; border-radius: var(--radius-con
 .discover-map-pin span { font-size: .95rem; }
 .discover-map-pin small { font-size: .62rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .discover-map-pin.kind-playdate { background: #fff1dd; }
-.discover-map-pin.kind-weekend_event { background: #fff0ea; }
+.discover-map-pin.kind-family_event { background: #fff0ea; }
 .discover-map-pin.kind-story_time { background: #f1e9fb; }
 .discover-map-pin.selected { background: var(--color-brand); box-shadow: 0 0 0 4px rgba(232, 111, 61, .2), 0 10px 22px rgba(72, 49, 31, .22); color: #fff; z-index: 5; }
 .discover-you-marker { align-items: center; bottom: 18px; color: var(--color-brand-strong); display: grid; justify-items: center; position: absolute; right: 18px; }
