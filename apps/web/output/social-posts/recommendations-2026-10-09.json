@@ -1,0 +1,888 @@
+{
+  "id": "recommendations-2026-10-09",
+  "weekKey": "2026-10-09",
+  "startDate": "2026-10-09",
+  "endDate": "2026-10-11",
+  "regions": [
+    "Seattle",
+    "Tacoma",
+    "Lake Stevens",
+    "Renton",
+    "Puyallup",
+    "Washington",
+    "Maple Valley"
+  ],
+  "posts": [
+    {
+      "id": "social-seattle-2026-10-09-sct-presents-leonardo-a-wonderful-show-about-a-terrible-monster",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "SCT Presents ‘Leonardo! A Wonderful Show About a Terrible Monster’",
+      "theme": "Family event recommendation",
+      "headline": "Seattle · 周末亲子精选",
+      "bannerText": "把周末过成美好回忆！",
+      "highlights": [
+        "莫·威廉斯绘本由演员和木偶搬上舞台，演前还能体验影子木偶和怪兽绘画。💛 适合安排周末亲子时光。"
+      ],
+      "description": "I took my daughter to see this production last weekend, and she’s already asking when we can go back. This is such a unique and joyful show based on two of our favorite books by Mo Willems. The pages truly come to life with talented actors and puppeteers. My tip: Come early for activities in the lobby, including shadow puppets and monster drawing, and plan for extra time to browse the adorable gift shop.",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：SCT Presents ‘Leonardo! A Wonderful Show About a Terrible Monster’\nFriday–Sunday, Oct. 9–11 · 5–5:45 p.m. · Seattle Children’s Theatre\n\nI took my daughter to see this production last weekend, and she’s already asking when we can go back. This is such a unique and joyful show based on two of our favorite books by Mo Willems. The pages truly come to life with talented actors and puppeteers. My tip: Come early for activities in the lobby, including shadow puppets and monster drawing, and plan for extra time to browse the adorable gift shop.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-09",
+      "dateLabel": "Friday–Sunday, Oct. 9–11",
+      "timeLabel": "5–5:45 p.m.",
+      "cost": "Starting at $20",
+      "free": null,
+      "venue": "Seattle Children’s Theatre",
+      "venueAddress": "201 Thomas St., Seattle",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/08/Screenshot-2026-08-17-170059.png",
+      "eventUrl": "https://www.parentmap.com/calendar/sct-presents-leonardo-a-wonderful-show-about-a-terrible-monster/2026-10-09/",
+      "sourceUrl": "https://www.parentmap.com/calendar/sct-presents-leonardo-a-wonderful-show-about-a-terrible-monster/2026-10-09/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-tacoma-2026-10-09-tacoma-greek-festival",
+      "region": "Tacoma",
+      "city": "Tacoma",
+      "title": "Tacoma Greek Festival",
+      "theme": "Family event recommendation",
+      "headline": "Tacoma · 周末亲子精选",
+      "bannerText": "把周末过成美好回忆！",
+      "highlights": [
+        "品尝希腊美食、参观教堂，并欣赏充满活力的传统舞蹈表演。🎟️ 活动免费参加。"
+      ],
+      "description": "My usual takeout order lately has been gyros and Greek fries. You can try both (along with calamari, spanakopita and more!) at this lively festival. While you’re there, tour the beautiful church and enjoy folkloric dance performances.",
+      "caption": "这个周末去Tacoma玩什么？🌿\n\n推荐：Tacoma Greek Festival\n免费入场，Friday–Sunday, Oct. 9–11 · 11 a.m.–9 p.m. · St. Nicholas Greek Orthodox Church\n\nMy usual takeout order lately has been gyros and Greek fries. You can try both (along with calamari, spanakopita and more!) at this lively festival. While you’re there, tour the beautiful church and enjoy folkloric dance performances.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-09",
+      "dateLabel": "Friday–Sunday, Oct. 9–11",
+      "timeLabel": "11 a.m.–9 p.m.",
+      "cost": "Free entry; items for purchase",
+      "free": true,
+      "venue": "St. Nicholas Greek Orthodox Church",
+      "venueAddress": "1523 Yakima Ave., Tacoma",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775192274506-baklava-55cf0e499e41.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/tacoma-greek-festival-5/2026-10-09/",
+      "sourceUrl": "https://www.parentmap.com/calendar/tacoma-greek-festival-5/2026-10-09/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-lake-stevens-2026-10-09-a-very-farmy-halloween-edition",
+      "region": "Lake Stevens",
+      "city": "Lake Stevens",
+      "title": "A Very Farmy Halloween Edition",
+      "theme": "Family event recommendation",
+      "headline": "Lake Stevens · 周末亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "近距离喂食高地牛、驯鹿、牦牛、羊驼、马和迷你驴，还能穿万圣节装扮拍照。💛 适合安排周末亲子时光。"
+      ],
+      "description": "I cannot imagine a more perfect fall day than one spent cuddling Scottish Highland cows. This sweet farm invites guests to pet and feed the cows, reindeer, yaks, alpacas, horses and mini donkeys. (Swoon!) Tour the farm, take selfies with the animals and enjoy the slower pace. Halloween costumes are encouraged — bonus points if they’re farm-themed!",
+      "caption": "这个周末去Lake Stevens玩什么？🌿\n\n推荐：A Very Farmy Halloween Edition\nFriday–Sunday, Oct. 9–11 · 10 a.m.–6 p.m. · Luckie Farms\n\nI cannot imagine a more perfect fall day than one spent cuddling Scottish Highland cows. This sweet farm invites guests to pet and feed the cows, reindeer, yaks, alpacas, horses and mini donkeys. (Swoon!) Tour the farm, take selfies with the animals and enjoy the slower pace. Halloween costumes are encouraged — bonus points if they’re farm-themed!\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-09",
+      "dateLabel": "Friday–Sunday, Oct. 9–11",
+      "timeLabel": "10 a.m.–6 p.m.",
+      "cost": "$35 per person; children 2 and younger free",
+      "free": null,
+      "venue": "Luckie Farms",
+      "venueAddress": "930 Sunnyside Blvd., Lake Stevens",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/10/e5510e7c-1331-4d23-9c89-9b585d13af06.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/a-very-farmy-halloween-edition/2026-10-09/",
+      "sourceUrl": "https://www.parentmap.com/calendar/a-very-farmy-halloween-edition/2026-10-09/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-renton-2026-10-10-cedar-river-salmon-festival",
+      "region": "Renton",
+      "city": "Renton",
+      "title": "Cedar River Salmon Festival",
+      "theme": "Family event recommendation",
+      "headline": "Renton · 星期六亲子精选",
+      "bannerText": "一起发现身边的小惊喜！",
+      "highlights": [
+        "为洄游 Cedar River 的鲑鱼加油，在互动活动中认识鲑鱼生态与科学。🎟️ 活动免费参加。"
+      ],
+      "description": "Ready to spot some salmon ? They’re migrating up the Cedar River, and this festival invites you to cheer them on and learn more about them. The kids might just be inspired to become salmon scientists!",
+      "caption": "这个周末去Renton玩什么？🌿\n\n推荐：Cedar River Salmon Festival\n免费入场，Saturday, Oct. 10 · 10 a.m.–12 p.m. · Renton Community Center\n\nReady to spot some salmon ? They’re migrating up the Cedar River, and this festival invites you to cheer them on and learn more about them. The kids might just be inspired to become salmon scientists!\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-10",
+      "dateLabel": "Saturday, Oct. 10",
+      "timeLabel": "10 a.m.–12 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Renton Community Center",
+      "venueAddress": "1715 Maple Valley Hwy., Renton",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775079530562-screenshot-2025-08-26-083749-2967f0f8e8d8.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/cedar-river-salmon-festival/",
+      "sourceUrl": "https://www.parentmap.com/calendar/cedar-river-salmon-festival/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-puyallup-2026-10-10-outdoor-movie-night-trunk-or-treat-at-mcmillin-farm",
+      "region": "Puyallup",
+      "city": "Puyallup",
+      "title": "Outdoor Movie Night & Trunk-or-Treat at McMillin Farm",
+      "theme": "Family event recommendation",
+      "headline": "Puyallup · 星期六亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "先参加后备箱讨糖和节庆餐饮，再带上毯子观看户外电影《女巫也疯狂》。🎟️ 活动免费参加。"
+      ],
+      "description": "It’s safe to say my daughter is ready for Halloween. She is counting down with her Halloween advent calendar and has already worn her costume not once, but twice this month. So it’s hard to resist this fun Halloween trunk-or-treat event! There will be festive food and beverages, plus an outdoor showing of the iconic movie “Hocus Pocus.” (Bring blankets and chairs for the movie!)",
+      "caption": "这个周末去Puyallup玩什么？🌿\n\n推荐：Outdoor Movie Night & Trunk-or-Treat at McMillin Farm\n免费入场，Saturday, Oct. 10 · 5:30–10 p.m. · McMillin Farm\n\nIt’s safe to say my daughter is ready for Halloween. She is counting down with her Halloween advent calendar and has already worn her costume not once, but twice this month. So it’s hard to resist this fun Halloween trunk-or-treat event! There will be festive food and beverages, plus an outdoor showing of the iconic movie “Hocus Pocus.” (Bring blankets and chairs for the movie!)\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-10",
+      "dateLabel": "Saturday, Oct. 10",
+      "timeLabel": "5:30–10 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "McMillin Farm",
+      "venueAddress": "12517 State Route 162 E., Puyallup",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/09/Screenshot-2026-09-10-090017.png",
+      "eventUrl": "https://www.parentmap.com/calendar/outdoor-movie-night-trunk-or-treat-at-mcmillin-farm/",
+      "sourceUrl": "https://www.parentmap.com/calendar/outdoor-movie-night-trunk-or-treat-at-mcmillin-farm/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-washington-2026-10-10-washington-state-parks-free-day",
+      "region": "Washington",
+      "city": "Washington",
+      "title": "Washington State Parks Free Day",
+      "theme": "Family event recommendation",
+      "headline": "Washington · 星期六亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "世界心理健康日免 Discover Pass，可免费探索全州 140 多座公园、步道和历史遗址。🎟️ 活动免费参加。"
+      ],
+      "description": "Saturday is World Mental Health Day, and Washington state parks are honoring the occasion with free entrance. There are more than 140 state parks, trails and historic sites to explore, no Discover Pass required. Spend the whole day outside!",
+      "caption": "这个周末去Washington玩什么？🌿\n\n推荐：Washington State Parks Free Day\n免费入场，Saturday, Oct. 10 · 7 a.m.–9 p.m. · Washington state parks\n\nSaturday is World Mental Health Day, and Washington state parks are honoring the occasion with free entrance. There are more than 140 state parks, trails and historic sites to explore, no Discover Pass required. Spend the whole day outside!\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-10",
+      "dateLabel": "Saturday, Oct. 10",
+      "timeLabel": "7 a.m.–9 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Washington state parks",
+      "venueAddress": "",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/sites/default/files/eventImages/37691.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/37691/2026-10-10/",
+      "sourceUrl": "https://www.parentmap.com/calendar/37691/2026-10-10/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-seattle-2026-10-10-turkfest",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "TurkFest",
+      "theme": "Family event recommendation",
+      "headline": "Seattle · 星期六亲子精选",
+      "bannerText": "带上家人，一起去玩！",
+      "highlights": [
+        "用土耳其美食、咖啡、音乐和舞蹈感受文化，儿童角还有彩绘、游戏和故事。🎟️ 活动免费参加。"
+      ],
+      "description": "What better way to experience another culture than through its food? I can never resist a piece of baklava and a Turkish coffee, and both will be on offer at this celebration of Turkish culture. There will also be live music and dance performances. And head to the kids corner on the Armory balcony for face painting, games and storytelling.",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：TurkFest\n免费入场，Saturday–Sunday, Oct. 10–11 · 11 a.m.–6 p.m. · Seattle Center Armory\n\nWhat better way to experience another culture than through its food? I can never resist a piece of baklava and a Turkish coffee, and both will be on offer at this celebration of Turkish culture. There will also be live music and dance performances. And head to the kids corner on the Armory balcony for face painting, games and storytelling.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-10",
+      "dateLabel": "Saturday–Sunday, Oct. 10–11",
+      "timeLabel": "11 a.m.–6 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Seattle Center Armory",
+      "venueAddress": "305 Harrison St., Seattle",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775186173512-turkfest-seattle-center-festal-89ea9f13560b.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/40729/2026-10-10/",
+      "sourceUrl": "https://www.parentmap.com/calendar/40729/2026-10-10/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-maple-valley-2026-10-11-haunted-forest-of-maple-valley-family-walk",
+      "region": "Maple Valley",
+      "city": "Maple Valley",
+      "title": "Haunted Forest of Maple Valley Family Walk",
+      "theme": "Family event recommendation",
+      "headline": "Maple Valley · 星期日亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "穿上万圣节装扮，沿白天版闹鬼步道轻松讨糖，惊吓程度更适合家庭。💛 适合安排周末亲子时光。"
+      ],
+      "description": "Here’s another opportunity to bring out those Halloween costumes early. Go trick-or-treating along the haunted trails (during the daytime when they are admittedly less scary). You might even get some inspiration for decorating your own yard before trick-or-treaters come.",
+      "caption": "这个周末去Maple Valley玩什么？🌿\n\n推荐：Haunted Forest of Maple Valley Family Walk\nSunday, Oct. 11 · 12–3 p.m. · Royal Arch Park\n\nHere’s another opportunity to bring out those Halloween costumes early. Go trick-or-treating along the haunted trails (during the daytime when they are admittedly less scary). You might even get some inspiration for decorating your own yard before trick-or-treaters come.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-11",
+      "dateLabel": "Sunday, Oct. 11",
+      "timeLabel": "12–3 p.m.",
+      "cost": "$7; ages 3 and younger are free",
+      "free": null,
+      "venue": "Royal Arch Park",
+      "venueAddress": "20821 Renton-Maple Valley Rd. Maple Valley",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/03/1773114783208-screenshot-2022-10-13-144053-259c564ce7b5.png",
+      "eventUrl": "https://www.parentmap.com/calendar/haunted-forest-maple-valley-family-walk/2026-10-11/",
+      "sourceUrl": "https://www.parentmap.com/calendar/haunted-forest-maple-valley-family-walk/2026-10-11/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    }
+  ],
+  "roundup": {
+    "title": "本周末亲子活动精选｜7城8场",
+    "caption": "这个周末，7 个城市都有适合家庭的活动！🌿\n\n本周亮点包括「SCT Presents ‘Leonardo! A Wonderful Show About a Terrible Monster’」和「Tacoma Greek Festival」，适合安排轻松又充实的亲子时光。从户外探索到社区活动，各个城市都有值得带孩子一起体验的选择。\n\n我们整理了 8 场地区亮点：\n\n- Seattle：SCT Presents ‘Leonardo! A Wonderful Show About a Terrible Monster’\n  地点：Seattle Children’s Theatre · 201 Thomas St., Seattle\n  亮点：莫·威廉斯绘本由演员和木偶搬上舞台，演前还能体验影子木偶和怪兽绘画。\n\n- Tacoma：Tacoma Greek Festival\n  地点：St. Nicholas Greek Orthodox Church · 1523 Yakima Ave., Tacoma\n  亮点：品尝希腊美食、参观教堂，并欣赏充满活力的传统舞蹈表演。\n\n- Lake Stevens：A Very Farmy Halloween Edition\n  地点：Luckie Farms · 930 Sunnyside Blvd., Lake Stevens\n  亮点：近距离喂食高地牛、驯鹿、牦牛、羊驼、马和迷你驴，还能穿万圣节装扮拍照。\n\n- Renton：Cedar River Salmon Festival\n  地点：Renton Community Center · 1715 Maple Valley Hwy., Renton\n  亮点：为洄游 Cedar River 的鲑鱼加油，在互动活动中认识鲑鱼生态与科学。\n\n- Puyallup：Outdoor Movie Night & Trunk-or-Treat at McMillin Farm\n  地点：McMillin Farm · 12517 State Route 162 E., Puyallup\n  亮点：先参加后备箱讨糖和节庆餐饮，再带上毯子观看户外电影《女巫也疯狂》。\n\n- Washington：Washington State Parks Free Day\n  地点：Washington state parks\n  亮点：世界心理健康日免 Discover Pass，可免费探索全州 140 多座公园、步道和历史遗址。\n\n- Seattle：TurkFest\n  地点：Seattle Center Armory · 305 Harrison St., Seattle\n  亮点：用土耳其美食、咖啡、音乐和舞蹈感受文化，儿童角还有彩绘、游戏和故事。\n\n- Maple Valley：Haunted Forest of Maple Valley Family Walk\n  地点：Royal Arch Park · 20821 Renton-Maple Valley Rd. Maple Valley\n  亮点：穿上万圣节装扮，沿白天版闹鬼步道轻松讨糖，惊吓程度更适合家庭。\n\n收藏这份周末清单，带上家人一起出门玩吧！\n\n想让周末更轻松？来 SproutCue 找附近的 playdate、游乐场、故事时间和周末活动吧！🛝📚 创建你的家庭卡片，认识附近愿意一起玩的家庭，一起发现更多亲子时光！💛\n\n资料整理：SproutCue\n活动日期：2026-10-09–2026-10-11",
+    "posts": [
+      {
+        "city": "Seattle",
+        "title": "SCT Presents ‘Leonardo! A Wonderful Show About a Terrible Monster’",
+        "date": "2026-10-09",
+        "dateLabel": "Friday–Sunday, Oct. 9–11",
+        "timeLabel": "5–5:45 p.m.",
+        "venue": "Seattle Children’s Theatre",
+        "venueAddress": "201 Thomas St., Seattle",
+        "highlights": [
+          "莫·威廉斯绘本由演员和木偶搬上舞台，演前还能体验影子木偶和怪兽绘画。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/sct-presents-leonardo-a-wonderful-show-about-a-terrible-monster/2026-10-09/"
+      },
+      {
+        "city": "Tacoma",
+        "title": "Tacoma Greek Festival",
+        "date": "2026-10-09",
+        "dateLabel": "Friday–Sunday, Oct. 9–11",
+        "timeLabel": "11 a.m.–9 p.m.",
+        "venue": "St. Nicholas Greek Orthodox Church",
+        "venueAddress": "1523 Yakima Ave., Tacoma",
+        "highlights": [
+          "品尝希腊美食、参观教堂，并欣赏充满活力的传统舞蹈表演。🎟️ 活动免费参加。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/tacoma-greek-festival-5/2026-10-09/"
+      },
+      {
+        "city": "Lake Stevens",
+        "title": "A Very Farmy Halloween Edition",
+        "date": "2026-10-09",
+        "dateLabel": "Friday–Sunday, Oct. 9–11",
+        "timeLabel": "10 a.m.–6 p.m.",
+        "venue": "Luckie Farms",
+        "venueAddress": "930 Sunnyside Blvd., Lake Stevens",
+        "highlights": [
+          "近距离喂食高地牛、驯鹿、牦牛、羊驼、马和迷你驴，还能穿万圣节装扮拍照。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/a-very-farmy-halloween-edition/2026-10-09/"
+      },
+      {
+        "city": "Renton",
+        "title": "Cedar River Salmon Festival",
+        "date": "2026-10-10",
+        "dateLabel": "Saturday, Oct. 10",
+        "timeLabel": "10 a.m.–12 p.m.",
+        "venue": "Renton Community Center",
+        "venueAddress": "1715 Maple Valley Hwy., Renton",
+        "highlights": [
+          "为洄游 Cedar River 的鲑鱼加油，在互动活动中认识鲑鱼生态与科学。🎟️ 活动免费参加。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/cedar-river-salmon-festival/"
+      },
+      {
+        "city": "Puyallup",
+        "title": "Outdoor Movie Night & Trunk-or-Treat at McMillin Farm",
+        "date": "2026-10-10",
+        "dateLabel": "Saturday, Oct. 10",
+        "timeLabel": "5:30–10 p.m.",
+        "venue": "McMillin Farm",
+        "venueAddress": "12517 State Route 162 E., Puyallup",
+        "highlights": [
+          "先参加后备箱讨糖和节庆餐饮，再带上毯子观看户外电影《女巫也疯狂》。🎟️ 活动免费参加。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/outdoor-movie-night-trunk-or-treat-at-mcmillin-farm/"
+      },
+      {
+        "city": "Washington",
+        "title": "Washington State Parks Free Day",
+        "date": "2026-10-10",
+        "dateLabel": "Saturday, Oct. 10",
+        "timeLabel": "7 a.m.–9 p.m.",
+        "venue": "Washington state parks",
+        "venueAddress": "",
+        "highlights": [
+          "世界心理健康日免 Discover Pass，可免费探索全州 140 多座公园、步道和历史遗址。🎟️ 活动免费参加。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/37691/2026-10-10/"
+      },
+      {
+        "city": "Seattle",
+        "title": "TurkFest",
+        "date": "2026-10-10",
+        "dateLabel": "Saturday–Sunday, Oct. 10–11",
+        "timeLabel": "11 a.m.–6 p.m.",
+        "venue": "Seattle Center Armory",
+        "venueAddress": "305 Harrison St., Seattle",
+        "highlights": [
+          "用土耳其美食、咖啡、音乐和舞蹈感受文化，儿童角还有彩绘、游戏和故事。🎟️ 活动免费参加。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/40729/2026-10-10/"
+      },
+      {
+        "city": "Maple Valley",
+        "title": "Haunted Forest of Maple Valley Family Walk",
+        "date": "2026-10-11",
+        "dateLabel": "Sunday, Oct. 11",
+        "timeLabel": "12–3 p.m.",
+        "venue": "Royal Arch Park",
+        "venueAddress": "20821 Renton-Maple Valley Rd. Maple Valley",
+        "highlights": [
+          "穿上万圣节装扮，沿白天版闹鬼步道轻松讨糖，惊吓程度更适合家庭。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/haunted-forest-maple-valley-family-walk/2026-10-11/"
+      }
+    ],
+    "startDate": "2026-10-09",
+    "endDate": "2026-10-11",
+    "author": "SproutCue"
+  },
+  "source": "parentmap",
+  "sourceUrl": "https://www.parentmap.com/things-to-do/the-weekender/",
+  "excludedEventUrls": [
+    "https://www.parentmap.com/calendar/japan-week-bellevue-college-2025/",
+    "https://www.parentmap.com/calendar/bigfoot-kids-book-festival/"
+  ],
+  "searchMode": "recommendations-url",
+  "maxDistanceMiles": null,
+  "slotCount": 8,
+  "generatedAt": "2026-10-08T16:49:17.487Z",
+  "statuses": [
+    {
+      "city": "Seattle",
+      "day": "2026-10-09",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/sct-presents-leonardo-a-wonderful-show-about-a-terrible-monster/2026-10-09/"
+    },
+    {
+      "city": "Tacoma",
+      "day": "2026-10-09",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/tacoma-greek-festival-5/2026-10-09/"
+    },
+    {
+      "city": "Lake Stevens",
+      "day": "2026-10-09",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/a-very-farmy-halloween-edition/2026-10-09/"
+    },
+    {
+      "city": "Renton",
+      "day": "2026-10-10",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/cedar-river-salmon-festival/"
+    },
+    {
+      "city": "Puyallup",
+      "day": "2026-10-10",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/outdoor-movie-night-trunk-or-treat-at-mcmillin-farm/"
+    },
+    {
+      "city": "Washington",
+      "day": "2026-10-10",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/37691/2026-10-10/"
+    },
+    {
+      "city": "Seattle",
+      "day": "2026-10-10",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/40729/2026-10-10/"
+    },
+    {
+      "city": "Maple Valley",
+      "day": "2026-10-11",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/haunted-forest-maple-valley-family-walk/2026-10-11/"
+    }
+  ],
+  "imageDirectory": "/Users/iriswei/Documents/AaronDaily/apps/web/output/social-posts",
+  "imageGenCommand": "/Users/iriswei/.codex/skills/.system/imagegen/scripts/image_gen.py",
+  "posterLimit": 8,
+  "existingPosterCount": 42,
+  "skippedExistingPosterCount": 0,
+  "regenerationRequests": [],
+  "feedback": "",
+  "rejectedEvents": [
+    {
+      "city": "seattle",
+      "date": "2026-09-20",
+      "title": "aiweiweicircleofanimalszodiacheads",
+      "normalizedTitle": "aiweiweicircleofanimalszodiacheads",
+      "family": "",
+      "reason": ""
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-09-19",
+      "title": "downtownissaquahstorystrollwatercress",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "family": "downtownissaquahstorystrollw",
+      "reason": "duplicated events in history"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-20",
+      "title": "salmonseeson",
+      "normalizedTitle": "salmonseeson",
+      "family": "",
+      "reason": "too many relevant events"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-20",
+      "title": "salmonseesonatnorthcreektrailpark",
+      "normalizedTitle": "salmonseesonatnorthcreektrailpark",
+      "family": "salmonseeson",
+      "reason": "too many relevant events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-09-26",
+      "title": "Salmon SEEson at Issaquah Creek",
+      "normalizedTitle": "salmonseesonatissaquahcreek",
+      "family": "salmonseeson",
+      "reason": ""
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-09-26",
+      "title": "Fall Festival at Bob’s Corn and Pumpkin Farm",
+      "normalizedTitle": "fallfestivalatbobscornandpumpkinfarm",
+      "family": "fallfestival",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-26",
+      "title": "Ai Weiwei: Circle of Animals/Zodiac Heads",
+      "normalizedTitle": "aiweiweicircleofanimalszodiacheads",
+      "family": "aiweiwei",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-26",
+      "title": "Renton parkrun",
+      "normalizedTitle": "rentonparkrun",
+      "family": "",
+      "reason": "not attractive"
+    },
+    {
+      "city": "tacoma",
+      "date": "2026-09-26",
+      "title": "Tumwater Falls Festival",
+      "normalizedTitle": "tumwaterfallsfestival",
+      "family": "",
+      "reason": "too far"
+    },
+    {
+      "city": "edmonds",
+      "date": "2026-09-27",
+      "title": "Sky Valley Heritage Hunt",
+      "normalizedTitle": "skyvalleyheritagehunt",
+      "family": "",
+      "reason": "not attractive"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-09-26",
+      "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "family": "downtownissaquahstorystroll",
+      "reason": "duplicated event"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-09-26",
+      "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "family": "downtownissaquahstorystroll",
+      "reason": "duplicated event"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-09-27",
+      "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "family": "downtownissaquahstorystroll",
+      "reason": "duplicated event"
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-10-03",
+      "title": "Craven Farm Fall Festival",
+      "normalizedTitle": "cravenfarmfallfestival",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-10-03",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-10-04",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-03",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-04",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-03",
+      "title": "Issaquah Salmon Days",
+      "normalizedTitle": "issaquahsalmondays",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-03",
+      "title": "Renton parkrun",
+      "normalizedTitle": "rentonparkrun",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-10-11",
+      "title": "Family Game Dayattractive",
+      "normalizedTitle": "familygamedayattractive",
+      "family": "familygameday",
+      "reason": ""
+    },
+    {
+      "city": "seattle",
+      "date": "2026-10-11",
+      "title": "Family Game Day",
+      "normalizedTitle": "familygameday",
+      "family": "",
+      "reason": "not attractive"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-10-11",
+      "title": "Spooky Science at the Burke Museum",
+      "normalizedTitle": "spookyscienceattheburkemuseum",
+      "family": "spookyscience",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-10-11",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "tacoma",
+      "date": "2026-10-10",
+      "title": "Storywalk at Alderwood Park: César’s Cerulean Surprise",
+      "normalizedTitle": "storywalkatalderwoodparkcsarsceruleansurprise",
+      "family": "storywalk",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "tacoma",
+      "date": "Picha Farms Fall Festival",
+      "title": "2026-10-10",
+      "normalizedTitle": "20261010",
+      "family": "",
+      "reason": "|duplicated events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-11",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-10-10",
+      "title": "October Weekends at Jubilee Harvest Festival",
+      "normalizedTitle": "octoberweekendsatjubileeharvestfestival",
+      "family": "octoberweekends",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "tacoma",
+      "date": "2026-10-11",
+      "title": "Picha Farms Fall Festival",
+      "normalizedTitle": "pichafarmsfallfestival",
+      "family": "",
+      "reason": "duplicated events--reject-event"
+    },
+    {
+      "city": "edmonds",
+      "date": "2026-10-11",
+      "title": "Stocker Farms Fall Festival",
+      "normalizedTitle": "stockerfarmsfallfestival",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-10-10",
+      "title": "Craven Farm Fall Festival",
+      "normalizedTitle": "cravenfarmfallfestival",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "edmonds",
+      "date": "2026-10-10",
+      "title": "Stocker Farms Fall Festival",
+      "normalizedTitle": "stockerfarmsfallfestival",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "edmonds",
+      "date": "2026-10-10",
+      "title": "Harvest Festival at Swans Trail Farms",
+      "normalizedTitle": "harvestfestivalatswanstrailfarms",
+      "family": "harvestfestival",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-10-10",
+      "title": "Thomas Family Farm",
+      "normalizedTitle": "thomasfamilyfarm",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-10-10",
+      "title": "Thomas Family Farm Fall Festival Fun Park",
+      "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "edmonds",
+      "date": "2026-10-10",
+      "title": "Thomas Family Farm Fall Festival Fun Park",
+      "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "edmonds",
+      "date": "2026-10-11",
+      "title": "Thomas Family Farm Fall Festival Fun Park",
+      "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-10-10",
+      "title": "Stocker Farms Fall Festival",
+      "normalizedTitle": "stockerfarmsfallfestival",
+      "family": "",
+      "reason": "duplicated events"
+    }
+  ],
+  "unmatchedRegenerationRequests": [],
+  "sampleRun": false,
+  "posterPostIds": [
+    "social-seattle-2026-10-09-sct-presents-leonardo-a-wonderful-show-about-a-terrible-monster",
+    "social-tacoma-2026-10-09-tacoma-greek-festival",
+    "social-lake-stevens-2026-10-09-a-very-farmy-halloween-edition",
+    "social-renton-2026-10-10-cedar-river-salmon-festival",
+    "social-puyallup-2026-10-10-outdoor-movie-night-trunk-or-treat-at-mcmillin-farm",
+    "social-washington-2026-10-10-washington-state-parks-free-day",
+    "social-seattle-2026-10-10-turkfest",
+    "social-maple-valley-2026-10-11-haunted-forest-of-maple-valley-family-walk"
+  ],
+  "posterSetPostIds": [
+    "social-seattle-2026-10-09-sct-presents-leonardo-a-wonderful-show-about-a-terrible-monster",
+    "social-tacoma-2026-10-09-tacoma-greek-festival",
+    "social-lake-stevens-2026-10-09-a-very-farmy-halloween-edition",
+    "social-renton-2026-10-10-cedar-river-salmon-festival",
+    "social-puyallup-2026-10-10-outdoor-movie-night-trunk-or-treat-at-mcmillin-farm",
+    "social-washington-2026-10-10-washington-state-parks-free-day",
+    "social-seattle-2026-10-10-turkfest",
+    "social-maple-valley-2026-10-11-haunted-forest-of-maple-valley-family-walk"
+  ],
+  "summaryPoster": {
+    "filename": "recommendations-2026-10-09-all-events.png",
+    "eventCount": 8,
+    "eventPostIds": [
+      "social-seattle-2026-10-09-sct-presents-leonardo-a-wonderful-show-about-a-terrible-monster",
+      "social-tacoma-2026-10-09-tacoma-greek-festival",
+      "social-lake-stevens-2026-10-09-a-very-farmy-halloween-edition",
+      "social-renton-2026-10-10-cedar-river-salmon-festival",
+      "social-puyallup-2026-10-10-outdoor-movie-night-trunk-or-treat-at-mcmillin-farm",
+      "social-washington-2026-10-10-washington-state-parks-free-day",
+      "social-seattle-2026-10-10-turkfest",
+      "social-maple-valley-2026-10-11-haunted-forest-of-maple-valley-family-walk"
+    ],
+    "generatedThisRun": true
+  },
+  "posterLimitByCity": {
+    "Seattle": 2,
+    "Tacoma": 1,
+    "Lake Stevens": 1,
+    "Renton": 1,
+    "Puyallup": 1,
+    "Washington": 1,
+    "Maple Valley": 1
+  },
+  "roundupPostIds": [
+    "social-seattle-2026-10-09-sct-presents-leonardo-a-wonderful-show-about-a-terrible-monster",
+    "social-tacoma-2026-10-09-tacoma-greek-festival",
+    "social-lake-stevens-2026-10-09-a-very-farmy-halloween-edition",
+    "social-renton-2026-10-10-cedar-river-salmon-festival",
+    "social-puyallup-2026-10-10-outdoor-movie-night-trunk-or-treat-at-mcmillin-farm",
+    "social-washington-2026-10-10-washington-state-parks-free-day",
+    "social-seattle-2026-10-10-turkfest",
+    "social-maple-valley-2026-10-11-haunted-forest-of-maple-valley-family-walk"
+  ],
+  "roundupWordLimit": 670
+}

@@ -1,0 +1,1436 @@
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import {
+  getChildProfile,
+  normalizePlayPreferences,
+  normalizeChildProfile,
+} from '@sproutcue/shared/profile-defaults';
+
+const DATA_DIR = resolve('data');
+const DATA_FILE = join(DATA_DIR, 'app-state.json');
+const PROFILE_COLUMNS = [
+  'id',
+  'email',
+  'display_name',
+  'child_profile',
+  'social_links',
+  'location',
+  'play_preferences',
+  'created_at',
+  'updated_at',
+].join(', ');
+const PLAY_DATE_COLUMNS = [
+  'id',
+  'host_user_id',
+  'playground_key',
+  'playground_name',
+  'playground_type',
+  'playground_address',
+  'playground_latitude',
+  'playground_longitude',
+  'starts_at',
+  'ends_at',
+  'visibility',
+  'notes',
+  'age_range',
+  'max_families',
+  'participant_count',
+  'status',
+  'last_change_summary',
+  'created_at',
+  'updated_at',
+].join(', ');
+const FAMILY_EVENT_CACHE_COLUMNS = [
+  'cache_key',
+  'location_city',
+  'location_region',
+  'start_date',
+  'end_date',
+  'source',
+  'source_label',
+  'source_urls',
+  'filters',
+  'events',
+  'fallback',
+  'provider_status',
+  'fetched_at',
+  'expires_at',
+].join(', ');
+const PLAYGROUND_CACHE_COLUMNS = [
+  'cache_key',
+  'latitude',
+  'longitude',
+  'playgrounds',
+  'source',
+  'fetched_at',
+  'expires_at',
+].join(', ');
+const PARENTING_RESOURCE_CACHE_COLUMNS = [
+  'age_filter',
+  'source_url',
+  'resources',
+  'fetched_at',
+  'expires_at',
+].join(', ');
+const STORY_TIME_CACHE_COLUMNS = [
+  'cache_key', 'location_city', 'start_date', 'end_date', 'source', 'source_label',
+  'source_urls', 'events', 'fallback', 'provider_status', 'fetched_at', 'expires_at',
+].join(', ');
+
+export const LOCAL_USER_COOKIE = 'sproutCueLocalUserId';
+export const LEGACY_LOCAL_USER_COOKIE = 'aaronLocalUserId';
+
+export function defaultStore() {
+  return { users: {}, posts: [], playDates: [], familyEventCache: {}, playgroundCache: {}, parentingResourceCache: {}, storyTimeCache: {}, familyEvents: [], chatMessages: [], chatReads: {} };
+}
+
+function normalizeStore(store) {
+  const storedUsers = store?.users && typeof store.users === 'object' ? store.users : {};
+  const users = Object.fromEntries(Object.entries(storedUsers).map(([id, user]) => {
+    const activeUser = { ...(user || {}) };
+    delete activeUser.foodPlan;
+    delete activeUser.amazonErrands;
+    return [id, activeUser];
+  }));
+  return {
+    users,
+    posts: Array.isArray(store?.posts) ? store.posts : [],
+    playDates: Array.isArray(store?.playDates) ? store.playDates : [],
+    familyEventCache: store?.familyEventCache && typeof store.familyEventCache === 'object'
+      ? store.familyEventCache
+      : {},
+    playgroundCache: store?.playgroundCache && typeof store.playgroundCache === 'object'
+      ? store.playgroundCache
+      : {},
+    parentingResourceCache: store?.parentingResourceCache && typeof store.parentingResourceCache === 'object'
+      ? store.parentingResourceCache
+      : {},
+    storyTimeCache: store?.storyTimeCache && typeof store.storyTimeCache === 'object'
+      ? store.storyTimeCache
+      : {},
+    familyEvents: Array.isArray(store?.familyEvents)
+      ? store.familyEvents.filter((item) => ['external_event', 'story_time'].includes(item.kind))
+      : [],
+    chatMessages: Array.isArray(store?.chatMessages) ? store.chatMessages : [],
+    chatReads: store?.chatReads && typeof store.chatReads === 'object' ? store.chatReads : {},
+  };
+}
+
+export function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+export async function readStore() {
+  try {
+    return normalizeStore(JSON.parse(await readFile(DATA_FILE, 'utf8')));
+  } catch (error) {
+    if (error.code === 'ENOENT') return defaultStore();
+    throw error;
+  }
+}
+
+export async function writeStore(store) {
+  await mkdir(DATA_DIR, { recursive: true });
+  await writeFile(DATA_FILE, `${JSON.stringify(store, null, 2)}\n`);
+}
+
+export async function mutateStore(mutator) {
+  const store = await readStore();
+  const result = await mutator(store);
+  await writeStore(store);
+  return result;
+}
+
+export async function deleteLocalUserData(userId) {
+  return mutateStore((store) => {
+    delete store.users[userId];
+    store.posts = store.posts.filter((post) => post.userId !== userId);
+    store.playDates = store.playDates
+      .filter((playDate) => playDate.hostUserId !== userId)
+      .map((playDate) => ({
+        ...playDate,
+        participants: (playDate.participants || []).filter((participant) => participant.userId !== userId),
+      }));
+    store.chatMessages = store.chatMessages.filter((message) => (
+      message.senderId !== userId && message.recipientId !== userId
+    ));
+    delete store.chatReads[userId];
+    store.familyEvents = store.familyEvents.filter((event) => event.profile_id !== userId);
+    return true;
+  });
+}
+
+export async function getLocalHomeBackground(store, userId) {
+  return store.posts
+    .filter((post) => post.userId === userId && post.purpose === 'home-background' && post.mediaUrl)
+    .sort((a, b) => String(b.updatedAt || b.createdAt || '').localeCompare(String(a.updatedAt || a.createdAt || '')))[0] || null;
+}
+
+export async function saveLocalHomeBackground(userId, background) {
+  return mutateStore((store) => {
+    store.posts = store.posts.filter((post) => !(post.userId === userId && post.purpose === 'home-background'));
+    const now = new Date().toISOString();
+    const saved = {
+      id: randomUUID(),
+      userId,
+      purpose: 'home-background',
+      fileName: background.fileName || 'home-background',
+      mediaType: 'photo',
+      mediaUrl: background.mediaUrl,
+      source: 'home-upload',
+      caption: '',
+      createdAt: now,
+      updatedAt: now,
+    };
+    store.posts.push(saved);
+    return saved;
+  });
+}
+
+export async function deleteLocalHomeBackground(userId) {
+  return mutateStore((store) => {
+    store.posts = store.posts.filter((post) => !(post.userId === userId && post.purpose === 'home-background'));
+    return true;
+  });
+}
+
+export function findUserByEmail(store, email) {
+  const normalized = normalizeEmail(email);
+  return Object.values(store.users).find((user) => normalizeEmail(user.email) === normalized);
+}
+
+export function publicUserSummary(user) {
+  return {
+    id: user.id,
+    email: user.email || '',
+    displayName: user.displayName,
+    childProfile: normalizeChildProfile(user.childProfile),
+    updatedAt: user.updatedAt,
+    playPreferences: normalizePlayPreferences(user.playPreferences),
+  };
+}
+
+export function createUser({
+  id = randomUUID(),
+  displayName = 'Family Profile',
+  email = '',
+  childProfile = {},
+} = {}) {
+  const now = new Date().toISOString();
+  return {
+    id,
+    email: normalizeEmail(email),
+    displayName,
+    childProfile: normalizeChildProfile(childProfile),
+    createdAt: now,
+    updatedAt: now,
+    socialLinks: { icloudPhotosUrl: '', instagramUrl: '', tiktokUrl: '' },
+    location: null,
+    playPreferences: normalizePlayPreferences(),
+  };
+}
+
+export function updateUser(user, patch) {
+  Object.assign(user, patch, { updatedAt: new Date().toISOString() });
+  return user;
+}
+
+export function profileRowToUser(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    email: row.email || '',
+    displayName: row.display_name || 'Family Profile',
+    childProfile: normalizeChildProfile(row.child_profile),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    socialLinks: row.social_links || { icloudPhotosUrl: '', instagramUrl: '', tiktokUrl: '' },
+    location: row.location,
+    playPreferences: normalizePlayPreferences(row.play_preferences),
+  };
+}
+
+export function userToProfileRow(user) {
+  return {
+    id: user.id,
+    email: normalizeEmail(user.email),
+    display_name: user.displayName || 'Family Profile',
+    child_profile: normalizeChildProfile(user.childProfile),
+    social_links: user.socialLinks,
+    location: user.location,
+    play_preferences: normalizePlayPreferences(user.playPreferences),
+    updated_at: user.updatedAt || new Date().toISOString(),
+  };
+}
+
+function supabaseError(error, fallback) {
+  if (!error) return null;
+  return new Error(error.message || fallback);
+}
+
+function cleanText(value, maxLength = 160) {
+  return String(value || '').trim().replace(/\s+/g, ' ').slice(0, maxLength);
+}
+
+function toNullableNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function normalizePlaygroundKey(value, fallbackName = '') {
+  const source = cleanText(value || fallbackName, 180).toLowerCase();
+  return source
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 140);
+}
+
+function normalizePlayDateInput(body = {}) {
+  const playgroundName = cleanText(body.playgroundName, 140);
+  const playgroundKey = normalizePlaygroundKey(body.playgroundKey, playgroundName);
+  if (!playgroundName || !playgroundKey) {
+    throw new Error('Choose a playground before creating a play date.');
+  }
+
+  const startsAt = new Date(body.startsAt);
+  const endsAt = new Date(body.endsAt);
+  if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
+    throw new Error('Choose a valid play date start and end time.');
+  }
+  if (startsAt >= endsAt) {
+    throw new Error('Play date end time must be after the start time.');
+  }
+
+  const maxFamiliesValue = Number.parseInt(body.maxFamilies, 10);
+  const maxFamilies = Number.isFinite(maxFamiliesValue)
+    ? Math.min(Math.max(maxFamiliesValue, 2), 20)
+    : null;
+
+  return {
+    playgroundKey,
+    playgroundName,
+    playgroundType: cleanText(body.playgroundType, 80),
+    playgroundAddress: cleanText(body.playgroundAddress, 180),
+    playgroundLatitude: toNullableNumber(body.playgroundLatitude),
+    playgroundLongitude: toNullableNumber(body.playgroundLongitude),
+    startsAt: startsAt.toISOString(),
+    endsAt: endsAt.toISOString(),
+    visibility: body.visibility === 'private' ? 'private' : 'public',
+    notes: cleanText(body.notes, 240),
+    ageRange: cleanText(body.ageRange, 40),
+    maxFamilies,
+  };
+}
+
+function localParticipantCount(playDate) {
+  return (playDate.participants || []).filter((participant) => participant.status === 'joined').length;
+}
+
+function serializeLocalPlayDate(playDate, userId) {
+  const participants = Array.isArray(playDate.participants) ? playDate.participants : [];
+  const participantCount = localParticipantCount(playDate);
+  const isHost = playDate.hostUserId === userId;
+  const isJoined = participants.some((participant) => participant.userId === userId && participant.status === 'joined');
+  const isDeclined = participants.some((participant) => participant.userId === userId && participant.status === 'declined');
+  const hasRoom = !playDate.maxFamilies || participantCount < playDate.maxFamilies;
+
+  return {
+    id: playDate.id,
+    playgroundKey: playDate.playgroundKey,
+    playgroundName: playDate.playgroundName,
+    playgroundType: playDate.playgroundType || '',
+    playgroundAddress: playDate.playgroundAddress || '',
+    playgroundLatitude: playDate.playgroundLatitude ?? null,
+    playgroundLongitude: playDate.playgroundLongitude ?? null,
+    startsAt: playDate.startsAt,
+    endsAt: playDate.endsAt,
+    visibility: playDate.visibility,
+    notes: playDate.notes || '',
+    ageRange: playDate.ageRange || '',
+    maxFamilies: playDate.maxFamilies ?? null,
+    status: playDate.status || 'upcoming',
+    lastChangeSummary: playDate.lastChangeSummary || '',
+    participantCount,
+    isHost,
+    isJoined,
+    isDeclined,
+    canJoin: playDate.visibility === 'public' && !isHost && !isJoined && !isDeclined && hasRoom,
+    hostLabel: isHost ? 'You' : 'Another family',
+    createdAt: playDate.createdAt,
+    updatedAt: playDate.updatedAt,
+  };
+}
+
+function serializeSupabasePlayDate(row, userId, joinedIds = new Set(), declinedIds = new Set()) {
+  const participantCount = Number(row.participant_count) || 0;
+  const isHost = row.host_user_id === userId;
+  const isJoined = isHost || joinedIds.has(row.id);
+  const maxFamilies = row.max_families ?? null;
+  const hasRoom = !maxFamilies || participantCount < maxFamilies;
+
+  return {
+    id: row.id,
+    playgroundKey: row.playground_key,
+    playgroundName: row.playground_name,
+    playgroundType: row.playground_type || '',
+    playgroundAddress: row.playground_address || '',
+    playgroundLatitude: row.playground_latitude ?? null,
+    playgroundLongitude: row.playground_longitude ?? null,
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+    visibility: row.visibility,
+    notes: row.notes || '',
+    ageRange: row.age_range || '',
+    maxFamilies,
+    status: row.status || 'upcoming',
+    lastChangeSummary: row.last_change_summary || '',
+    participantCount,
+    isHost,
+    isJoined,
+    isDeclined: !isHost && declinedIds.has(row.id),
+    canJoin: row.visibility === 'public' && !isHost && !isJoined && hasRoom,
+    hostLabel: isHost ? 'You' : 'Another family',
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function canViewLocalPlayDate(playDate, userId) {
+  if (playDate.visibility === 'public') return true;
+  if (playDate.hostUserId === userId) return true;
+  return (playDate.participants || []).some((participant) => (
+    participant.userId === userId && participant.status === 'joined'
+  ));
+}
+
+function isUpcoming(playDate) {
+  return (playDate.status || 'upcoming') === 'upcoming' && new Date(playDate.endsAt).getTime() >= Date.now();
+}
+
+function serializeFamilyEventCache(entry = {}) {
+  entry = entry || {};
+  return {
+    cacheKey: entry.cacheKey || entry.cache_key || '',
+    locationCity: entry.locationCity || entry.location_city || '',
+    locationRegion: entry.locationRegion || entry.location_region || '',
+    startDate: entry.startDate || entry.start_date || '',
+    endDate: entry.endDate || entry.end_date || '',
+    source: entry.source || 'search-link',
+    sourceLabel: entry.sourceLabel || entry.source_label || '',
+    sourceUrls: Array.isArray(entry.sourceUrls || entry.source_urls) ? (entry.sourceUrls || entry.source_urls) : [],
+    filters: entry.filters && typeof entry.filters === 'object' ? entry.filters : {},
+    events: Array.isArray(entry.events) ? entry.events : [],
+    fallback: Boolean(entry.fallback),
+    providerStatus: entry.providerStatus || entry.provider_status || '',
+    fetchedAt: entry.fetchedAt || entry.fetched_at || new Date().toISOString(),
+    expiresAt: entry.expiresAt || entry.expires_at || new Date().toISOString(),
+  };
+}
+
+function familyEventCacheToRow(entry = {}) {
+  const serialized = serializeFamilyEventCache(entry);
+  return {
+    cache_key: serialized.cacheKey,
+    location_city: serialized.locationCity,
+    location_region: serialized.locationRegion,
+    start_date: serialized.startDate,
+    end_date: serialized.endDate,
+    source: serialized.source,
+    source_label: serialized.sourceLabel,
+    source_urls: serialized.sourceUrls,
+    filters: serialized.filters,
+    events: serialized.events,
+    fallback: serialized.fallback,
+    provider_status: serialized.providerStatus,
+    fetched_at: serialized.fetchedAt,
+    expires_at: serialized.expiresAt,
+  };
+}
+
+function isFreshFamilyEventCache(entry) {
+  if (!entry) return false;
+  const serialized = serializeFamilyEventCache(entry);
+  return serialized.cacheKey
+    && Array.isArray(serialized.events)
+    && new Date(serialized.expiresAt).getTime() > Date.now();
+}
+
+function isMissingCacheTable(error) {
+  return error?.code === '42P01'
+    || /(family_event_cache|playground_cache|parenting_resource_cache|story_time_cache)/i.test(error?.message || '') && /does not exist/i.test(error.message);
+}
+
+function pruneLocalFamilyEventCache(cache = {}) {
+  const now = Date.now();
+  const staleCutoff = now - 24 * 60 * 60 * 1000;
+  for (const [cacheKey, entry] of Object.entries(cache)) {
+    const expiresAt = new Date(entry?.expiresAt || entry?.expires_at || 0).getTime();
+    if (!Number.isFinite(expiresAt) || expiresAt < staleCutoff) {
+      delete cache[cacheKey];
+    }
+  }
+
+  const entries = Object.entries(cache);
+  if (entries.length <= 100) return;
+  entries
+    .sort(([, a], [, b]) => new Date(a?.fetchedAt || a?.fetched_at || 0) - new Date(b?.fetchedAt || b?.fetched_at || 0))
+    .slice(0, entries.length - 100)
+    .forEach(([cacheKey]) => {
+      delete cache[cacheKey];
+    });
+}
+
+export async function readLocalFamilyEventCache(cacheKey) {
+  const key = cleanText(cacheKey, 260);
+  if (!key) return null;
+  const store = await readStore();
+  const entry = store.familyEventCache[key];
+  return isFreshFamilyEventCache(entry) ? serializeFamilyEventCache(entry) : null;
+}
+
+export async function readLocalSocialFamilyEventCache({ locationCity, startDate, endDate }) {
+  const city = cleanText(locationCity, 80).toLowerCase();
+  if (!city || !startDate || !endDate) return null;
+  const store = await readStore();
+  return Object.values(store.familyEventCache || {})
+    .map(serializeFamilyEventCache)
+    .filter((entry) => isFreshFamilyEventCache(entry)
+      && entry.source === 'weekly-social-agent'
+      && entry.locationCity.toLowerCase() === city
+      && entry.startDate === startDate
+      && entry.endDate === endDate)
+    .sort((a, b) => new Date(b.fetchedAt) - new Date(a.fetchedAt))[0] || null;
+}
+
+export async function writeLocalFamilyEventCache(entry) {
+  const serialized = serializeFamilyEventCache(entry);
+  if (!serialized.cacheKey) return serialized;
+  return mutateStore((store) => {
+    store.familyEventCache = store.familyEventCache || {};
+    pruneLocalFamilyEventCache(store.familyEventCache);
+    store.familyEventCache[serialized.cacheKey] = serialized;
+    return serialized;
+  });
+}
+
+export async function readSupabaseFamilyEventCache(supabase, cacheKey) {
+  const key = cleanText(cacheKey, 260);
+  if (!key) return null;
+  const { data, error } = await supabase
+    .from('family_event_cache')
+    .select(FAMILY_EVENT_CACHE_COLUMNS)
+    .eq('cache_key', key)
+    .maybeSingle();
+
+  if (error) {
+    if (isMissingCacheTable(error)) return null;
+    throw supabaseError(error, 'Could not load cached family events.');
+  }
+  return isFreshFamilyEventCache(data) ? serializeFamilyEventCache(data) : null;
+}
+
+export async function readSupabaseSocialFamilyEventCache(supabase, { locationCity, startDate, endDate }) {
+  const city = cleanText(locationCity, 80);
+  if (!city || !startDate || !endDate) return null;
+  const { data, error } = await supabase
+    .from('family_event_cache')
+    .select(FAMILY_EVENT_CACHE_COLUMNS)
+    .eq('source', 'weekly-social-agent')
+    .ilike('location_city', city)
+    .eq('start_date', startDate)
+    .eq('end_date', endDate)
+    .gt('expires_at', new Date().toISOString())
+    .order('fetched_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    if (isMissingCacheTable(error)) return null;
+    throw supabaseError(error, 'Could not load weekly social-agent family events.');
+  }
+  return isFreshFamilyEventCache(data) ? serializeFamilyEventCache(data) : null;
+}
+
+export async function writeSupabaseFamilyEventCache(supabase, entry) {
+  const row = familyEventCacheToRow(entry);
+  if (!row.cache_key) return serializeFamilyEventCache(entry);
+  const { data, error } = await supabase
+    .from('family_event_cache')
+    .upsert(row, { onConflict: 'cache_key' })
+    .select(FAMILY_EVENT_CACHE_COLUMNS)
+    .single();
+
+  if (error) {
+    if (isMissingCacheTable(error)) return serializeFamilyEventCache(entry);
+    throw supabaseError(error, 'Could not save cached family events.');
+  }
+  return serializeFamilyEventCache(data);
+}
+
+function serializeStoryTimeCache(entry = {}) {
+  entry = entry || {};
+  return {
+    cacheKey: entry.cacheKey || entry.cache_key || '',
+    locationCity: entry.locationCity || entry.location_city || '',
+    startDate: entry.startDate || entry.start_date || '',
+    endDate: entry.endDate || entry.end_date || '',
+    source: entry.source || '',
+    sourceLabel: entry.sourceLabel || entry.source_label || '',
+    sourceUrls: Array.isArray(entry.sourceUrls || entry.source_urls) ? (entry.sourceUrls || entry.source_urls) : [],
+    events: Array.isArray(entry.events) ? entry.events : [],
+    fallback: Boolean(entry.fallback),
+    providerStatus: entry.providerStatus || entry.provider_status || '',
+    fetchedAt: entry.fetchedAt || entry.fetched_at || new Date().toISOString(),
+    expiresAt: entry.expiresAt || entry.expires_at || new Date().toISOString(),
+  };
+}
+
+function storyTimeCacheToRow(entry = {}) {
+  const value = serializeStoryTimeCache(entry);
+  return { cache_key: value.cacheKey, location_city: value.locationCity, start_date: value.startDate, end_date: value.endDate, source: value.source, source_label: value.sourceLabel, source_urls: value.sourceUrls, events: value.events, fallback: value.fallback, provider_status: value.providerStatus, fetched_at: value.fetchedAt, expires_at: value.expiresAt };
+}
+
+function isFreshStoryTimeCache(entry) {
+  const value = serializeStoryTimeCache(entry);
+  return Boolean(value.cacheKey && Array.isArray(value.events) && new Date(value.expiresAt).getTime() > Date.now());
+}
+
+export async function readLocalStoryTimeCache(cacheKey) {
+  const store = await readStore();
+  const entry = store.storyTimeCache?.[cacheKey];
+  return isFreshStoryTimeCache(entry) ? serializeStoryTimeCache(entry) : null;
+}
+
+export async function writeLocalStoryTimeCache(entry) {
+  const value = serializeStoryTimeCache(entry);
+  return mutateStore((store) => {
+    store.storyTimeCache = store.storyTimeCache || {};
+    store.storyTimeCache[value.cacheKey] = value;
+    return value;
+  });
+}
+
+export async function readSupabaseStoryTimeCache(supabase, cacheKey) {
+  const { data, error } = await supabase.from('story_time_cache').select(STORY_TIME_CACHE_COLUMNS).eq('cache_key', cacheKey).maybeSingle();
+  if (error) { if (isMissingCacheTable(error)) return null; throw supabaseError(error, 'Could not load cached story times.'); }
+  return isFreshStoryTimeCache(data) ? serializeStoryTimeCache(data) : null;
+}
+
+export async function writeSupabaseStoryTimeCache(supabase, entry) {
+  const { data, error } = await supabase.from('story_time_cache').upsert(storyTimeCacheToRow(entry), { onConflict: 'cache_key' }).select(STORY_TIME_CACHE_COLUMNS).single();
+  if (error) { if (isMissingCacheTable(error)) return serializeStoryTimeCache(entry); throw supabaseError(error, 'Could not save cached story times.'); }
+  return serializeStoryTimeCache(data);
+}
+
+function serializeParentingResourceCache(entry = {}) {
+  return {
+    ageFilter: entry.ageFilter || entry.age_filter || '',
+    sourceUrl: entry.sourceUrl || entry.source_url || '',
+    resources: Array.isArray(entry.resources) ? entry.resources : [],
+    fetchedAt: entry.fetchedAt || entry.fetched_at || new Date().toISOString(),
+    expiresAt: entry.expiresAt || entry.expires_at || new Date().toISOString(),
+  };
+}
+
+function parentingResourceCacheToRow(entry = {}) {
+  const serialized = serializeParentingResourceCache(entry);
+  return {
+    age_filter: serialized.ageFilter,
+    source_url: serialized.sourceUrl,
+    resources: serialized.resources,
+    fetched_at: serialized.fetchedAt,
+    expires_at: serialized.expiresAt,
+  };
+}
+
+function isFreshParentingResourceCache(entry) {
+  if (!entry) return false;
+  const serialized = serializeParentingResourceCache(entry);
+  return Boolean(serialized.ageFilter && serialized.resources.length)
+    && new Date(serialized.expiresAt).getTime() > Date.now();
+}
+
+export async function readLocalParentingResourceCache(ageFilter) {
+  const key = cleanText(ageFilter, 40);
+  if (!key) return null;
+  const store = await readStore();
+  const entry = store.parentingResourceCache[key];
+  return isFreshParentingResourceCache(entry) ? serializeParentingResourceCache(entry) : null;
+}
+
+export async function writeLocalParentingResourceCache(entry) {
+  const serialized = serializeParentingResourceCache(entry);
+  if (!serialized.ageFilter) return serialized;
+  return mutateStore((store) => {
+    store.parentingResourceCache = store.parentingResourceCache || {};
+    store.parentingResourceCache[serialized.ageFilter] = serialized;
+    return serialized;
+  });
+}
+
+export async function readSupabaseParentingResourceCache(supabase, ageFilter) {
+  const key = cleanText(ageFilter, 40);
+  if (!key) return null;
+  const { data, error } = await supabase
+    .from('parenting_resource_cache')
+    .select(PARENTING_RESOURCE_CACHE_COLUMNS)
+    .eq('age_filter', key)
+    .maybeSingle();
+  if (error) {
+    if (isMissingCacheTable(error)) return null;
+    throw supabaseError(error, 'Could not load cached parenting resources.');
+  }
+  return isFreshParentingResourceCache(data) ? serializeParentingResourceCache(data) : null;
+}
+
+export async function writeSupabaseParentingResourceCache(supabase, entry) {
+  const row = parentingResourceCacheToRow(entry);
+  if (!row.age_filter) return serializeParentingResourceCache(entry);
+  const { data, error } = await supabase
+    .from('parenting_resource_cache')
+    .upsert(row, { onConflict: 'age_filter' })
+    .select(PARENTING_RESOURCE_CACHE_COLUMNS)
+    .single();
+  if (error) {
+    if (isMissingCacheTable(error)) return serializeParentingResourceCache(entry);
+    throw supabaseError(error, 'Could not save cached parenting resources.');
+  }
+  return serializeParentingResourceCache(data);
+}
+
+function serializePlaygroundCache(entry = {}) {
+  entry = entry || {};
+  return {
+    cacheKey: entry.cacheKey || entry.cache_key || '',
+    latitude: toNullableNumber(entry.latitude),
+    longitude: toNullableNumber(entry.longitude),
+    playgrounds: Array.isArray(entry.playgrounds) ? entry.playgrounds : [],
+    source: entry.source || 'openstreetmap-overpass',
+    fetchedAt: entry.fetchedAt || entry.fetched_at || new Date().toISOString(),
+    expiresAt: entry.expiresAt || entry.expires_at || new Date().toISOString(),
+  };
+}
+
+function playgroundCacheToRow(entry = {}) {
+  const serialized = serializePlaygroundCache(entry);
+  return {
+    cache_key: serialized.cacheKey,
+    latitude: serialized.latitude,
+    longitude: serialized.longitude,
+    playgrounds: serialized.playgrounds,
+    source: serialized.source,
+    fetched_at: serialized.fetchedAt,
+    expires_at: serialized.expiresAt,
+  };
+}
+
+function isFreshPlaygroundCache(entry) {
+  if (!entry) return false;
+  const serialized = serializePlaygroundCache(entry);
+  return Boolean(serialized.cacheKey)
+    && new Date(serialized.expiresAt).getTime() > Date.now();
+}
+
+function pruneLocalPlaygroundCache(cache = {}) {
+  const entries = Object.entries(cache);
+  if (entries.length <= 100) return;
+  entries
+    .sort(([, a], [, b]) => new Date(a?.fetchedAt || 0) - new Date(b?.fetchedAt || 0))
+    .slice(0, entries.length - 100)
+    .forEach(([cacheKey]) => delete cache[cacheKey]);
+}
+
+export async function readLocalPlaygroundCache(cacheKey) {
+  const key = cleanText(cacheKey, 180);
+  if (!key) return null;
+  const store = await readStore();
+  const entry = store.playgroundCache[key];
+  return isFreshPlaygroundCache(entry) ? serializePlaygroundCache(entry) : null;
+}
+
+export async function writeLocalPlaygroundCache(entry) {
+  const serialized = serializePlaygroundCache(entry);
+  if (!serialized.cacheKey) return serialized;
+  return mutateStore((store) => {
+    store.playgroundCache = store.playgroundCache || {};
+    pruneLocalPlaygroundCache(store.playgroundCache);
+    store.playgroundCache[serialized.cacheKey] = serialized;
+    return serialized;
+  });
+}
+
+export async function readSupabasePlaygroundCache(supabase, cacheKey) {
+  const key = cleanText(cacheKey, 180);
+  if (!key) return null;
+  const { data, error } = await supabase
+    .from('playground_cache')
+    .select(PLAYGROUND_CACHE_COLUMNS)
+    .eq('cache_key', key)
+    .maybeSingle();
+  if (error) {
+    if (isMissingCacheTable(error)) return null;
+    throw supabaseError(error, 'Could not load cached nearby playgrounds.');
+  }
+  return isFreshPlaygroundCache(data) ? serializePlaygroundCache(data) : null;
+}
+
+export async function writeSupabasePlaygroundCache(supabase, entry) {
+  const row = playgroundCacheToRow(entry);
+  if (!row.cache_key) return serializePlaygroundCache(entry);
+  const { data, error } = await supabase
+    .from('playground_cache')
+    .upsert(row, { onConflict: 'cache_key' })
+    .select(PLAYGROUND_CACHE_COLUMNS)
+    .single();
+  if (error) {
+    if (isMissingCacheTable(error)) return serializePlaygroundCache(entry);
+    throw supabaseError(error, 'Could not save cached nearby playgrounds.');
+  }
+  return serializePlaygroundCache(data);
+}
+
+export async function listLocalPlayDates(userId, playgroundKey) {
+  const key = normalizePlaygroundKey(playgroundKey);
+  const store = await readStore();
+  return store.playDates
+    .filter((playDate) => playDate.playgroundKey === key && (isUpcoming(playDate) || playDate.status === 'cancelled') && canViewLocalPlayDate(playDate, userId))
+    .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))
+    .slice(0, 30)
+    .map((playDate) => serializeLocalPlayDate(playDate, userId));
+}
+
+export async function listLocalUserPlayDates(userId) {
+  const store = await readStore();
+  return store.playDates
+    .filter((playDate) => (isUpcoming(playDate) || playDate.status === 'cancelled') && canViewLocalPlayDate(playDate, userId)
+      && (playDate.hostUserId === userId || (playDate.participants || []).some((participant) => (
+        participant.userId === userId && participant.status === 'joined'
+      ))))
+    .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))
+    .slice(0, 50)
+    .map((playDate) => serializeLocalPlayDate(playDate, userId));
+}
+
+export async function getLocalPublicPlayDate(playDateId) {
+  const store = await readStore();
+  const playDate = store.playDates.find((candidate) => candidate.id === playDateId);
+  if (!playDate || playDate.visibility !== 'public' || playDate.status === 'cancelled' || new Date(playDate.endsAt).getTime() < Date.now()) return null;
+  return serializeLocalPlayDate(playDate, '');
+}
+
+export async function createLocalPlayDate(userId, body) {
+  const input = normalizePlayDateInput(body);
+  const now = new Date().toISOString();
+
+  return mutateStore((store) => {
+    const playDate = {
+      id: randomUUID(),
+      hostUserId: userId,
+      ...input,
+      participants: [{ userId, role: 'host', status: 'joined', joinedAt: now }],
+      status: 'upcoming',
+      lastChangeSummary: '',
+      createdAt: now,
+      updatedAt: now,
+    };
+    store.playDates.unshift(playDate);
+    return serializeLocalPlayDate(playDate, userId);
+  });
+}
+
+function publicPlayDateChangeSummary(previous, next) {
+  const changes = [];
+  if (previous.startsAt !== next.startsAt || previous.endsAt !== next.endsAt) changes.push('time changed');
+  if (previous.playgroundKey !== next.playgroundKey) changes.push('playground changed');
+  if (previous.notes !== next.notes) changes.push('notes updated');
+  if (previous.ageRange !== next.ageRange) changes.push('age range updated');
+  if (previous.maxFamilies !== next.maxFamilies) changes.push('family limit updated');
+  return changes.join(' · ');
+}
+
+export async function updateLocalPublicPlayDate(userId, playDateId, body) {
+  const input = normalizePlayDateInput(body);
+  return mutateStore((store) => {
+    const playDate = store.playDates.find((candidate) => candidate.id === playDateId);
+    if (!playDate || playDate.hostUserId !== userId) throw new Error('Only the host can edit this play date.');
+    if (playDate.visibility !== 'public') throw new Error('Only public play dates can be edited here.');
+    if (!isUpcoming(playDate)) throw new Error('This play date is no longer available.');
+    const summary = publicPlayDateChangeSummary(playDate, input);
+    Object.assign(playDate, input, { lastChangeSummary: summary, updatedAt: new Date().toISOString() });
+    return serializeLocalPlayDate(playDate, userId);
+  });
+}
+
+export async function cancelLocalPublicPlayDate(userId, playDateId) {
+  return mutateStore((store) => {
+    const playDate = store.playDates.find((candidate) => candidate.id === playDateId);
+    if (!playDate || playDate.hostUserId !== userId) throw new Error('Only the host can cancel this play date.');
+    if (playDate.visibility !== 'public') throw new Error('Only public play dates can be cancelled here.');
+    playDate.status = 'cancelled';
+    playDate.lastChangeSummary = 'Play date cancelled by the host.';
+    playDate.updatedAt = new Date().toISOString();
+    return serializeLocalPlayDate(playDate, userId);
+  });
+}
+
+export async function respondLocalPublicPlayDate(userId, playDateId, response) {
+  if (!['joined', 'declined'].includes(response)) throw new Error('Choose whether you can still attend.');
+  return mutateStore((store) => {
+    const playDate = store.playDates.find((candidate) => candidate.id === playDateId);
+    if (!playDate || playDate.visibility !== 'public' || !isUpcoming(playDate)) throw new Error('This play date is no longer available.');
+    const participant = (playDate.participants || []).find((item) => item.userId === userId);
+    if (!participant) throw new Error('Join this public play date before responding.');
+    participant.status = response;
+    participant.respondedAt = new Date().toISOString();
+    playDate.updatedAt = new Date().toISOString();
+    return serializeLocalPlayDate(playDate, userId);
+  });
+}
+
+export async function joinLocalPlayDate(userId, playDateId) {
+  const now = new Date().toISOString();
+
+  return mutateStore((store) => {
+    const playDate = store.playDates.find((candidate) => candidate.id === playDateId);
+    if (!playDate || !isUpcoming(playDate)) throw new Error('Play date is no longer available.');
+    if (playDate.visibility !== 'public') throw new Error('This play date is private.');
+    if (playDate.hostUserId === userId) return serializeLocalPlayDate(playDate, userId);
+
+    playDate.participants = Array.isArray(playDate.participants) ? playDate.participants : [];
+    const participant = playDate.participants.find((item) => item.userId === userId);
+    const alreadyJoined = participant?.status === 'joined';
+    if (!alreadyJoined) {
+      const participantCount = localParticipantCount(playDate);
+      if (playDate.maxFamilies && participantCount >= playDate.maxFamilies) {
+        throw new Error('This play date is already full.');
+      }
+      if (participant) Object.assign(participant, { role: 'guest', status: 'joined', joinedAt: now });
+      else playDate.participants.push({ userId, role: 'guest', status: 'joined', joinedAt: now });
+      playDate.updatedAt = now;
+    }
+
+    return serializeLocalPlayDate(playDate, userId);
+  });
+}
+
+function localDirectThreadId(firstId, secondId) {
+  return `direct:${[firstId, secondId].sort().join(':')}`;
+}
+
+function localPlaydateThreadId(playDateId) {
+  return `playdate:${playDateId}`;
+}
+
+export async function listLocalChatThreads(userId) {
+  const store = await readStore();
+  const threads = [];
+  const related = new Set();
+  store.playDates.forEach((playDate) => {
+    const participants = Array.isArray(playDate.participants) ? playDate.participants : [];
+    if (!participants.some((item) => item.userId === userId && item.status === 'joined')) return;
+    const joined = participants.filter((item) => item.status === 'joined').map((item) => item.userId);
+    joined.filter((id) => id !== userId).forEach((id) => related.add(id));
+    if (joined.length > 1) {
+      const id = localPlaydateThreadId(playDate.id);
+      const readAt = store.chatReads[userId]?.[id] || '';
+      const threadMessages = store.chatMessages.filter((message) => message.threadId === id);
+      const lastMessageAt = threadMessages.reduce((latest, message) => message.createdAt > latest ? message.createdAt : latest, playDate.createdAt || '');
+      const unreadCount = threadMessages.filter((message) => message.senderId !== userId && (!readAt || new Date(message.createdAt) > new Date(readAt))).length;
+      threads.push({ id, type: 'playdate', playDateId: playDate.id, title: playDate.playgroundName || 'Playdate chat', participantIds: joined, startsAt: playDate.startsAt || null, endsAt: playDate.endsAt || null, unreadCount, lastMessageAt });
+    }
+  });
+  store.chatMessages.forEach((message) => {
+    if (message.senderId === userId) related.add(message.recipientId);
+    if (message.recipientId === userId) related.add(message.senderId);
+  });
+  [...related].forEach((id) => {
+    const user = store.users[id];
+    if (!user) return;
+    const threadId = localDirectThreadId(userId, id);
+    const readAt = store.chatReads[userId]?.[threadId] || '';
+    const threadMessages = store.chatMessages.filter((message) => (message.senderId === userId && message.recipientId === id) || (message.senderId === id && message.recipientId === userId));
+    const lastMessageAt = threadMessages.reduce((latest, message) => message.createdAt > latest ? message.createdAt : latest, '');
+    const unreadCount = threadMessages.filter((message) => message.senderId !== userId && (!readAt || new Date(message.createdAt) > new Date(readAt))).length;
+    threads.push({ id: threadId, type: 'direct', title: user.displayName || 'Parent', participantIds: [userId, id], contactId: id, participants: [{ id, displayName: user.displayName || 'Parent' }], unreadCount, lastMessageAt });
+  });
+  return threads;
+}
+
+export async function markLocalChatThreadRead(userId, threadId) {
+  return mutateStore((store) => {
+    store.chatReads[userId] = store.chatReads[userId] || {};
+    store.chatReads[userId][threadId] = new Date().toISOString();
+    return true;
+  });
+}
+
+export async function listLocalChatMessages(userId, threadId) {
+  const store = await readStore();
+  const [kind, targetId] = String(threadId || '').split(':');
+  if (kind === 'playdate') return store.chatMessages.filter((message) => message.threadId === threadId).slice(-100);
+  const contactId = kind === 'direct' ? String(threadId).split(':').slice(1).find((id) => id !== userId) : threadId;
+  return store.chatMessages.filter((message) => (message.senderId === userId && message.recipientId === contactId) || (message.senderId === contactId && message.recipientId === userId)).slice(-100);
+}
+
+export async function createLocalChatMessage(userId, body) {
+  const recipientId = cleanText(body.recipientId, 80);
+  const threadId = cleanText(body.threadId, 160);
+  const playDateId = threadId.startsWith('playdate:') ? threadId.slice('playdate:'.length) : cleanText(body.playDateId, 80);
+  const text = cleanText(body.text, 2000);
+  const mediaType = body.mediaType === 'video' ? 'video' : body.mediaType === 'photo' ? 'photo' : '';
+  const mediaUrl = mediaType ? String(body.mediaUrl || '').slice(0, 400000) : '';
+  if ((!recipientId && !playDateId) || (!text && !mediaUrl)) throw new Error('Choose a chat and add a message, photo, or short video.');
+  return mutateStore((store) => {
+    if (playDateId) {
+      const playDate = store.playDates.find((candidate) => candidate.id === playDateId);
+      if (!playDate || !(playDate.participants || []).some((item) => item.userId === userId && item.status === 'joined')) throw new Error('Join this playdate before messaging.');
+    }
+    const message = { id: randomUUID(), threadId: playDateId ? localPlaydateThreadId(playDateId) : localDirectThreadId(userId, recipientId), senderId: userId, recipientId: playDateId ? '' : recipientId, text, mediaType, mediaUrl, createdAt: new Date().toISOString() };
+    store.chatMessages.unshift(message);
+    store.chatMessages = store.chatMessages.slice(0, 2000);
+    return message;
+  });
+}
+
+export async function listSupabaseChatThreads(supabase, authUser) {
+  const [{ data: memberships, error: membershipError }, { data: playDateMemberships, error: playDateMembershipError }] = await Promise.all([
+    supabase.from('chat_thread_members').select('thread_id').eq('user_id', authUser.id),
+    supabase.from('play_date_participants').select('play_date_id').eq('user_id', authUser.id).eq('status', 'joined'),
+  ]);
+  if (membershipError) throw supabaseError(membershipError, 'Could not load chat threads.');
+  if (playDateMembershipError) throw supabaseError(playDateMembershipError, 'Could not load your playdate chats.');
+
+  // Reconcile here as well as in the participant trigger. This covers playdates
+  // created before the chat migration and guarantees a host sees a solo thread.
+  const ensuredPlaydateThreadIds = await Promise.all((playDateMemberships || []).map(async ({ play_date_id: playDateId }) => {
+    const { data, error } = await supabase.rpc('ensure_playdate_chat_thread', { target_play_date_id: playDateId });
+    if (error) throw supabaseError(error, 'Could not prepare the playdate chat.');
+    return data;
+  }));
+  const ids = [...new Set([...(memberships || []).map((row) => row.thread_id), ...ensuredPlaydateThreadIds].filter(Boolean))];
+  if (!ids.length) return [];
+  const [{ data: threadRows, error: threadError }, { data: memberRows, error: memberError }] = await Promise.all([
+    supabase.from('chat_threads').select('id, thread_type, play_date_id, created_at').in('id', ids),
+    supabase.from('chat_thread_members').select('thread_id, user_id, last_read_at').in('thread_id', ids),
+  ]);
+  if (threadError) throw supabaseError(threadError, 'Could not load chat threads.');
+  if (memberError) throw supabaseError(memberError, 'Could not load chat participants.');
+  const { data: readMessages, error: readMessageError } = await supabase.from('chat_messages').select('thread_id, sender_id, created_at').in('thread_id', ids);
+  if (readMessageError) throw supabaseError(readMessageError, 'Could not load unread chat counts.');
+  const userIds = [...new Set((memberRows || []).map((row) => row.user_id))];
+  const { data: profiles, error: profileError } = await supabase.from('profiles').select('id, display_name, email, child_profile').in('id', userIds);
+  if (profileError) throw supabaseError(profileError, 'Could not load chat participants.');
+  const profileById = new Map((profiles || []).map((profile) => [profile.id, profile]));
+  const playDateIds = (threadRows || []).map((row) => row.play_date_id).filter(Boolean);
+  const { data: playDates, error: playDateError } = playDateIds.length ? await supabase.from('play_dates').select('id, playground_name, starts_at, ends_at').in('id', playDateIds) : { data: [], error: null };
+  if (playDateError) throw supabaseError(playDateError, 'Could not load playdate chats.');
+  const playDateById = new Map((playDates || []).map((row) => [row.id, row]));
+  return (threadRows || []).map((row) => {
+    const participantIds = (memberRows || []).filter((member) => member.thread_id === row.id).map((member) => member.user_id);
+    const other = participantIds.filter((id) => id !== authUser.id).map((id) => profileById.get(id)).filter(Boolean);
+    const playDate = row.play_date_id ? playDateById.get(row.play_date_id) : null;
+    const readAt = memberRows.find((member) => member.thread_id === row.id && member.user_id === authUser.id)?.last_read_at;
+    const threadMessages = (readMessages || []).filter((message) => message.thread_id === row.id);
+    const lastMessageAt = threadMessages.reduce((latest, message) => message.created_at > latest ? message.created_at : latest, row.created_at || '');
+    const unreadCount = threadMessages.filter((message) => message.sender_id !== authUser.id && (!readAt || new Date(message.created_at) > new Date(readAt))).length;
+    return { id: row.id, type: row.thread_type, playDateId: row.play_date_id, title: playDate?.playground_name || other[0]?.display_name || 'Direct chat', participantIds, participants: other.map((profile) => ({ id: profile.id, displayName: profile.display_name || 'Parent' })), startsAt: playDate?.starts_at || null, endsAt: playDate?.ends_at || null, unreadCount, lastMessageAt };
+  }).filter((thread) => thread.type !== 'playdate' || thread.participantIds.length > 1);
+}
+
+export async function markSupabaseChatThreadRead(supabase, threadId) {
+  const { data, error } = await supabase.rpc('mark_chat_thread_read', { target_thread_id: threadId });
+  if (error) throw supabaseError(error, 'Could not mark chat as read.');
+  return data;
+}
+
+export async function listSupabaseChatMessages(supabase, authUser, threadId) {
+  const { data, error } = await supabase.from('chat_messages').select('id, thread_id, sender_id, recipient_id, text, media_type, media_url, created_at').eq('thread_id', threadId).order('created_at', { ascending: true }).limit(100);
+  if (error) throw supabaseError(error, 'Could not load chat messages.');
+  return (data || []).map((row) => ({ id: row.id, threadId: row.thread_id, senderId: row.sender_id, recipientId: row.recipient_id, text: row.text, mediaType: row.media_type, mediaUrl: row.media_url, createdAt: row.created_at }));
+}
+
+export async function createSupabaseChatMessage(supabase, authUser, body) {
+  const text = cleanText(body.text, 2000);
+  const mediaType = body.mediaType === 'video' ? 'video' : body.mediaType === 'photo' ? 'photo' : '';
+  const mediaUrl = mediaType ? String(body.mediaUrl || '').slice(0, 400000) : '';
+  const threadId = cleanText(body.threadId, 80);
+  const recipientId = cleanText(body.recipientId, 80);
+  if (!threadId && !recipientId || (!text && !mediaUrl)) throw new Error('Choose a chat and add a message, photo, or short video.');
+  let targetThreadId = threadId;
+  if (!targetThreadId) {
+    const { data: created, error: createError } = await supabase.rpc('create_direct_chat_thread', { target_user_id: recipientId });
+    if (createError) throw supabaseError(createError, 'Could not create direct chat.');
+    targetThreadId = created;
+  }
+  const { data, error } = await supabase.from('chat_messages').insert({ thread_id: targetThreadId, sender_id: authUser.id, recipient_id: recipientId || authUser.id, text, media_type: mediaType, media_url: mediaUrl }).select('id, thread_id, sender_id, recipient_id, text, media_type, media_url, created_at').single();
+  if (error) throw supabaseError(error, 'Could not send chat message.');
+  return { id: data.id, threadId: data.thread_id, senderId: data.sender_id, recipientId: data.recipient_id, text: data.text, mediaType: data.media_type, mediaUrl: data.media_url, createdAt: data.created_at };
+}
+
+export async function listSupabasePlayDates(supabase, authUser, playgroundKey) {
+  const key = normalizePlaygroundKey(playgroundKey);
+  const { data, error } = await supabase
+    .from('play_dates')
+    .select(PLAY_DATE_COLUMNS)
+    .eq('playground_key', key)
+    .gte('ends_at', new Date().toISOString())
+    .order('starts_at', { ascending: true })
+    .limit(30);
+
+  if (error) throw supabaseError(error, 'Could not load play dates.');
+  if (!data?.length) return [];
+
+  const ids = data.map((playDate) => playDate.id);
+  const { data: joinedRows, error: participantError } = await supabase
+    .from('play_date_participants')
+    .select('play_date_id, status')
+    .eq('user_id', authUser.id)
+    .in('play_date_id', ids);
+
+  if (participantError) throw supabaseError(participantError, 'Could not load play date attendees.');
+  const joinedIds = new Set((joinedRows || []).filter((row) => row.status === 'joined').map((row) => row.play_date_id));
+  const declinedIds = new Set((joinedRows || []).filter((row) => row.status === 'declined').map((row) => row.play_date_id));
+  return data.map((row) => serializeSupabasePlayDate(row, authUser.id, joinedIds, declinedIds));
+}
+
+export async function getSupabasePublicPlayDate(supabase, playDateId) {
+  const { data, error } = await supabase
+    .from('play_dates')
+    .select(PLAY_DATE_COLUMNS)
+    .eq('id', playDateId)
+    .eq('visibility', 'public')
+    .eq('status', 'upcoming')
+    .gte('ends_at', new Date().toISOString())
+    .maybeSingle();
+  if (error) throw supabaseError(error, 'Could not load this public play date.');
+  return data ? serializeSupabasePlayDate(data, '') : null;
+}
+
+export async function listSupabaseUserPlayDates(supabase, authUser) {
+  const { data: memberships, error: membershipError } = await supabase
+    .from('play_date_participants')
+    .select('play_date_id')
+    .eq('user_id', authUser.id)
+    .eq('status', 'joined');
+  if (membershipError) throw supabaseError(membershipError, 'Could not load your playdates.');
+
+  const membershipIds = (memberships || []).map((row) => row.play_date_id);
+  const hostQuery = supabase
+    .from('play_dates')
+    .select(PLAY_DATE_COLUMNS)
+    .eq('host_user_id', authUser.id)
+    .gte('ends_at', new Date().toISOString())
+    .order('starts_at', { ascending: true })
+    .limit(50);
+  const joinedQuery = membershipIds.length
+    ? supabase
+      .from('play_dates')
+      .select(PLAY_DATE_COLUMNS)
+      .in('id', membershipIds)
+      .gte('ends_at', new Date().toISOString())
+      .order('starts_at', { ascending: true })
+      .limit(50)
+    : Promise.resolve({ data: [], error: null });
+  const [{ data: hosted, error: hostedError }, { data: joined, error: joinedError }] = await Promise.all([hostQuery, joinedQuery]);
+  if (hostedError) throw supabaseError(hostedError, 'Could not load your hosted playdates.');
+  if (joinedError) throw supabaseError(joinedError, 'Could not load your joined playdates.');
+
+  const rows = [...(hosted || []), ...(joined || [])]
+    .filter((row, index, all) => all.findIndex((candidate) => candidate.id === row.id) === index)
+    .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at))
+    .slice(0, 50);
+  const joinedIds = new Set(membershipIds);
+  return rows.map((row) => serializeSupabasePlayDate(row, authUser.id, joinedIds));
+}
+
+function playDateInputToRow(authUser, input) {
+  return {
+    host_user_id: authUser.id,
+    playground_key: input.playgroundKey,
+    playground_name: input.playgroundName,
+    playground_type: input.playgroundType,
+    playground_address: input.playgroundAddress,
+    playground_latitude: input.playgroundLatitude,
+    playground_longitude: input.playgroundLongitude,
+    starts_at: input.startsAt,
+    ends_at: input.endsAt,
+    visibility: input.visibility,
+    notes: input.notes,
+    age_range: input.ageRange,
+    max_families: input.maxFamilies,
+    status: 'upcoming',
+    last_change_summary: '',
+  };
+}
+
+export async function createSupabasePlayDate(supabase, authUser, body) {
+  const input = normalizePlayDateInput(body);
+  const { data: inserted, error } = await supabase
+    .from('play_dates')
+    .insert(playDateInputToRow(authUser, input))
+    .select(PLAY_DATE_COLUMNS)
+    .single();
+
+  if (error) throw supabaseError(error, 'Could not create the play date.');
+
+  const { error: participantError } = await supabase
+    .from('play_date_participants')
+    .insert({
+      play_date_id: inserted.id,
+      user_id: authUser.id,
+      role: 'host',
+      status: 'joined',
+    });
+
+  if (participantError) {
+    await supabase.from('play_dates').delete().eq('id', inserted.id);
+    throw supabaseError(participantError, 'Could not add the host to the play date.');
+  }
+
+  const { data: created, error: reloadError } = await supabase
+    .from('play_dates')
+    .select(PLAY_DATE_COLUMNS)
+    .eq('id', inserted.id)
+    .single();
+
+  if (reloadError) throw supabaseError(reloadError, 'Could not load the created play date.');
+  return serializeSupabasePlayDate(created, authUser.id, new Set([created.id]));
+}
+
+export async function updateSupabasePublicPlayDate(supabase, authUser, playDateId, body) {
+  const input = normalizePlayDateInput(body);
+  if (input.visibility !== 'public') throw new Error('Only public play dates can be edited here.');
+  const { data: previous, error: loadError } = await supabase.from('play_dates').select(PLAY_DATE_COLUMNS).eq('id', playDateId).eq('host_user_id', authUser.id).maybeSingle();
+  if (loadError) throw supabaseError(loadError, 'Could not load this play date.');
+  if (!previous || previous.status !== 'upcoming' || new Date(previous.ends_at).getTime() < Date.now()) throw new Error('This play date is no longer available.');
+  const summary = publicPlayDateChangeSummary({ startsAt: previous.starts_at, endsAt: previous.ends_at, playgroundKey: previous.playground_key, notes: previous.notes, ageRange: previous.age_range, maxFamilies: previous.max_families }, input);
+  const { data, error } = await supabase.from('play_dates').update({
+    playground_key: input.playgroundKey,
+    playground_name: input.playgroundName,
+    playground_type: input.playgroundType,
+    playground_address: input.playgroundAddress,
+    playground_latitude: input.playgroundLatitude,
+    playground_longitude: input.playgroundLongitude,
+    starts_at: input.startsAt,
+    ends_at: input.endsAt,
+    notes: input.notes,
+    age_range: input.ageRange,
+    max_families: input.maxFamilies,
+    last_change_summary: summary,
+  }).eq('id', playDateId).eq('host_user_id', authUser.id).select(PLAY_DATE_COLUMNS).single();
+  if (error) throw supabaseError(error, 'Could not update the play date.');
+  return serializeSupabasePlayDate(data, authUser.id, new Set([playDateId]));
+}
+
+export async function cancelSupabasePublicPlayDate(supabase, authUser, playDateId) {
+  const { data, error } = await supabase.from('play_dates').update({ status: 'cancelled', last_change_summary: 'Play date cancelled by the host.' }).eq('id', playDateId).eq('host_user_id', authUser.id).eq('visibility', 'public').eq('status', 'upcoming').select(PLAY_DATE_COLUMNS).maybeSingle();
+  if (error) throw supabaseError(error, 'Could not cancel the play date.');
+  if (!data) throw new Error('Only the host can cancel this public play date.');
+  return serializeSupabasePlayDate(data, authUser.id, new Set([playDateId]));
+}
+
+export async function respondSupabasePublicPlayDate(supabase, authUser, playDateId, response) {
+  if (!['joined', 'declined'].includes(response)) throw new Error('Choose whether you can still attend.');
+  const { data: playDate, error: loadError } = await supabase.from('play_dates').select(PLAY_DATE_COLUMNS).eq('id', playDateId).eq('visibility', 'public').eq('status', 'upcoming').maybeSingle();
+  if (loadError) throw supabaseError(loadError, 'Could not load this play date.');
+  if (!playDate || new Date(playDate.ends_at).getTime() < Date.now()) throw new Error('This play date is no longer available.');
+  const { error } = await supabase.from('play_date_participants').update({ status: response }).eq('play_date_id', playDateId).eq('user_id', authUser.id);
+  if (error) throw supabaseError(error, 'Could not update your attendance.');
+  const { data: joinedRows, error: joinedError } = await supabase.from('play_date_participants').select('play_date_id, status').eq('user_id', authUser.id).eq('play_date_id', playDateId);
+  if (joinedError) throw supabaseError(joinedError, 'Could not refresh your attendance.');
+  const joinedIds = new Set((joinedRows || []).filter((row) => row.status === 'joined').map((row) => row.play_date_id));
+  const declinedIds = new Set((joinedRows || []).filter((row) => row.status === 'declined').map((row) => row.play_date_id));
+  return serializeSupabasePlayDate(playDate, authUser.id, joinedIds, declinedIds);
+}
+
+export async function joinSupabasePlayDate(supabase, authUser, playDateId) {
+  const { data: playDate, error } = await supabase
+    .from('play_dates')
+    .select(PLAY_DATE_COLUMNS)
+    .eq('id', playDateId)
+    .maybeSingle();
+
+  if (error) throw supabaseError(error, 'Could not load this play date.');
+  if (!playDate || new Date(playDate.ends_at).getTime() < Date.now()) {
+    throw new Error('Play date is no longer available.');
+  }
+  if (playDate.visibility !== 'public') throw new Error('This play date is private.');
+  if (playDate.host_user_id === authUser.id) {
+    return serializeSupabasePlayDate(playDate, authUser.id, new Set([playDate.id]));
+  }
+  if (playDate.max_families && Number(playDate.participant_count) >= playDate.max_families) {
+    throw new Error('This play date is already full.');
+  }
+
+  const { data: existingParticipant } = await supabase
+    .from('play_date_participants')
+    .select('play_date_id')
+    .eq('play_date_id', playDate.id)
+    .eq('user_id', authUser.id)
+    .maybeSingle();
+  if (existingParticipant) {
+    const { error: responseError } = await supabase.from('play_date_participants').update({ status: 'joined' }).eq('play_date_id', playDate.id).eq('user_id', authUser.id);
+    if (responseError) throw supabaseError(responseError, 'Could not rejoin this play date.');
+  } else {
+
+    const { error: insertError } = await supabase
+    .from('play_date_participants')
+    .insert({
+      play_date_id: playDate.id,
+      user_id: authUser.id,
+      role: 'guest',
+      status: 'joined',
+    });
+
+    if (insertError && insertError.code !== '23505') {
+      throw supabaseError(insertError, 'Could not join this play date.');
+    }
+  }
+
+  const { data: updated, error: reloadError } = await supabase
+    .from('play_dates')
+    .select(PLAY_DATE_COLUMNS)
+    .eq('id', playDate.id)
+    .single();
+
+  if (reloadError) throw supabaseError(reloadError, 'Could not refresh this play date.');
+  return serializeSupabasePlayDate(updated, authUser.id, new Set([updated.id]));
+}
+
+export async function ensureSupabaseProfile(supabase, authUser, options = {}) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select(PROFILE_COLUMNS)
+    .eq('id', authUser.id)
+    .maybeSingle();
+
+  if (error) throw supabaseError(error, 'Could not load the signed-in profile.');
+
+  const nextDisplayName = String(options.displayName || '').trim();
+  if (data) {
+    if (nextDisplayName && nextDisplayName !== data.display_name) {
+      const { data: updated, error: updateError } = await supabase
+        .from('profiles')
+        .update({ display_name: nextDisplayName, updated_at: new Date().toISOString() })
+        .eq('id', authUser.id)
+        .select(PROFILE_COLUMNS)
+        .single();
+      if (updateError) throw supabaseError(updateError, 'Could not update the profile.');
+      return profileRowToUser(updated);
+    }
+    return profileRowToUser(data);
+  }
+
+  const created = createUser({
+    id: authUser.id,
+    email: authUser.email,
+    displayName: nextDisplayName || authUser.displayName || 'Family Profile',
+  });
+  const { data: inserted, error: insertError } = await supabase
+    .from('profiles')
+    .insert(userToProfileRow(created))
+    .select(PROFILE_COLUMNS)
+    .single();
+
+  if (insertError) throw supabaseError(insertError, 'Could not create the signed-in profile.');
+  return profileRowToUser(inserted);
+}
+
+export async function updateSupabaseProfileField(supabase, authUser, field, body) {
+  const current = await ensureSupabaseProfile(supabase, authUser);
+  const columnByField = {
+    socialLinks: 'social_links',
+    location: 'location',
+    childProfile: 'child_profile',
+    playPreferences: 'play_preferences',
+  };
+  const column = columnByField[field];
+  if (!column) throw new Error('Unknown profile field.');
+
+  const value = field === 'location'
+    ? body
+    : field === 'childProfile'
+      ? normalizeChildProfile(body, current.childProfile)
+      : field === 'playPreferences'
+        ? normalizePlayPreferences({ ...current.playPreferences, ...body })
+      : { ...current[field], ...body };
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ [column]: value, updated_at: new Date().toISOString() })
+    .eq('id', authUser.id)
+    .select(PROFILE_COLUMNS)
+    .single();
+
+  if (error) throw supabaseError(error, 'Could not save the profile.');
+  return profileRowToUser(data);
+}
+
+function serializeHomeBackground(row) {
+  if (!row?.media_url) return null;
+  return {
+    id: row.id,
+    fileName: row.file_name || 'home-background',
+    mediaType: 'photo',
+    mediaUrl: row.media_url,
+    source: row.source || 'home-upload',
+    updatedAt: row.updated_at || row.created_at,
+  };
+}
+
+export async function getSupabaseHomeBackground(supabase, authUser) {
+  const { data, error } = await supabase
+    .from('social_posts')
+    .select('id, file_name, media_type, media_url, source, updated_at, created_at')
+    .eq('user_id', authUser.id)
+    .eq('purpose', 'home-background')
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw supabaseError(error, 'Could not load the home background.');
+  return serializeHomeBackground(data);
+}
+
+export async function saveSupabaseHomeBackground(supabase, authUser, background) {
+  const { error: deleteError } = await supabase
+    .from('social_posts')
+    .delete()
+    .eq('user_id', authUser.id)
+    .eq('purpose', 'home-background');
+  if (deleteError) throw supabaseError(deleteError, 'Could not replace the home background.');
+
+  const { data, error } = await supabase
+    .from('social_posts')
+    .insert({
+      user_id: authUser.id,
+      purpose: 'home-background',
+      file_name: cleanText(background.fileName, 180) || 'home-background',
+      media_type: 'photo',
+      media_url: background.mediaUrl,
+      source: 'home-upload',
+      caption: '',
+    })
+    .select('id, file_name, media_type, media_url, source, updated_at, created_at')
+    .single();
+  if (error) throw supabaseError(error, 'Could not save the home background.');
+  return serializeHomeBackground(data);
+}
+
+export async function deleteSupabaseHomeBackground(supabase, authUser) {
+  const { error } = await supabase
+    .from('social_posts')
+    .delete()
+    .eq('user_id', authUser.id)
+    .eq('purpose', 'home-background');
+  if (error) throw supabaseError(error, 'Could not remove the home background.');
+  return true;
+}
+
+export async function deleteSupabaseUserData(supabase, authUser) {
+  const { error } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('id', authUser.id);
+  if (error) throw supabaseError(error, 'Could not delete the parent data.');
+  return true;
+}

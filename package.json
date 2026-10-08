@@ -1,39 +1,24 @@
 {
-  "name": "sproutcue",
-  "version": "1.0.0",
+  "name": "sproutcue-monorepo",
   "private": true,
-  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev -H 127.0.0.1",
-    "build": "next build",
-    "test": "vitest run --project unit",
-    "start": "next start -H 127.0.0.1",
-    "lint": "next lint",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "social:weekly": "node scripts/weekly-social-agent.mjs"
+    "dev": "npm run dev --workspace @sproutcue/web",
+    "dev:web": "npm run dev --workspace @sproutcue/web",
+    "dev:web:lan": "npm run dev:lan --workspace @sproutcue/web",
+    "dev:mobile": "npm run start --workspace @sproutcue/mobile",
+    "build": "npm run build --workspace @sproutcue/web",
+    "start": "npm run start --workspace @sproutcue/web",
+    "test": "npm run test --workspace @sproutcue/shared && npm run test --workspace @sproutcue/web",
+    "lint": "npm run lint --workspace @sproutcue/web",
+    "storybook": "npm run storybook --workspace @sproutcue/web",
+    "social:weekly": "npm run social:weekly --workspace @sproutcue/web"
   },
-  "dependencies": {
-    "@supabase/ssr": "^0.12.3",
-    "@supabase/supabase-js": "^2.110.6",
-    "next": "^15.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "sharp": "^0.34.3"
-  },
-  "devDependencies": {
-    "@chromatic-com/storybook": "^5.2.1",
-    "@storybook/addon-a11y": "^10.5.5",
-    "@storybook/addon-docs": "^10.5.5",
-    "@storybook/addon-mcp": "^0.7.0",
-    "@storybook/addon-vitest": "^10.5.5",
-    "@storybook/nextjs-vite": "^10.5.5",
-    "@vitest/browser-playwright": "^4.1.10",
-    "@vitest/coverage-v8": "^4.1.10",
-    "playwright": "^1.62.0",
-    "prop-types": "^15.8.1",
-    "storybook": "^10.5.5",
-    "vite": "^8.1.5",
-    "vitest": "^4.1.10"
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
   }
 }

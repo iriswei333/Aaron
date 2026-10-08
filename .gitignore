@@ -4,6 +4,8 @@ dist/
 out/
 data/*.json
 data/family-assets/
+apps/web/data/*.json
+apps/web/data/family-assets/
 .env.local
 .env*.local
 .DS_Store

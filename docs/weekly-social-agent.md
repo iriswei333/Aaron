@@ -48,6 +48,15 @@ npm run social:weekly -- \
   --recommendations-url "https://www.parentmap.com/things-to-do/the-weekender/"
 ```
 
+Exclude one or more roundup entries by repeating `--exclude-event-url`. Exclusions are matched without query strings and regardless of a trailing slash, and are applied before recurring-event resolution or detail-page requests:
+
+```bash
+npm run social:weekly -- \
+  --recommendations-url "https://www.parentmap.com/things-to-do/the-weekender/" \
+  --exclude-event-url "https://www.parentmap.com/calendar/japan-week-bellevue-college-2025/" \
+  --exclude-event-url "https://www.parentmap.com/calendar/bigfoot-kids-book-festival/"
+```
+
 The importer reads each listicle heading and its Date, Cost, Location, and summary fields. Direct `/calendar/` links are retained. For recurring `/series/` links, it opens the series page and selects the calendar occurrence whose URL matches the parsed event date, such as `/calendar/spooky-science-burke-museum/2026-10-02/`. It then reads the detail page for time and image metadata. A failed detail-page lookup does not discard the recommendation; the list-page facts are saved with a resolution warning in the manifest.
 
 The manifest and family-event cache contain every valid imported event. The normal weekly individual-image limit still applies, so at most eight individual event posters are generated per run. The importer also generates one additional `recommendations-YYYY-MM-DD-all-events.png` roundup poster that lists every imported event with its date and venue in a single image. Recommendation imports use title-qualified individual filenames such as `seattle-2026-10-02-spooky-science-at-the-burke-museum.png`, preventing two events in the same city on the same date from overwriting each other. Add `--skip-images` or `--dry-run` to import and inspect the event data without generating images.

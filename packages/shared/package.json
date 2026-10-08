@@ -1,0 +1,29 @@
+{
+  "name": "@sproutcue/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Platform-neutral SproutCue logic shared by apps/web and apps/mobile.",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./api-client": "./src/api-client.js",
+    "./auth-callback": "./src/auth-callback.js",
+    "./auth-email": "./src/auth-email.js",
+    "./chunked-storage": "./src/chunked-storage.js",
+    "./discover-client": "./src/discover-client.js",
+    "./discover-normalizers": "./src/discover-normalizers.js",
+    "./discover-view": "./src/discover-view.js",
+    "./family-plans-client": "./src/family-plans-client.js",
+    "./family-profile": "./src/family-profile.js",
+    "./onboarding": "./src/onboarding.js",
+    "./playdates": "./src/playdates.js",
+    "./practice-story-options": "./src/practice-story-options.js",
+    "./profile-defaults": "./src/profile-defaults.js",
+    "./studio": "./src/studio.js",
+    "./today": "./src/today.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

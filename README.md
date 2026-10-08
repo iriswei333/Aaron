@@ -2,6 +2,31 @@
 
 A small Next.js daily planner for parents of young kids. The app keeps separate parent profiles, captures each child's setup details, and helps organize play, saved family events, social resources, and private family chat.
 
+## Monorepo layout (web + iOS/Android)
+
+```text
+apps/web/        Next.js web app and API (everything that used to live at the repo root)
+apps/mobile/     Expo (React Native) app for iOS and Android — Expo Router, SDK 57
+packages/shared/ Platform-neutral logic used by both: API client, Discover loader + normalizers, family plans,
+                 profile defaults & story languages, practice-story options, playdate/date helpers
+```
+
+From the repo root (npm workspaces — run `npm install` once at the root):
+
+```bash
+npm install            # installs all workspaces into one root node_modules
+npm run dev:web        # Next.js on http://127.0.0.1:3000
+npm run dev:web:lan    # same, but reachable from phones on your Wi-Fi (for the mobile app)
+npm run dev:mobile     # Expo dev server (scan the QR code / press i or a)
+npm test               # shared package tests + web unit tests
+npm run build          # production build of the web app
+```
+
+Paths in the rest of this README are relative to `apps/web/` unless noted (e.g. `supabase/migrations/`
+is `apps/web/supabase/migrations/`, `.env.local` is `apps/web/.env.local`).
+The mobile app authenticates to the same API with `Authorization: Bearer <Supabase access token>`;
+see `apps/mobile/README.md`.
+
 ## Weekly social-post agent
 
 The social-post generator runs outside the web app. It checks the existing ParentMap weekend-event logic separately for Saturday and Sunday in Seattle, Bellevue, Tacoma, Kirkland, Lynnwood, and Edmonds. It reads matched event detail descriptions, then uses the OpenAI API to translate and generate one short Mandarin highlight of 2–3 sentences per event when `OPENAI_API_KEY` is available. It selects up to two highlights per region, writes Mandarin captions and source metadata, generates a Mandarin roundup Markdown post, and generates at most 8 fixed-format vertical PNG posters per week. ParentMap venue-distance filtering is enabled by default with a 15-mile radius. Events with no detail-page venue or an address that cannot be geocoded are skipped. If no candidate is within 15 miles, the agent picks the highest recommendation score across geocoded candidates and uses nearest distance to break a score tie. Use `--max-distance-miles N` to override the radius, or `--normal-event-search` to disable venue-distance filtering and restore the original ParentMap, Seattle's Child, and DuckDuckGo behavior.
@@ -23,6 +48,9 @@ npm run social:weekly -- --from-roundup output/social-posts/weekly-2026-09-19-ro
 
 # Import event recommendations from a ParentMap roundup URL
 npm run social:weekly -- --recommendations-url "https://www.parentmap.com/things-to-do/the-weekender/"
+
+# Exclude specific entries from the imported recommendation page (repeatable)
+npm run social:weekly -- --recommendations-url "https://www.parentmap.com/things-to-do/the-weekender/" --exclude-event-url "https://www.parentmap.com/calendar/japan-week-bellevue-college-2025/" --exclude-event-url "https://www.parentmap.com/calendar/bigfoot-kids-book-festival/"
 ```
 
 Image generation requires `OPENAI_API_KEY`. The command uses the bundled GPT Image CLI; set `IMAGE_GEN=/path/to/image_gen.py` if the default Codex skill path is different. Existing `{city}-{date}.png` files in the output directory are skipped, so rerunning the agent only generates missing posters. Normal weekend runs create one `weekly-YYYY-MM-DD-all-events.png` summary image, and recommendation-URL runs create `recommendations-YYYY-MM-DD-all-events.png`; both list every matched event with its date and venue. Use `--reject-event "City|YYYY-MM-DD|Event name|Reason for rejection"` to persistently exclude an unsuitable event from future picks for that city/day and save the reason; the registry is stored in `event-feedback.json`. The weekly roundup contains only the up-to-eight events represented by the poster set, lists each event’s city, name, venue, and detailed address without exact event times, uses one sentence of highlights per event, includes a Mandarin invitation to create a family card and discover nearby playdates, playgrounds, storytimes, and family events, and is capped at 670 words. If a poster is not good enough, pass `--regenerate City,YYYY-MM-DD` to search that same city/day again, select a different eligible event, and replace that poster; the weekly roundup and all-events poster are regenerated as well when an alternate event is found. Repeat the flag for multiple posters. Add `--feedback "..."` to include the critique in the replacement prompt. Use `--sample` to write one weekly roundup and generate only one missing sample poster plus the all-events summary. A weekly run is saved as `weekly-YYYY-MM-DD.json`, with prompts in the matching `.jsonl` file and generated posters in the same output directory. Use cron, launchd, or GitHub Actions to run it weekly.

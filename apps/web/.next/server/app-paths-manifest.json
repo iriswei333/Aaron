@@ -1,0 +1,10 @@
+{
+  "/api/family-assets/practice-stories/route": "app/api/family-assets/practice-stories/route.js",
+  "/api/family-assets/picture-books/route": "app/api/family-assets/picture-books/route.js",
+  "/api/notifications/route": "app/api/notifications/route.js",
+  "/api/playdates/route": "app/api/playdates/route.js",
+  "/api/family-plans/route": "app/api/family-plans/route.js",
+  "/api/playgrounds/route": "app/api/playgrounds/route.js",
+  "/api/family-assets/toy-plays/route": "app/api/family-assets/toy-plays/route.js",
+  "/api/family-events/route": "app/api/family-events/route.js"
+}
