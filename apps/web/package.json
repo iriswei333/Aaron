@@ -9,7 +9,7 @@
     "build": "next build",
     "test": "vitest run --project unit",
     "start": "next start -H 127.0.0.1",
-    "lint": "next lint",
+    "lint": "eslint .",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "social:weekly": "node scripts/weekly-social-agent.mjs"
@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.2.1",
+    "@eslint/eslintrc": "^3.3.7",
     "@storybook/addon-a11y": "^10.5.5",
     "@storybook/addon-docs": "^10.5.5",
     "@storybook/addon-mcp": "^0.7.0",
@@ -32,6 +33,8 @@
     "@storybook/nextjs-vite": "^10.5.5",
     "@vitest/browser-playwright": "^4.1.10",
     "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.18",
     "playwright": "^1.62.0",
     "prop-types": "^15.8.1",
     "storybook": "^10.5.5",
