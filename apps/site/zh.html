@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SproutCue 芽芽日记 — 带娃的每一天，轻松安排</title>
+<meta name="description" content="SproutCue 是为幼儿家长打造的个性化每日规划应用：根据天气推荐当天安排，一张地图看遍附近的游乐场、亲子活动和图书馆故事会，约附近的家庭一起玩，还能用家庭照片生成专属绘本和睡前故事。">
+<meta property="og:title" content="SproutCue — 带娃的每一天，轻松安排">
+<meta property="og:description" content="每日计划、附近好去处、约玩伴、专属故事——为有小宝宝的家庭而做。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.sproutcue.com/zh.html">
+<link rel="canonical" href="https://www.sproutcue.com/zh.html">
+<link rel="alternate" hreflang="en" href="https://www.sproutcue.com/">
+<link rel="alternate" hreflang="zh-CN" href="https://www.sproutcue.com/zh.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232F6B4F'/%3E%3Cpath d='M32 50V30' stroke='%23FBF6EC' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M32 32c0-9 7-15 16-15 0 9-7 15-16 15z' fill='%238FD18F'/%3E%3Cpath d='M32 36c0-7-6-12-13-12 0 7 6 12 13 12z' fill='%23FBF6EC'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --spruce:#2F6B4F; --spruce-deep:#1F4A37; --sprout:#8FD18F; --leaf:#DDF0DA;
+  --cream:#FBF6EC; --paper:#FFFDF8; --sun:#F4B942; --sun-soft:#FDEFCB;
+  --coral:#EE7B5C; --coral-soft:#FCE1D8; --sky:#8EC5E8; --sky-soft:#DCEEFA;
+  --lilac:#B9A7E8; --lilac-soft:#ECE6FB;
+  --ink:#1F2A24; --muted:#5F6B64; --line:#E8E0D0;
+  --bg:var(--cream); --card:var(--paper);
+  --radius:24px; --shadow:0 18px 50px -24px rgba(31,74,55,.35);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131A16; --card:#1C2520; --ink:#EEF2EC; --muted:#A9B5AD; --line:#2C3832;
+    --paper:#1C2520; --leaf:#22372B; --sun-soft:#3A3120; --coral-soft:#3B2621; --sky-soft:#1E3240; --lilac-soft:#2B2640;
+    --shadow:0 18px 50px -24px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131A16; --card:#1C2520; --ink:#EEF2EC; --muted:#A9B5AD; --line:#2C3832;
+  --paper:#1C2520; --leaf:#22372B; --sun-soft:#3A3120; --coral-soft:#3B2621; --sky-soft:#1E3240; --lilac-soft:#2B2640;
+  --shadow:0 18px 50px -24px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-x:clip}
+body{background:var(--bg);color:var(--ink);font-family:"Plus Jakarta Sans","Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img,svg{display:block}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:"Fraunces","Noto Serif SC","Songti SC",Georgia,serif;letter-spacing:0;line-height:1.25}
+h1{font-size:clamp(2.6rem,6vw,4.6rem);font-weight:800}
+h2{font-size:clamp(2rem,4.2vw,3.2rem);font-weight:700}
+h3{font-size:1.45rem;font-weight:700}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--spruce)}
+:root[data-theme="dark"] .eyebrow{color:var(--sprout)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .eyebrow{color:var(--sprout)}}
+.lede{font-size:1.15rem;color:var(--muted);max-width:620px}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:15px 26px;border-radius:999px;font-weight:800;font-size:1rem;transition:transform .2s,box-shadow .2s,background .2s;cursor:pointer;border:0;font-family:inherit}
+.btn-primary{background:var(--spruce);color:#fff;box-shadow:0 10px 24px -10px rgba(47,107,79,.8)}
+.btn-primary:hover{transform:translateY(-2px);background:var(--spruce-deep)}
+.btn-ghost{background:var(--card);color:var(--ink);border:1.5px solid var(--line)}
+.btn-ghost:hover{transform:translateY(-2px)}
+section{padding:110px 0}
+.center{text-align:center}
+.center .lede{margin:16px auto 0}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid transparent;transition:border-color .3s}
+.nav.scrolled{border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:72px;gap:20px}
+.logo{display:flex;align-items:center;gap:10px;font-family:"Fraunces",serif;font-weight:800;font-size:1.45rem;letter-spacing:-.02em}
+.logo-mark{width:38px;height:38px;border-radius:12px;background:var(--spruce);display:grid;place-items:center}
+.nav-links{display:flex;gap:28px;font-weight:600;font-size:.95rem;color:var(--muted)}
+.nav-links a:hover{color:var(--ink)}
+.nav-cta{display:flex;align-items:center;gap:12px}
+.nav-cta .signin{font-weight:700;font-size:.95rem}
+.nav-cta .btn{padding:11px 20px;font-size:.92rem}
+.theme-btn{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;display:grid;place-items:center}
+@media (max-width:920px){.nav-links{display:none}}
+@media (max-width:520px){.nav-cta .signin:not(.lang){display:none}}
+
+/* HERO */
+.hero{padding:60px 0 100px;position:relative;overflow:clip}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+.hero h1 em{font-style:normal;color:var(--spruce);position:relative;white-space:nowrap}
+:root[data-theme="dark"] .hero h1 em{color:var(--sprout)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .hero h1 em{color:var(--sprout)}}
+.hero h1 em::after{content:"";position:absolute;left:0;right:0;bottom:.06em;height:.22em;background:var(--sun);opacity:.55;border-radius:6px;z-index:-1}
+.questions{list-style:none;margin:28px 0 34px;display:grid;gap:10px}
+.questions li{display:flex;align-items:center;gap:12px;font-weight:600;font-size:1.04rem}
+.questions .q-ico{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:1.05rem;flex:none}
+.hero-actions{display:flex;flex-wrap:wrap;gap:14px}
+.trust{display:flex;flex-wrap:wrap;gap:22px;margin-top:30px;color:var(--muted);font-weight:600;font-size:.92rem}
+.trust span{display:flex;align-items:center;gap:8px}
+.blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;z-index:-1}
+@media (max-width:920px){.hero .wrap{grid-template-columns:1fr}.hero-visual{order:-1}}
+
+/* PHONE */
+.phone-stage{position:relative;display:flex;justify-content:center;padding:20px 0}
+.phone{width:300px;height:610px;border-radius:46px;background:#141a17;padding:11px;box-shadow:0 40px 80px -30px rgba(31,74,55,.55),0 0 0 1.5px rgba(255,255,255,.08) inset;position:relative;flex:none}
+.screen{width:100%;height:100%;border-radius:36px;background:#FBF6EC;overflow:hidden;position:relative;color:#1F2A24;font-size:12px}
+.notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:92px;height:26px;background:#141a17;border-radius:20px;z-index:5}
+.s-inner{padding:48px 16px 70px;height:100%;overflow:hidden}
+.s-title{font-family:"Fraunces","Noto Serif SC",serif;font-weight:800;font-size:26px;letter-spacing:-.03em;margin:4px 0 10px}
+.s-chip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #E8E0D0;border-radius:999px;padding:5px 10px;font-weight:700;font-size:10.5px}
+.s-card{background:#fff;border-radius:18px;padding:12px;margin-top:10px;box-shadow:0 6px 16px -10px rgba(31,74,55,.35)}
+.s-label{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#2F6B4F}
+.s-row{display:flex;align-items:center;gap:10px}
+.s-thumb{width:46px;height:46px;border-radius:13px;flex:none;display:grid;place-items:center;font-size:20px}
+.s-b{font-weight:800;font-size:12.5px}
+.s-m{color:#5F6B64;font-size:10.5px}
+.s-btn{display:block;text-align:center;background:#2F6B4F;color:#fff;border-radius:999px;padding:8px;font-weight:800;font-size:11px;margin-top:9px}
+.tabbar{position:absolute;bottom:0;left:0;right:0;height:62px;background:rgba(255,255,255,.92);border-top:1px solid #EDE6D8;display:flex;justify-content:space-around;align-items:center;padding-bottom:6px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9px;font-weight:700;color:#8A948E}
+.tab i{font-style:normal;font-size:15px}
+.tab.on{color:#2F6B4F}
+.float-card{position:absolute;background:var(--card);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;font-weight:700;font-size:.85rem;border:1px solid var(--line);animation:bob 5s ease-in-out infinite}
+.float-card small{display:block;color:var(--muted);font-weight:600;font-size:.75rem}
+.float-card .fi{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:1.1rem}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@media (max-width:520px){.float-card{display:none}}
+
+/* JOURNEY */
+.journey{background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.journey-grid{display:grid;grid-template-columns:1fr 340px;gap:60px;align-items:center;margin-top:56px}
+.steps{display:grid;gap:14px;counter-reset:s}
+.step{display:flex;gap:18px;align-items:flex-start;padding:20px 22px;border-radius:22px;border:1.5px solid var(--line);background:var(--bg);cursor:pointer;transition:all .25s;text-align:left;font-family:inherit;color:inherit;width:100%}
+.step:hover{transform:translateX(4px)}
+.step.on{border-color:var(--spruce);background:var(--card);box-shadow:var(--shadow)}
+.step-ico{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;font-size:1.6rem;flex:none}
+.step-time{font-size:.75rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.step h3{font-size:1.3rem;margin:2px 0 4px}
+.step p{color:var(--muted);font-size:.97rem}
+.step .bar{height:4px;border-radius:4px;background:var(--line);margin-top:12px;overflow:hidden;display:none}
+.step.on .bar{display:block}
+.step .bar span{display:block;height:100%;width:0;background:var(--spruce);border-radius:4px}
+.step.on .bar span{animation:fill 6s linear forwards}
+@keyframes fill{to{width:100%}}
+.jscreen{display:none;animation:fade .45s ease}
+.jscreen.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (max-width:920px){.journey-grid{grid-template-columns:1fr}.journey .phone-stage{order:-1}}
+
+/* FEATURE ROWS */
+.feature{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center;margin-top:90px}
+.feature:first-of-type{margin-top:60px}
+.feature.flip .f-visual{order:2}
+.f-copy h3{font-size:clamp(1.8rem,3.2vw,2.5rem);margin:14px 0 14px}
+.f-copy p{color:var(--muted);font-size:1.08rem}
+.ticks{list-style:none;margin:22px 0 28px;display:grid;gap:12px}
+.ticks li{display:flex;gap:12px;align-items:flex-start;font-weight:600}
+.ticks li::before{content:"";width:22px;height:22px;flex:none;border-radius:50%;background:var(--leaf) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232F6B4F' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center/13px no-repeat;margin-top:2px}
+.f-visual{border-radius:32px;padding:34px;min-height:440px;display:grid;place-items:center;position:relative;overflow:hidden}
+@media (max-width:920px){.feature{grid-template-columns:1fr;gap:36px;margin-top:70px}.feature.flip .f-visual{order:0}}
+
+/* map mock */
+.map{width:100%;max-width:440px;aspect-ratio:1/1.02;border-radius:26px;background:#E7F0E1;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.map svg.roads{position:absolute;inset:0;width:100%;height:100%}
+.pin{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;animation:drop .6s cubic-bezier(.2,1.4,.4,1) both}
+.pin b{width:34px;height:34px;border-radius:50% 50% 50% 6px;transform:rotate(-45deg);display:grid;place-items:center;box-shadow:0 6px 14px -4px rgba(0,0,0,.3);border:2.5px solid #fff}
+.pin b span{transform:rotate(45deg);font-size:15px}
+@keyframes drop{from{opacity:0;transform:translate(-50%,-160%)}to{opacity:1;transform:translate(-50%,-100%)}}
+.map-chips{position:absolute;top:14px;left:14px;right:14px;display:flex;gap:6px;flex-wrap:wrap}
+.map-chips span{background:#fff;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:800;color:#1F2A24;box-shadow:0 4px 10px -6px rgba(0,0,0,.3)}
+.map-chips span.on{background:#2F6B4F;color:#fff}
+.map-card{position:absolute;left:14px;right:14px;bottom:14px;background:#fff;border-radius:18px;padding:12px 14px;display:flex;gap:12px;align-items:center;color:#1F2A24;box-shadow:0 10px 24px -12px rgba(0,0,0,.35)}
+
+/* playdate card mock */
+.pd{width:100%;max-width:380px;background:#fff;color:#1F2A24;border-radius:26px;box-shadow:var(--shadow);overflow:hidden}
+.pd-top{height:140px;background:linear-gradient(135deg,#8EC5E8,#8FD18F);position:relative;display:flex;align-items:flex-end;padding:16px}
+.pd-top .when{background:#fff;border-radius:14px;padding:8px 12px;font-weight:800;font-size:12px;box-shadow:0 6px 14px -8px rgba(0,0,0,.35)}
+.pd-body{padding:18px 20px 20px}
+.pd-body h4{font-family:"Fraunces",serif;font-size:1.35rem;letter-spacing:-.02em}
+.pd-meta{color:#5F6B64;font-size:.88rem;margin:4px 0 14px}
+.avatars{display:flex;align-items:center;margin-bottom:16px}
+.avatars span{width:34px;height:34px;border-radius:50%;border:2.5px solid #fff;margin-left:-8px;display:grid;place-items:center;font-size:15px}
+.avatars span:first-child{margin-left:0}
+.avatars small{margin-left:10px;font-weight:700;color:#5F6B64}
+.pd-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pd-actions a{border-radius:999px;padding:10px;text-align:center;font-weight:800;font-size:.85rem}
+.pd-mini{display:flex;gap:8px;margin-top:10px}
+.pd-mini span{flex:1;text-align:center;background:#F4EFE4;border-radius:12px;padding:8px 4px;font-size:.75rem;font-weight:700;color:#5F6B64}
+
+/* STUDIO */
+.studio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:56px}
+.studio-card{background:var(--card);border:1.5px solid var(--line);border-radius:28px;overflow:hidden;display:flex;flex-direction:column;transition:transform .25s,box-shadow .25s}
+.studio-card:hover{transform:translateY(-6px);box-shadow:var(--shadow)}
+.sc-art{height:210px;display:grid;place-items:center;position:relative}
+.sc-body{padding:24px 26px 28px;flex:1;display:flex;flex-direction:column}
+.sc-body .tag{font-size:.75rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.sc-body h3{margin:8px 0 10px}
+.sc-body p{color:var(--muted);flex:1}
+.sc-body a{margin-top:18px;font-weight:800;color:var(--spruce);display:inline-flex;gap:6px;align-items:center}
+:root[data-theme="dark"] .sc-body a{color:var(--sprout)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .sc-body a{color:var(--sprout)}}
+.book{width:150px;height:170px;border-radius:6px 16px 16px 6px;background:#F4B942;box-shadow:inset 10px 0 0 rgba(0,0,0,.12),0 18px 30px -14px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#1F2A24;transform:rotate(-5deg)}
+.book .ph{width:96px;height:72px;border-radius:10px;background:linear-gradient(160deg,#8EC5E8,#DDF0DA);display:grid;place-items:center;font-size:32px}
+.book b{font-family:"Fraunces",serif;font-size:13px;text-align:center;line-height:1.1;padding:0 10px}
+@media (max-width:920px){.studio-grid{grid-template-columns:1fr;max-width:520px;margin-left:auto;margin-right:auto}}
+
+/* EVERYTHING ELSE */
+.else-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:50px}
+.else{background:var(--card);border:1.5px solid var(--line);border-radius:22px;padding:22px}
+.else .ei{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:1.3rem;margin-bottom:14px}
+.else b{display:block;font-size:1.02rem;margin-bottom:4px}
+.else p{color:var(--muted);font-size:.92rem}
+@media (max-width:920px){.else-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.else-grid{grid-template-columns:1fr}}
+
+/* STORY */
+.story{background:var(--spruce-deep);color:#F3F7F1;border-radius:40px;padding:80px 70px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;overflow:hidden}
+.story h2{color:#fff}
+.story .eyebrow{color:var(--sprout)}
+.story p{color:#C9D8CE;font-size:1.08rem;margin-top:18px}
+.story-points{display:grid;gap:14px}
+.sp{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:20px 22px;display:flex;gap:16px}
+.sp b{display:block;color:#fff;font-size:1.05rem;margin-bottom:3px}
+.sp span{color:#C9D8CE;font-size:.94rem}
+.sp .n{font-family:"Fraunces",serif;font-size:1.9rem;font-weight:800;color:var(--sun);line-height:1;flex:none;width:34px}
+@media (max-width:920px){.story{grid-template-columns:1fr;padding:56px 28px;border-radius:30px}}
+
+/* APPS */
+.apps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:50px}
+.appc{border-radius:26px;padding:28px;border:1.5px solid var(--line);background:var(--card)}
+.appc .ai{font-size:2rem;margin-bottom:12px}
+.appc b{font-size:1.15rem;display:block}
+.appc p{color:var(--muted);margin:6px 0 16px}
+.badge{display:inline-block;font-size:.75rem;font-weight:800;padding:5px 11px;border-radius:999px}
+@media (max-width:920px){.apps{grid-template-columns:1fr}}
+
+/* FAQ */
+.faq{max-width:820px;margin:50px auto 0;display:grid;gap:12px}
+details{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:0 24px}
+summary{list-style:none;cursor:pointer;padding:22px 0;font-weight:800;font-size:1.06rem;display:flex;justify-content:space-between;gap:16px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-size:1.5rem;font-weight:500;color:var(--spruce);transition:transform .25s;flex:none}
+details[open] summary::after{transform:rotate(45deg)}
+details p{color:var(--muted);padding:0 0 22px}
+
+/* CTA */
+.cta{background:linear-gradient(135deg,var(--sun-soft),var(--leaf));border-radius:40px;padding:80px 40px;text-align:center;position:relative;overflow:hidden}
+.cta .lede{margin:16px auto 30px}
+.cta .hero-actions{justify-content:center}
+
+footer{padding:60px 0 50px;border-top:1px solid var(--line);margin-top:110px}
+.foot{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px}
+.foot p{color:var(--muted);font-size:.92rem;margin-top:12px;max-width:360px}
+.foot h5{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.foot ul{list-style:none;display:grid;gap:9px;font-weight:600}
+.foot ul a:hover{color:var(--spruce)}
+.legal{margin-top:40px;color:var(--muted);font-size:.85rem;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+@media (max-width:720px){.foot{grid-template-columns:1fr 1fr}.foot>div:first-child{grid-column:1/-1}}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+@media (max-width:520px){section{padding:80px 0}.wrap{padding:0 16px}.phone{width:270px;height:550px}}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="wrap">
+    <a href="#top" class="logo" aria-label="SproutCue home">
+      <span class="logo-mark"><svg width="22" height="22" viewBox="0 0 64 64"><path d="M32 54V30" stroke="#FBF6EC" stroke-width="6" stroke-linecap="round"/><path d="M32 32c0-10 8-17 18-17 0 10-8 17-18 17z" fill="#8FD18F"/><path d="M32 37c0-8-7-13-15-13 0 8 7 13 15 13z" fill="#FBF6EC"/></svg></span>
+      SproutCue
+    </a>
+    <div class="nav-links">
+      <a href="#journey">你的一天</a>
+      <a href="#discover">发现</a>
+      <a href="#playdates">约玩</a>
+      <a href="#studio">创作工坊</a>
+      <a href="#story">我们的故事</a>
+      <a href="#faq">常见问题</a>
+    </div>
+    <div class="nav-cta">
+      <button class="theme-btn" id="themeBtn" aria-label="切换深色模式"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
+      <a class="signin lang" href="index.html" lang="en" aria-label="English version">EN</a>
+      <a class="signin" href="https://app.sproutcue.com/">登录</a>
+      <a class="btn btn-primary" href="https://app.sproutcue.com/">免费开始</a>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+
+<!-- HERO -->
+<header class="hero">
+  <div class="blob" style="width:420px;height:420px;background:var(--sprout);top:-80px;right:-60px"></div>
+  <div class="blob" style="width:300px;height:300px;background:var(--sun);bottom:0;left:-120px;opacity:.35"></div>
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">🌱 写给有小宝宝的爸爸妈妈</span>
+      <h1 style="margin-top:16px">带娃的每一天，<em>轻松安排。</em></h1>
+      <p class="lede" style="margin-top:20px">SproutCue 是为幼儿家庭打造的每日规划助手。每天早饭前，爸妈心里的这些问题，它都帮你想好了：</p>
+      <ul class="questions">
+        <li><span class="q-ico" style="background:var(--sun-soft)">☀️</span>今天天气怎么样，带娃做点什么好？</li>
+        <li><span class="q-ico" style="background:var(--leaf)">🛝</span>附近有什么好玩的游乐场、亲子活动和故事会？</li>
+        <li><span class="q-ico" style="background:var(--sky-soft)">👋</span>附近有哪些家庭想约着一起玩？</li>
+        <li><span class="q-ico" style="background:var(--lilac-soft)">📖</span>出门前、睡觉前，怎么让孩子更配合？</li>
+      </ul>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://app.sproutcue.com/">免费规划今天 →</a>
+        <a class="btn btn-ghost" href="#journey">看看怎么用</a>
+      </div>
+      <div class="trust">
+        <span>🔒 默认私密</span>
+        <span>📱 网页版、iPhone 与安卓</span>
+        <span>📍 西雅图出品</span>
+      </div>
+    </div>
+
+    <div class="hero-visual phone-stage">
+      <div class="phone">
+        <div class="screen"><div class="notch"></div>
+          <div class="s-inner">
+            <div class="s-m" style="font-weight:700">10月9日 周五</div>
+            <div class="s-title">早上好！</div>
+            <span class="s-chip">📍 Ballard · 更改</span>
+            <div class="s-card" style="background:#FDEFCB">
+              <div class="s-row"><div style="font-size:30px">⛅</div><div><div class="s-b">今天适合户外玩耍</div><div class="s-m">62°F · 下午3点前不下雨</div></div></div>
+            </div>
+            <div class="s-card">
+              <div class="s-label">下一个安排</div>
+              <div class="s-row" style="margin-top:8px"><div class="s-thumb" style="background:#DDF0DA">🛝</div><div><div class="s-b">Gilman 游乐场</div><div class="s-m">10:00 · 开车6分钟 · 有围栏</div></div></div>
+            </div>
+            <div class="s-card">
+              <div class="s-label">把今天过得更有意思</div>
+              <div class="s-m" style="margin-top:6px">1 · 带好零食和水 &nbsp; 2 · 尽情玩 &nbsp; 3 · 挥手说再见</div>
+              <span class="s-btn">找一个出门准备小故事</span>
+            </div>
+            <div class="s-card">
+              <div class="s-row"><div class="s-thumb" style="background:#ECE6FB">📚</div><div><div class="s-b">幼儿故事会</div><div class="s-m">Ballard 图书馆 · 11:30</div></div></div>
+            </div>
+          </div>
+          <div class="tabbar"><span class="tab on"><i>☀️</i>今天</span><span class="tab"><i>🗺️</i>发现</span><span class="tab"><i>✨</i>工坊</span><span class="tab"><i>🏡</i>家庭</span></div>
+        </div>
+      </div>
+      <div class="float-card" style="left:-10px;top:30px"><span class="fi" style="background:var(--leaf)">👋</span><div>附近有 3 个约玩<small>本周末</small></div></div>
+      <div class="float-card" style="right:0;bottom:110px;animation-delay:-2.5s"><span class="fi" style="background:var(--lilac-soft)">📖</span><div>故事做好啦！<small>《Aaron 在公园》</small></div></div>
+    </div>
+  </div>
+</header>
+
+<!-- JOURNEY -->
+<section class="journey" id="journey">
+  <div class="wrap">
+    <div class="center reveal">
+      <span class="eyebrow">你的一天</span>
+      <h2 style="margin-top:12px">从早到晚，从容不慌</h2>
+      <p class="lede">SproutCue 按照真实家庭的一天来设计——需要什么，正好就在眼前。</p>
+    </div>
+    <div class="journey-grid">
+      <div class="steps" id="steps">
+        <button class="step on" data-i="0">
+          <span class="step-ico" style="background:var(--sun-soft)">☀️</span>
+          <span><span class="step-time">早上</span><h3>今天</h3><p>结合天气、孩子年龄和你家附近，给出当天的安排。</p><span class="bar"><span></span></span></span>
+        </button>
+        <button class="step" data-i="1">
+          <span class="step-ico" style="background:var(--leaf)">🗺️</span>
+          <span><span class="step-time">中午</span><h3>发现</h3><p>游乐场、亲子活动和图书馆故事会，一张地图全看到，还能只看今天。</p><span class="bar"><span></span></span></span>
+        </button>
+        <button class="step" data-i="2">
+          <span class="step-ico" style="background:var(--sky-soft)">👋</span>
+          <span><span class="step-time">下午</span><h3>约玩</h3><p>发起或加入附近家庭的聚会，一键分享链接、加入日历。</p><span class="bar"><span></span></span></span>
+        </button>
+        <button class="step" data-i="3">
+          <span class="step-ico" style="background:var(--lilac-soft)">🌙</span>
+          <span><span class="step-time">晚上</span><h3>创作工坊</h3><p>把今天的照片变成一本绘本，或一个以孩子为主角的睡前故事。</p><span class="bar"><span></span></span></span>
+        </button>
+      </div>
+
+      <div class="phone-stage">
+        <div class="phone"><div class="screen"><div class="notch"></div>
+          <!-- 0 Today -->
+          <div class="jscreen on s-inner">
+            <div class="s-title">今天</div>
+            <div class="s-card" style="background:#FDEFCB"><div class="s-row"><div style="font-size:28px">🌤️</div><div><div class="s-b">上午很适合去公园</div><div class="s-m">3点后有雨——下午安排室内活动</div></div></div></div>
+            <div class="s-card"><div class="s-label">上午</div><div class="s-row" style="margin-top:8px"><div class="s-thumb" style="background:#DDF0DA">🛝</div><div><div class="s-b">游乐场 + 野餐</div><div class="s-m">10:00 · 0.8 mi</div></div></div></div>
+            <div class="s-card"><div class="s-label">下午</div><div class="s-row" style="margin-top:8px"><div class="s-thumb" style="background:#DCEEFA">🎨</div><div><div class="s-b">儿童美术体验</div><div class="s-m">2:00 · 社区中心</div></div></div></div>
+            <div class="s-card"><div class="s-label">本周末</div><div class="s-row" style="margin-top:8px"><div class="s-thumb" style="background:#FCE1D8">🎃</div><div><div class="s-b">南瓜农场日</div><div class="s-m">周六 · 亲子活动</div></div></div></div>
+          </div>
+          <!-- 1 Discover -->
+          <div class="jscreen s-inner" style="padding:40px 0 62px">
+            <div style="padding:6px 14px"><div class="s-title" style="margin:0 0 6px">发现</div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap"><span class="s-chip" style="background:#2F6B4F;color:#fff;border-color:#2F6B4F">今天</span><span class="s-chip">游乐场</span><span class="s-chip">活动</span><span class="s-chip">故事会</span></div></div>
+            <div style="position:relative;height:380px;background:#E7F0E1;margin-top:8px">
+              <svg viewBox="0 0 280 380" style="position:absolute;inset:0;width:100%;height:100%"><path d="M-10 120 C 80 100, 160 160, 300 130" stroke="#fff" stroke-width="14" fill="none"/><path d="M90 -10 C 110 120, 70 250, 120 400" stroke="#fff" stroke-width="10" fill="none"/><path d="M-10 290 L 300 250" stroke="#fff" stroke-width="8" fill="none"/><path d="M200 0 C 180 100, 230 200, 210 400" stroke="#CFE3F2" stroke-width="22" fill="none"/></svg>
+              <div class="pin" style="left:30%;top:28%"><b style="background:#2F6B4F"><span>🛝</span></b></div>
+              <div class="pin" style="left:62%;top:40%;animation-delay:.15s"><b style="background:#EE7B5C"><span>🎪</span></b></div>
+              <div class="pin" style="left:42%;top:58%;animation-delay:.3s"><b style="background:#B9A7E8"><span>📚</span></b></div>
+              <div class="pin" style="left:75%;top:72%;animation-delay:.45s"><b style="background:#8EC5E8"><span>👋</span></b></div>
+              <div class="s-card" style="position:absolute;left:10px;right:10px;bottom:10px"><div class="s-row"><div class="s-thumb" style="background:#ECE6FB">📚</div><div><div class="s-b">婴幼儿故事会</div><div class="s-m">图书馆 · 11:30 · 免费</div></div></div></div>
+            </div>
+          </div>
+          <!-- 2 Playdates -->
+          <div class="jscreen s-inner">
+            <div class="s-title">约玩</div>
+            <div class="s-card" style="padding:0;overflow:hidden"><div style="height:90px;background:linear-gradient(135deg,#8EC5E8,#8FD18F);display:grid;place-items:center;font-size:34px">🛝</div>
+              <div style="padding:12px"><div class="s-b" style="font-size:14px">周六荡秋千 + 零食会</div><div class="s-m">周六 10:00 · Gilman 游乐场</div>
+                <div style="display:flex;margin:10px 0"><span style="width:26px;height:26px;border-radius:50%;background:#FDEFCB;display:grid;place-items:center">🧒</span><span style="width:26px;height:26px;border-radius:50%;background:#DDF0DA;display:grid;place-items:center;margin-left:-6px">👧</span><span style="width:26px;height:26px;border-radius:50%;background:#FCE1D8;display:grid;place-items:center;margin-left:-6px">👶</span><span class="s-m" style="margin-left:8px;align-self:center">3 个家庭参加</span></div>
+                <span class="s-btn">加入约玩</span>
+                <div style="display:flex;gap:6px;margin-top:8px"><span class="s-chip" style="flex:1;justify-content:center">🔗 分享</span><span class="s-chip" style="flex:1;justify-content:center">📅 日历</span></div>
+              </div></div>
+            <div class="s-card"><div class="s-row"><div class="s-thumb" style="background:#DDF0DA">✅</div><div><div class="s-b">放心的家庭</div><div class="s-m">手机验证 · 由你决定谁能看到</div></div></div></div>
+          </div>
+          <!-- 3 Studio -->
+          <div class="jscreen s-inner">
+            <div class="s-title">今天想创作什么？</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div class="s-card" style="margin:0;background:#FDEFCB;text-align:center;padding:14px 8px"><div style="font-size:26px">📕</div><div class="s-b">绘本</div><div class="s-m">用照片生成</div></div>
+              <div class="s-card" style="margin:0;background:#ECE6FB;text-align:center;padding:14px 8px"><div style="font-size:26px">🌙</div><div class="s-b">故事</div><div class="s-m">孩子当主角</div></div>
+              <div class="s-card" style="margin:0;background:#DCEEFA;text-align:center;padding:14px 8px"><div style="font-size:26px">🧸</div><div class="s-b">玩具玩法</div><div class="s-m">拍一下玩具</div></div>
+              <div class="s-card" style="margin:0;background:#DDF0DA;text-align:center;padding:14px 8px"><div style="font-size:26px">🧼</div><div class="s-b">出门准备</div><div class="s-m">练习小故事</div></div>
+            </div>
+            <div class="s-card"><div class="s-m" style="font-weight:700">AI 正在创作…</div><div style="height:6px;background:#EDE6D8;border-radius:6px;margin-top:6px;overflow:hidden"><div style="width:68%;height:100%;background:#2F6B4F"></div></div><div class="s-m" style="margin-top:6px">《Aaron 和大红滑梯》· 第 5 / 8 页</div></div>
+          </div>
+          <div class="tabbar"><span class="tab" data-t="0"><i>☀️</i>今天</span><span class="tab" data-t="1"><i>🗺️</i>发现</span><span class="tab" data-t="2"><i>👋</i>约玩</span><span class="tab" data-t="3"><i>✨</i>工坊</span></div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DISCOVER -->
+<section id="discover">
+  <div class="wrap">
+    <div class="center reveal">
+      <span class="eyebrow">核心功能</span>
+      <h2 style="margin-top:12px">SproutCue 每天帮你的三件事</h2>
+      <p class="lede">顺利出门，认识邻居，再用一个专属于孩子的故事结束这一天。</p>
+    </div>
+
+    <div class="feature reveal">
+      <div class="f-visual" style="background:var(--leaf)">
+        <div class="map">
+          <svg class="roads" viewBox="0 0 400 410" preserveAspectRatio="none"><path d="M-10 140 C 120 110, 220 190, 410 150" stroke="#fff" stroke-width="18" fill="none"/><path d="M130 -10 C 150 140, 100 280, 170 420" stroke="#fff" stroke-width="13" fill="none"/><path d="M-10 320 L 410 280" stroke="#fff" stroke-width="10" fill="none"/><path d="M300 -10 C 270 120, 340 240, 310 420" stroke="#CFE3F2" stroke-width="30" fill="none"/><circle cx="190" cy="210" r="110" fill="#2F6B4F" fill-opacity=".06" stroke="#2F6B4F" stroke-opacity=".3" stroke-dasharray="6 6"/></svg>
+          <div class="map-chips"><span class="on">今天</span><span>游乐场</span><span>亲子活动</span><span>故事会</span><span>约玩</span></div>
+          <div class="pin" style="left:28%;top:36%"><b style="background:#2F6B4F"><span>🛝</span></b></div>
+          <div class="pin" style="left:58%;top:30%;animation-delay:.1s"><b style="background:#EE7B5C"><span>🎪</span></b></div>
+          <div class="pin" style="left:46%;top:56%;animation-delay:.2s"><b style="background:#B9A7E8"><span>📚</span></b></div>
+          <div class="pin" style="left:68%;top:62%;animation-delay:.3s"><b style="background:#8EC5E8"><span>👋</span></b></div>
+          <div class="pin" style="left:20%;top:66%;animation-delay:.4s"><b style="background:#2F6B4F"><span>🌳</span></b></div>
+          <div class="map-card"><div class="s-thumb" style="background:#FCE1D8">🎪</div><div><div class="s-b" style="font-size:14px">秋季家庭嘉年华</div><div class="s-m" style="font-size:12px">今天 · 上午11点–下午3点 · 1.2 英里 · 免费</div></div></div>
+        </div>
+      </div>
+      <div class="f-copy">
+        <span class="eyebrow">🗺️ 发现</span>
+        <h3>附近值得去的地方，一张地图全搞定。</h3>
+        <p>周六早上不用再翻五个网站了。SproutCue 把游乐场、本地亲子活动日历和图书馆故事会都放进一张地图，点一下就能筛选。</p>
+        <ul class="ticks">
+          <li>按你设定的范围找游乐场</li>
+          <li>覆盖整个地区的亲子活动和图书馆故事会</li>
+          <li>按“今天”或类型筛选，也可切换成列表</li>
+          <li>“今天”页的天气告诉你该出门还是待在家</li>
+        </ul>
+        <a class="btn btn-primary" href="https://app.sproutcue.com/">看看附近 →</a>
+      </div>
+    </div>
+
+    <div class="feature flip reveal" id="playdates">
+      <div class="f-visual" style="background:var(--sky-soft)">
+        <div class="pd">
+          <div class="pd-top"><span class="when">📅 周六 10:00 – 11:30</span></div>
+          <div class="pd-body">
+            <h4>周六荡秋千 + 零食会</h4>
+            <div class="pd-meta">Gilman 游乐场 · 2–5 岁 · Mei 家发起</div>
+            <div class="avatars"><span style="background:#FDEFCB">🧒</span><span style="background:#DDF0DA">👧</span><span style="background:#FCE1D8">👶</span><span style="background:#ECE6FB">🧒</span><small>4 个家庭参加</small></div>
+            <div class="pd-actions"><a style="background:#2F6B4F;color:#fff">参加</a><a style="background:#F4EFE4;color:#1F2A24">去不了</a></div>
+            <div class="pd-mini"><span>🔗 分享链接</span><span>📅 加入日历</span><span>✏️ 编辑</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="f-copy">
+        <span class="eyebrow">👋 约玩</span>
+        <h3>认识住在同一条街的家庭。</h3>
+        <p>最好的玩伴就住在附近。在你喜欢的公园发起一次约玩，或者加入附近的约玩——报名、提醒和日历邀请，SproutCue 都帮你搞定。</p>
+        <ul class="ticks">
+          <li>几秒钟发起——选地点、时间和年龄段</li>
+          <li>参加、婉拒或继续参加，一键完成</li>
+          <li>分享链接给朋友，加入任何日历</li>
+          <li>由你决定谁能看到你家的约玩</li>
+        </ul>
+        <a class="btn btn-primary" href="https://app.sproutcue.com/">发起约玩 →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STUDIO -->
+<section id="studio" style="padding-top:0">
+  <div class="wrap">
+    <div class="center reveal">
+      <span class="eyebrow">✨ 创作工坊</span>
+      <h2 style="margin-top:12px">让孩子成为故事的主角</h2>
+      <p class="lede">上传几张家庭照片，SproutCue 的 AI 就能把它们变成纪念绘本、睡前故事和游戏点子——私密保存，只属于你的家庭。</p>
+    </div>
+    <div class="studio-grid">
+      <div class="studio-card reveal">
+        <div class="sc-art" style="background:var(--sun-soft)"><div class="book"><div class="ph">🛝</div><b>Aaron 和大红滑梯</b></div></div>
+        <div class="sc-body"><span class="tag">绘本</span><h3>把照片做成一本书。</h3><p>挑几张出游的照片，就能得到一本以孩子为主角的插画绘本——今晚就能一起读。</p><a href="https://app.sproutcue.com/">做一本绘本 →</a></div>
+      </div>
+      <div class="studio-card reveal">
+        <div class="sc-art" style="background:var(--lilac-soft)"><div style="font-size:84px;filter:drop-shadow(0 14px 18px rgba(0,0,0,.18))">🌙</div></div>
+        <div class="sc-body"><span class="tag">故事</span><h3>专属的睡前故事。</h3><p>围绕孩子的名字、喜欢的东西和今天的小冒险量身定制。每晚一个新故事，不用盯着屏幕。</p><a href="https://app.sproutcue.com/">写一个故事 →</a></div>
+      </div>
+      <div class="studio-card reveal">
+        <div class="sc-art" style="background:var(--leaf)"><div style="display:flex;gap:10px;font-size:52px"><span>🧼</span><span>🤝</span><span>👋</span></div></div>
+        <div class="sc-body"><span class="tag">出门准备小故事</span><h3>让难搞的时刻变轻松。</h3><p>关于洗手、交朋友、离开游乐场的练习小故事——让一天中最难的环节也有个开心的剧本。</p><a href="https://app.sproutcue.com/">找一个出门准备小故事 →</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EVERYTHING ELSE -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="center reveal">
+      <span class="eyebrow">更多功能</span>
+      <h2 style="margin-top:12px">需要时就在，不打扰你</h2>
+    </div>
+    <div class="else-grid">
+      <div class="else reveal"><div class="ei" style="background:var(--sun-soft)">🌦️</div><b>看天气安排</b><p>晴天推荐户外，下雨推荐室内。</p></div>
+      <div class="else reveal"><div class="ei" style="background:var(--leaf)">🧸</div><b>玩具新玩法</b><p>拍一下家里的玩具，发现新玩法。</p></div>
+      <div class="else reveal"><div class="ei" style="background:var(--sky-soft)">👨‍👩‍👧‍👦</div><b>全家档案</b><p>添加每个孩子，推荐更贴合年龄和兴趣。</p></div>
+      <div class="else reveal"><div class="ei" style="background:var(--coral-soft)">🎃</div><b>节假日与周末</b><p>提前提醒长周末和季节性活动。</p></div>
+      <div class="else reveal"><div class="ei" style="background:var(--lilac-soft)">🔔</div><b>贴心通知</b><p>故事生成好了、约玩有变化，及时知道。</p></div>
+      <div class="else reveal"><div class="ei" style="background:var(--leaf)">📍</div><b>你的社区</b><p>设置一次，附近推荐自动跟上。</p></div>
+      <div class="else reveal"><div class="ei" style="background:var(--sun-soft)">🔐</div><b>轻松登录</b><p>支持 Google、邮箱魔法链接或密码。</p></div>
+      <div class="else reveal"><div class="ei" style="background:var(--sky-soft)">💬</div><b>家庭聊天</b><p>即将上线：和认识的家庭一起约。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- STORY -->
+<section id="story" style="padding-top:0">
+  <div class="wrap">
+    <div class="story reveal">
+      <div class="blob" style="width:360px;height:360px;background:var(--spruce);right:-120px;top:-120px;opacity:.6"></div>
+      <div>
+        <span class="eyebrow">我们的故事</span>
+        <h2 style="margin-top:12px">一位家长做的，为了回答早上7点的那个问题。</h2>
+        <p>SproutCue 起源于西雅图的一张餐桌旁：小朋友问“我们今天干什么呀？”，爸妈在天气 App、活动日历、图书馆网站和家长群之间来回翻找答案。</p>
+        <p>于是我们做了一个地方，了解你的孩子、你的社区和天气预报——几秒钟就给出当天的计划。然后又加上了我们最喜欢的部分：街坊邻居的家庭，以及让孩子觉得自己是小英雄的故事。</p>
+      </div>
+      <div class="story-points">
+        <div class="sp"><span class="n">1</span><div><b>了解你的家庭</b><span>孩子的年龄、兴趣和你家社区，决定每一条推荐。</span></div></div>
+        <div class="sp"><span class="n">2</span><div><b>安排这一天</b><span>天气、附近地点、活动和故事会，一屏看清。</span></div></div>
+        <div class="sp"><span class="n">3</span><div><b>认识邻居</b><span>约玩让一个人带娃逛公园，变成一个小社群。</span></div></div>
+        <div class="sp"><span class="n">4</span><div><b>留住回忆</b><span>照片变成绘本和睡前故事。</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APPS -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="center reveal">
+      <span class="eyebrow">随时随地</span>
+      <h2 style="margin-top:12px">网页版现已上线，手机 App 即将到来。</h2>
+    </div>
+    <div class="apps">
+      <div class="appc reveal"><div class="ai">💻</div><b>网页版</b><p>在电脑或手机的任何浏览器上使用 SproutCue。</p><span class="badge" style="background:var(--leaf);color:var(--spruce)">现已上线</span></div>
+      <div class="appc reveal"><div class="ai">📱</div><b>iPhone</b><p>原生地图、通知和照片选择，专为 iOS 打造。</p><span class="badge" style="background:var(--sun-soft);color:#8a6100">即将上线</span></div>
+      <div class="appc reveal"><div class="ai">🤖</div><b>安卓</b><p>在安卓手机上同样从容好用。</p><span class="badge" style="background:var(--sun-soft);color:#8a6100">即将上线</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" style="padding-top:0">
+  <div class="wrap">
+    <div class="center reveal">
+      <span class="eyebrow">常见问题</span>
+      <h2 style="margin-top:12px">有疑问？我们来解答。</h2>
+    </div>
+    <div class="faq">
+      <details><summary>SproutCue 适合谁用？</summary><p>家有婴儿、幼儿和学龄前孩子的爸妈和照顾者——想快速找到附近当天的好去处，也想在游乐场多认识几个朋友。</p></details>
+      <details><summary>SproutCue 支持哪些地区？</summary><p>我们从西雅图地区开始，这里的亲子活动和图书馆故事会已经内置。游乐场和约玩则围绕你设置的社区展开。</p></details>
+      <details><summary>约玩安全吗？</summary><p>每个约玩都关联真实的家庭账号，你可以决定谁能看到你发起的约玩。请始终选择公园、图书馆等公共场所见面。</p></details>
+      <details><summary>我上传的照片会怎么处理？</summary><p>你在创作工坊上传的照片会私密保存，仅用于为你的家庭生成绘本和故事，随时可以删除。</p></details>
+      <details><summary>可以添加多个孩子吗？</summary><p>可以。在家庭档案里添加每个孩子，计划、故事和年龄段都会照顾到每一个人。</p></details>
+      <details><summary>有手机 App 吗？</summary><p>SproutCue 现在可以在任何浏览器中使用，iPhone 和安卓原生 App 正在路上。</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="padding-top:0;padding-bottom:0">
+  <div class="wrap">
+    <div class="cta reveal">
+      <span class="eyebrow">🌱 今天就开始</span>
+      <h2 style="margin-top:12px;color:#1F2A24">让明天早上轻松一点。</h2>
+      <p class="lede" style="color:#4A5650">两分钟设置好家庭信息，马上拿到第一份当日计划。</p>
+      <div class="hero-actions"><a class="btn btn-primary" href="https://app.sproutcue.com/">免费生成计划 →</a></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <a href="#top" class="logo"><span class="logo-mark"><svg width="22" height="22" viewBox="0 0 64 64"><path d="M32 54V30" stroke="#FBF6EC" stroke-width="6" stroke-linecap="round"/><path d="M32 32c0-10 8-17 18-17 0 10-8 17-18 17z" fill="#8FD18F"/><path d="M32 37c0-8-7-13-15-13 0 8 7 13 15 13z" fill="#FBF6EC"/></svg></span>SproutCue</a>
+        <p>为幼儿家长打造的个性化每日规划。用心出品于西雅图。</p>
+      </div>
+      <div><h5>产品</h5><ul><li><a href="#journey">你的一天</a></li><li><a href="#discover">发现</a></li><li><a href="#playdates">约玩</a></li><li><a href="#studio">创作工坊</a></li></ul></div>
+      <div><h5>开始使用</h5><ul><li><a href="https://app.sproutcue.com/">打开应用</a></li><li><a href="https://app.sproutcue.com/">登录</a></li><li><a href="#faq">常见问题</a></li><li><a href="mailto:hello@sproutcue.com">联系我们</a></li><li><a href="index.html">English</a></li></ul></div>
+    </div>
+    <div class="legal"><span>© 2026 SproutCue</span><span>内容仅供家庭出行参考，具体信息请以场馆公布为准，并自行判断。</span></div>
+  </div>
+</footer>
+
+<script>
+// sticky nav border
+const nav=document.getElementById('nav');
+addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>10),{passive:true});
+
+// theme toggle
+const root=document.documentElement;
+try{const t=localStorage.getItem('sc-theme');if(t)root.dataset.theme=t;}catch(e){}
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const dark=root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme=dark?'light':'dark';
+  try{localStorage.setItem('sc-theme',root.dataset.theme);}catch(e){}
+});
+
+// journey steps
+const steps=[...document.querySelectorAll('.step')];
+const screens=[...document.querySelectorAll('.jscreen')];
+const tabs=[...document.querySelectorAll('.journey .tab')];
+let cur=0,timer;
+function show(i){
+  cur=i;
+  steps.forEach((s,k)=>{s.classList.toggle('on',k===i);const b=s.querySelector('.bar span');if(b){b.style.animation='none';b.offsetWidth;b.style.animation='';}});
+  screens.forEach((s,k)=>s.classList.toggle('on',k===i));
+  tabs.forEach((t,k)=>t.classList.toggle('on',k===i));
+  clearTimeout(timer);timer=setTimeout(()=>show((cur+1)%steps.length),6000);
+}
+steps.forEach((s,i)=>s.addEventListener('click',()=>show(i)));
+tabs.forEach((t,i)=>t.addEventListener('click',()=>show(i)));
+show(0);
+
+// reveal on scroll
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
