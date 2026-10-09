@@ -14,7 +14,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#FFF4E8",
+        "backgroundColor": "#FFEBDC",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -33,7 +33,7 @@
         {
           "backgroundColor": "#FFFAF4",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 120
         }
       ],
       "expo-secure-store",
@@ -49,6 +49,14 @@
           "photosPermission": "SproutCue uses the photos you choose to make private picture books, stories, and play ideas for your child.",
           "cameraPermission": "SproutCue uses the camera when you take a photo of your child or a toy for Play Studio.",
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#e86f3d",
+          "defaultChannel": "ai-creations"
         }
       ]
     ],

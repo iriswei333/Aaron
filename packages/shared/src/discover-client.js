@@ -116,13 +116,13 @@ export function createDiscoverClient(request) {
         if (requested.has('playdate')) sources.playdates = skippedState('Playgrounds are required to load nearby playdates.');
       }
     }
+    // Family events and story times don't depend on the family's saved location (it only limits
+    // playgrounds and playdates); the server falls back to the profile's home city or Seattle.
     if (requested.has('family_event')) {
-      if (locationLabel) {
-        tasks.push({
-          source: 'familyEvents',
-          promise: request(`/family-events${queryString({ refresh: forceRefresh ? 1 : undefined, location: locationLabel, start: startDate, end: endDate })}`, options),
-        });
-      } else sources.familyEvents = skippedState('A location is required to load family events.');
+      tasks.push({
+        source: 'familyEvents',
+        promise: request(`/family-events${queryString({ refresh: forceRefresh ? 1 : undefined, location: locationLabel, start: startDate, end: endDate })}`, options),
+      });
     }
     if (requested.has('story_time')) {
       tasks.push({

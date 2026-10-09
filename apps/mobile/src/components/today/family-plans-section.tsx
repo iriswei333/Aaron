@@ -2,19 +2,18 @@ import { todayPlanView } from '@sproutcue/shared/today';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Button } from '@/components/ui';
-import { Colors, Radius, Shadow, Spacing, Type } from '@/constants/theme';
+import { Colors, Radius, Shadow, Type } from '@/constants/theme';
 
+import { DayOfItCard } from './day-of-it-card';
 import { ImageHero } from './image-hero';
 import { todayImageSource } from './images';
 
-type Props = { plans: any[]; onOpenPlans: () => void };
+type Props = { plans: any[]; childName: string; onOpenPlans: () => void; onOpenStory: () => void };
 
 // Web renderTodayPlans (phone layout): section title + "View all", the next plan as a photo card,
-// then "Coming up next" with up to three more plans (or a friendly empty state).
-export function FamilyPlansSection({ plans, onOpenPlans }: Props) {
+// then "Make a little day of it" with the getting-ready story button (all plans: "View all").
+export function FamilyPlansSection({ plans, childName, onOpenPlans, onOpenStory }: Props) {
   const featured = todayPlanView(plans[0]);
-  const remaining = plans.slice(1, 4).map(todayPlanView);
   return (
     <LinearGradient colors={[Colors.plansFrom, Colors.plansTo]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.section}>
       <View style={styles.titleRow}>
@@ -46,37 +45,7 @@ export function FamilyPlansSection({ plans, onOpenPlans }: Props) {
         </View>
       </ImageHero>
 
-      <View style={styles.sidebar}>
-        <Text style={Type.eyebrow}>Coming up next</Text>
-        <Text style={styles.sidebarTitle}>More family plans</Text>
-        {remaining.length ? (
-          <View style={styles.list}>
-            {remaining.map((view, index) => (
-              <Pressable
-                key={`${view.title}-${index}`}
-                accessibilityRole="button"
-                accessibilityLabel={`${view.title}. ${view.type}, ${view.when}. ${view.where}`}
-                onPress={onOpenPlans}
-                style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}>
-                <Text style={styles.rowIcon}>{view.icon}</Text>
-                <View style={styles.rowBody}>
-                  <Text style={styles.rowMeta} numberOfLines={1}>{`${view.type} · ${view.when}`}</Text>
-                  <Text style={styles.rowTitle} numberOfLines={1}>{view.title}</Text>
-                  <Text style={styles.rowWhere} numberOfLines={1}>{view.where}</Text>
-                </View>
-                <Text style={styles.rowArrow}>→</Text>
-              </Pressable>
-            ))}
-          </View>
-        ) : (
-          <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>＋</Text>
-            <Text style={styles.emptyTitle}>Room for another little adventure</Text>
-            <Text style={styles.emptyText}>Find a playdate, family event, or story time to add here.</Text>
-          </View>
-        )}
-        <Button label="Explore more plans" variant="secondary" fullWidth onPress={onOpenPlans} style={styles.explore} />
-      </View>
+      <DayOfItCard childName={childName} onOpenStory={onOpenStory} />
     </LinearGradient>
   );
 }
@@ -96,20 +65,4 @@ const styles = StyleSheet.create({
   featureDetail: { color: 'rgba(255,255,255,0.76)', fontSize: 13, marginTop: 7 },
   open: { alignSelf: 'flex-start', backgroundColor: Colors.brand, borderRadius: Radius.control, paddingHorizontal: 16, paddingVertical: 12, marginTop: 19 },
   openText: { color: '#fff', fontSize: 13, fontWeight: '800' },
-  sidebar: { backgroundColor: 'rgba(255,255,255,0.78)', borderWidth: 1, borderColor: Colors.line, borderRadius: Radius.card, padding: 20 },
-  sidebarTitle: { color: Colors.ink, fontSize: 23, fontWeight: '800', letterSpacing: -0.8, marginTop: 5, marginBottom: 17 },
-  list: { gap: 9 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 82, padding: 13, backgroundColor: '#fff', borderWidth: 1, borderColor: Colors.line, borderRadius: Radius.control },
-  rowPressed: { backgroundColor: Colors.intentActiveBg },
-  rowIcon: { fontSize: 18 },
-  rowBody: { flex: 1, minWidth: 0, gap: 3 },
-  rowMeta: { color: Colors.brandStrong, fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
-  rowTitle: { color: Colors.ink, fontSize: 15, fontWeight: '800' },
-  rowWhere: { color: Colors.muted, fontSize: 11 },
-  rowArrow: { color: Colors.brandStrong, fontSize: 16, fontWeight: '800' },
-  empty: { minHeight: 190, alignItems: 'center', justifyContent: 'center', gap: 7, padding: 20 },
-  emptyIcon: { color: Colors.brand, fontSize: 27 },
-  emptyTitle: { color: Colors.ink, fontSize: 15, fontWeight: '800', textAlign: 'center' },
-  emptyText: { color: Colors.muted, fontSize: 13, lineHeight: 19, textAlign: 'center' },
-  explore: { marginTop: Spacing.four },
 });

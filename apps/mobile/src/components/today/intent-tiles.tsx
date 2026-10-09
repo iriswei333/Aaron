@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Colors, Spacing } from '@/constants/theme';
+import { haptics } from '@/lib/haptics';
 
 export type Intent = { key: string; icon: string; label: string; detail: string; onPress: () => void };
 
@@ -13,7 +14,10 @@ export function IntentTiles({ intents }: { intents: Intent[] }) {
           key={intent.key}
           accessibilityRole="button"
           accessibilityLabel={`${intent.label}. ${intent.detail}`}
-          onPress={intent.onPress}
+          onPress={() => {
+            haptics.tap();
+            intent.onPress();
+          }}
           style={({ pressed }) => [styles.tile, (index === 0 || pressed) && styles.active]}>
           <View style={styles.icon}>
             <Text style={styles.iconText}>{intent.icon}</Text>

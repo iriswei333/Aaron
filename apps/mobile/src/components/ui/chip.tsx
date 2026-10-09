@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Colors, Layout, Radius, Spacing } from '@/constants/theme';
+import { haptics } from '@/lib/haptics';
 
 type ChipTone = 'default' | 'brand' | 'green' | 'sun';
 
@@ -28,7 +29,10 @@ export function Chip({ label, tone = 'default', selected, onPress, disabled }: C
       accessibilityState={{ selected: Boolean(selected), disabled }}
       accessibilityLabel={label}
       disabled={disabled}
-      onPress={onPress}
+      onPress={() => {
+        haptics.select();
+        onPress();
+      }}
       hitSlop={4}
       style={({ pressed }) => [
         styles.chip,

@@ -3,6 +3,7 @@ import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView, StyleSheet,
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 
 import { Colors, Layout, Spacing } from '@/constants/theme';
+import { haptics } from '@/lib/haptics';
 
 import { SectionHeading } from './section-heading';
 
@@ -34,7 +35,7 @@ export function Screen({ eyebrow, title, lede, headerAction, children, footer, e
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           contentInsetAdjustmentBehavior="automatic"
-          refreshControl={onRefresh ? <RefreshControl refreshing={Boolean(refreshing)} onRefresh={onRefresh} tintColor={Colors.brand} colors={[Colors.brand]} /> : undefined}>
+          refreshControl={onRefresh ? <RefreshControl refreshing={Boolean(refreshing)} onRefresh={() => { haptics.pull(); onRefresh(); }} tintColor={Colors.brand} colors={[Colors.brand]} /> : undefined}>
           <View style={styles.inner}>
             {header}
             {title ? <SectionHeading size="page" eyebrow={eyebrow} title={title} subtitle={lede} action={headerAction} /> : null}

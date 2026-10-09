@@ -15,7 +15,7 @@ import { useSession } from '@/lib/session';
 import { useTodayData } from '@/lib/today-data';
 
 // Mirrors the web Today tab (apps/web/src/tabs/home.js):
-// greeting + weather → three intents → your family's plans, or the next little adventure.
+// greeting + weather → your family's plans, or the next little adventure → three intent shortcuts.
 export default function TodayScreen() {
   const { user } = useSession();
   const today = useTodayData();
@@ -44,6 +44,11 @@ export default function TodayScreen() {
         weatherIcon={weatherIcon(today.weather)}
         onLocationPress={() => setLocationOpen(true)}
       />
+      {plans.length ? (
+        <FamilyPlansSection plans={plans} childName={childName} onOpenPlans={goDiscover} onOpenStory={() => setStoryOpen(true)} />
+      ) : (
+        <AdventureSection recommendation={recommendation} childName={childName} onExplore={goDiscover} onOpenStory={() => setStoryOpen(true)} />
+      )}
       <IntentTiles
         intents={[
           { key: 'go', icon: '☀', label: 'Go somewhere', detail: 'Places and events nearby', onPress: goDiscover },
@@ -51,11 +56,6 @@ export default function TodayScreen() {
           { key: 'home', icon: '✦', label: 'Play at home', detail: 'Make something together', onPress: () => router.push('/studio') },
         ]}
       />
-      {plans.length ? (
-        <FamilyPlansSection plans={plans} onOpenPlans={goDiscover} />
-      ) : (
-        <AdventureSection recommendation={recommendation} childName={childName} onExplore={goDiscover} onOpenStory={() => setStoryOpen(true)} />
-      )}
       <LocationSheet
         visible={locationOpen}
         currentLabel={locationLabel}

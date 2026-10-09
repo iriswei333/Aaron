@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Sheet } from '@/components/ui';
 import { Colors, Radius, Spacing, Type } from '@/constants/theme';
+import { haptics } from '@/lib/haptics';
 import { createTodayStory, saveTodayStory, type TodayStoryResult } from '@/lib/today-data';
 
 type Props = { visible: boolean; childName: string; ageLabel: string; onClose: () => void; onSaved?: () => void };
@@ -36,7 +37,9 @@ export function StoryMakerSheet({ visible, childName, ageLabel, onClose, onSaved
     try {
       setResult(await createTodayStory(goalId));
       setStatus('Story ready. Read it together or save it for later.');
+      haptics.success();
     } catch (error) {
+      haptics.error();
       setStatus(`Could not create the story: ${error instanceof Error ? error.message : 'please try again.'}`);
     }
     setBusy('');
@@ -50,8 +53,10 @@ export function StoryMakerSheet({ visible, childName, ageLabel, onClose, onSaved
       await saveTodayStory(result);
       setSaved(true);
       setStatus('Saved to Family AI Assets.');
+      haptics.success();
       onSaved?.();
     } catch (error) {
+      haptics.error();
       setStatus(`Could not save the story: ${error instanceof Error ? error.message : 'please try again.'}`);
     }
     setBusy('');
@@ -117,6 +122,7 @@ export function StoryMakerSheet({ visible, childName, ageLabel, onClose, onSaved
                   accessibilityState={{ selected, disabled: busy === 'create' }}
                   disabled={busy === 'create'}
                   onPress={() => {
+                    if (goal.id !== goalId) haptics.select();
                     setGoalId(goal.id);
                     setStatus('');
                   }}

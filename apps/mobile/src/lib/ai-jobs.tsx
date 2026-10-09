@@ -1,16 +1,22 @@
 import { aiCreationDestination, aiJobIsDone } from '@sproutcue/shared/studio';
+import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Platform } from 'react-native';
 
 import { AiCompletionToast, AiWaitSheet } from '@/components/studio/ai-wait-sheet';
 
 import { apiRequest } from './api';
+import { haptics } from './haptics';
+import { pushDataFrom, registerForPushNotifications, setVisibleAiJobId, type AiPushData } from './push-notifications';
 import { useSession } from './session';
 
 // AI creations run as background jobs on the server (picture-book pages, practice stories, toy play).
 // Like the web (apps/web/src/ai-jobs.js): start a job → show the progress sheet → poll
 // GET /ai-jobs?jobId every 3 s (that request also nudges a queued job to start) → open the result.
 // The family can leave the sheet; polling continues and a toast appears when it's done.
+// If they leave the app, the server sends a push notification (Expo push) when the creation
+// is ready; tapping it opens the creation (see the push effects below).
 
 export type AiJob = {
   id: string;
@@ -47,8 +53,13 @@ const AiJobsContext = createContext<AiJobsState | null>(null);
 const POLL_MS = 3000;
 
 export function AiJobsProvider({ children }: { children: ReactNode }) {
-  const { session, previewMode } = useSession();
+  const { session, previewMode, loading, onboarded } = useSession();
   const signedIn = Boolean(session) && !previewMode;
+  const userId = session?.user?.id ?? '';
+  const userIdRef = useRef(userId);
+  useEffect(() => {
+    userIdRef.current = userId;
+  }, [userId]);
   const [job, setJob] = useState<AiJob | null>(null);
   const [usage, setUsage] = useState<AiUsage>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -90,6 +101,7 @@ export function AiJobsProvider({ children }: { children: ReactNode }) {
         setPollError('');
         setJob(result.job);
         if (aiJobIsDone(result.job.status)) {
+          (result.job.status === 'succeeded' ? haptics.success : haptics.error)();
           listeners.current.forEach((listener) => listener(result.job));
           refreshNotifications();
           if (!sheetOpenRef.current) setToast(result.job);
@@ -113,6 +125,9 @@ export function AiJobsProvider({ children }: { children: ReactNode }) {
   }, [toast]);
 
   const start = useCallback((next: AiJob, nextUsage: AiUsage = null) => {
+    // A good moment to ask for notification permission: they just started something
+    // that finishes in the background. No-op if already asked, denied, or unsupported.
+    if (userIdRef.current) registerForPushNotifications({ prompt: true, userId: userIdRef.current });
     setJob(next);
     setUsage(nextUsage);
     setPollError('');
@@ -135,7 +150,7 @@ export function AiJobsProvider({ children }: { children: ReactNode }) {
 
   const openNotification = useCallback(
     (notification: AiNotification) => {
-      if (!notification.readAt) {
+      if (!notification.readAt && notification.id) {
         setNotifications((current) => current.map((item) => (item.id === notification.id ? { ...item, readAt: new Date().toISOString() } : item)));
         apiRequest('/notifications', { method: 'PATCH', body: { notificationId: notification.id } }).catch(() => {});
       }
@@ -144,6 +159,76 @@ export function AiJobsProvider({ children }: { children: ReactNode }) {
     },
     [openCreation],
   );
+
+  // ── Push notifications ────────────────────────────────────────────────────
+  // Register this device (only if notifications are already allowed; `start` asks).
+  useEffect(() => {
+    if (!signedIn || !userId || Platform.OS === 'web') return;
+    registerForPushNotifications({ prompt: false, userId });
+    // Tokens can change while the app runs; register the new one.
+    const subscription = Notifications.addPushTokenListener(() => {
+      registerForPushNotifications({ prompt: false, userId });
+    });
+    return () => subscription.remove();
+  }, [signedIn, userId]);
+
+  // The job on screen (sheet or toast) doesn't need a banner too.
+  const trackedJobId = job?.id ?? '';
+  useEffect(() => {
+    setVisibleAiJobId(trackedJobId);
+  }, [trackedJobId]);
+
+  // A push arrived while the app is open: refresh the bell, and let lists reload for jobs
+  // this screen wasn't polling (e.g. one started on the web).
+  useEffect(() => {
+    if (!signedIn || Platform.OS === 'web') return;
+    const subscription = Notifications.addNotificationReceivedListener((notification) => {
+      const data = pushDataFrom(notification);
+      if (!data.jobId) return;
+      refreshNotifications();
+      if (data.jobId === trackedJobId) return; // polling already reports this one
+      const finished: AiJob = {
+        id: data.jobId,
+        status: data.type === 'ai_asset_failed' ? 'failed' : 'succeeded',
+        result: { assetId: data.assetId || undefined, assetType: data.assetType || undefined, pageKey: data.pageKey || undefined, href: data.href || undefined },
+      };
+      listeners.current.forEach((listener) => listener(finished));
+    });
+    return () => subscription.remove();
+  }, [signedIn, trackedJobId, refreshNotifications]);
+
+  // Tapping a push opens the creation, whether the app was running or launched by the tap.
+  // Wait until the signed-in tabs are mounted so the router can navigate.
+  const readyToNavigate = signedIn && !loading && onboarded;
+  const handledResponses = useRef(new Set<string>());
+  const handleResponse = useCallback(
+    (response: Notifications.NotificationResponse) => {
+      if (response.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return;
+      const key = response.notification.request.identifier;
+      if (handledResponses.current.has(key)) return;
+      handledResponses.current.add(key);
+      const data: AiPushData = pushDataFrom(response.notification);
+      if (!data.type?.startsWith('ai_asset_')) return;
+      refreshNotifications();
+      if (data.type === 'ai_asset_failed') {
+        if (data.notificationId) apiRequest('/notifications', { method: 'PATCH', body: { notificationId: data.notificationId } }).catch(() => {});
+        router.push('/studio');
+        return;
+      }
+      openNotification({ id: data.notificationId || '', type: data.type, href: data.href || undefined, assetId: data.assetId, readAt: null });
+    },
+    [openNotification, refreshNotifications],
+  );
+  useEffect(() => {
+    if (!readyToNavigate || Platform.OS === 'web') return;
+    const last = Notifications.getLastNotificationResponse();
+    if (last) {
+      Notifications.clearLastNotificationResponse();
+      setTimeout(() => handleResponse(last), 0);
+    }
+    const subscription = Notifications.addNotificationResponseReceivedListener(handleResponse);
+    return () => subscription.remove();
+  }, [readyToNavigate, handleResponse]);
 
   const onFinished = useCallback((listener: (job: AiJob) => void) => {
     listeners.current.add(listener);

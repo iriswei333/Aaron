@@ -45,21 +45,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/family-assets/picture-book-templates/route.js"
     ],
-    "/api/family-assets/picture-book-assets/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/family-assets/picture-book-assets/route.js"
-    ],
-    "/api/family-assets/photos/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/family-assets/photos/route.js"
-    ],
-    "/api/family-assets/photos/content/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/family-assets/photos/content/route.js"
-    ],
     "/api/family-assets/practice-stories/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -70,20 +55,56 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/family-assets/practice-stories/content/route.js"
     ],
-    "/api/family-assets/toy-plays/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/family-assets/toy-plays/route.js"
-    ],
     "/api/family-assets/photos/direct-upload/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/family-assets/photos/direct-upload/route.js"
     ],
+    "/api/family-assets/picture-book-pages/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/family-assets/picture-book-pages/route.js"
+    ],
     "/api/ai-jobs/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/ai-jobs/route.js"
+    ],
+    "/api/family-assets/toy-plays/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/family-assets/toy-plays/route.js"
+    ],
+    "/api/family-assets/picture-book-assets/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/family-assets/picture-book-assets/route.js"
+    ],
+    "/api/playdates/[id]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/playdates/[id]/route.js"
+    ],
+    "/api/location/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/location/route.js"
+    ],
+    "/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
+    ],
+    "/[...slug]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/[...slug]/page.js"
+    ],
+    "/share/playdate/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/share/playdate/[id]/page.js"
     ]
   }
 }

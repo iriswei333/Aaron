@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Colors, Layout, Radius, Shadow, Spacing } from '@/constants/theme';
+import { haptics } from '@/lib/haptics';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -19,6 +20,8 @@ type ButtonProps = {
   trailing?: ReactNode;
   accessibilityHint?: string;
   style?: StyleProp<ViewStyle>;
+  /** Light tap on press (default). Turn off for buttons that trigger their own success/error feedback. */
+  haptic?: boolean;
 };
 
 // Primary = orange filled (web .rail-create / .welcome-primary), secondary = white with warm border,
@@ -36,6 +39,7 @@ export function Button({
   trailing,
   accessibilityHint,
   style,
+  haptic = true,
 }: ButtonProps) {
   const inactive = disabled || loading;
   const tint = variant === 'primary' ? '#fff' : variant === 'danger' ? Colors.dangerWeb : Colors.brandStrong;
@@ -46,7 +50,13 @@ export function Button({
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: inactive, busy: loading }}
       disabled={inactive}
-      onPress={onPress}
+      onPress={
+        onPress &&
+        (() => {
+          if (haptic) (variant === 'primary' || variant === 'danger' ? haptics.tap : haptics.select)();
+          onPress();
+        })
+      }
       style={({ pressed }) => [
         styles.base,
         size === 'sm' && styles.small,

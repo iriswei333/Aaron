@@ -6,8 +6,11 @@ import { familyEventCityForUser, familyEventDateRangeLabel } from '../../../lib/
 import { storyTimeCacheKey, storyTimeExpiresAt, fetchStoryTimes } from '../../../lib/story-times.js';
 import { getChildProfile, normalizePlayPreferences } from '@sproutcue/shared/profile-defaults';
 import { getCurrentProfile, profileErrorResponse } from '../../../lib/profile-session.js';
+import { addVenueCoordinates } from '../../../lib/venue-geocoder.js';
 
 export const runtime = 'nodejs';
+// The first look-up of new event venues (Google Places) can take a few seconds.
+export const maxDuration = 60;
 
 function dateValue(value, fallback) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value || '') ? value : fallback;
@@ -45,10 +48,12 @@ export async function GET(request) {
     const refresh = url.searchParams.get('refresh') === '1';
     if (!refresh) {
       const cached = current.mode === 'supabase' ? await readSupabaseStoryTimeCache(current.supabase, cacheKey) : await readLocalStoryTimeCache(cacheKey);
-      if (cached) return Response.json({ ...cached, dateRangeLabel: familyEventDateRangeLabel(startDate, endDate), cached: true, authMode: current.mode });
+      if (cached) return Response.json({ ...cached, events: await addVenueCoordinates(current, cached.events), dateRangeLabel: familyEventDateRangeLabel(startDate, endDate), cached: true, authMode: current.mode });
     }
     const fetchedAt = new Date().toISOString();
     const fetched = await fetchStoryTimes({ locationCity, startDate, endDate, latitude, longitude, radiusMiles });
+    // KCLS branches arrive without coordinates; place them before caching.
+    fetched.events = await addVenueCoordinates(current, fetched.events);
     const entry = { cacheKey, ...fetched, fetchedAt, expiresAt: storyTimeExpiresAt(new Date(fetchedAt)) };
     let saved;
     try { saved = current.mode === 'supabase' ? await writeSupabaseStoryTimeCache(current.supabase, entry) : await writeLocalStoryTimeCache(entry); }

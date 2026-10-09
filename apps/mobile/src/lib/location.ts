@@ -1,4 +1,5 @@
 import { formatReverseGeocode, geocodeAddress } from '@sproutcue/shared/discover-view';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { Platform } from 'react-native';
 
@@ -85,16 +86,56 @@ export async function saveLocation(location: SavedLocation) {
 }
 
 /** Best-effort coordinates for an event venue without them (native only; cached per query). */
-const geocodeCache = new Map<string, Promise<{ latitude: number; longitude: number } | null>>();
-export function geocodeVenue(query: string) {
+type GeoPoint = { latitude: number; longitude: number };
+
+// Venue look-ups for Discover pins. Found points are kept on the device (events and library
+// branches repeat week to week), so the map fills in instantly next time. "No match" is only
+// remembered for this session; errors (e.g. the OS geocoder throttling) are not remembered at all.
+const GEOCODE_STORE_KEY = 'sproutcue.geocode.v1';
+const GEOCODE_STORE_LIMIT = 600;
+const geocodeCache = new Map<string, Promise<GeoPoint | null>>();
+let storedPoints: Promise<Record<string, GeoPoint>> | null = null;
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+function loadStoredPoints() {
+  if (!storedPoints) {
+    storedPoints = AsyncStorage.getItem(GEOCODE_STORE_KEY)
+      .then((raw) => (raw ? (JSON.parse(raw) as Record<string, GeoPoint>) : {}))
+      .catch(() => ({}));
+  }
+  return storedPoints;
+}
+
+async function rememberPoint(key: string, point: GeoPoint) {
+  const points = await loadStoredPoints();
+  delete points[key];
+  points[key] = point; // newest last
+  const keys = Object.keys(points);
+  keys.slice(0, Math.max(0, keys.length - GEOCODE_STORE_LIMIT)).forEach((old) => delete points[old]);
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    AsyncStorage.setItem(GEOCODE_STORE_KEY, JSON.stringify(points)).catch(() => {});
+  }, 1000);
+}
+
+/** Point for a venue query, from the device cache or the OS geocoder. Rejects on geocoder errors. */
+export function geocodeVenuePoint(query: string): Promise<GeoPoint | null> {
   if (Platform.OS === 'web' || !query) return Promise.resolve(null);
   const key = query.toLocaleLowerCase();
   let pending = geocodeCache.get(key);
   if (!pending) {
-    pending = Location.geocodeAsync(query)
-      .then(([match]) => (match ? { latitude: match.latitude, longitude: match.longitude } : null))
-      .catch(() => null);
+    pending = loadStoredPoints().then(async (points) => {
+      if (points[key]) return points[key];
+      const [match] = await Location.geocodeAsync(query);
+      const point = match ? { latitude: match.latitude, longitude: match.longitude } : null;
+      if (point) rememberPoint(key, point);
+      return point;
+    });
+    pending.catch(() => geocodeCache.delete(key)); // let a later attempt retry after an error
     geocodeCache.set(key, pending);
   }
   return pending;
+}
+export function geocodeVenue(query: string) {
+  return geocodeVenuePoint(query).catch(() => null);
 }

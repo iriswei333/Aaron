@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { generateFamilyPictureBookPage, getFamilyPictureBook } from './family-picture-books.js';
 import { generateAndSavePracticeStory } from './family-practice-stories.js';
 import { generateToyPlay, saveToyPlay } from './family-toy-plays.js';
+import { pushNotificationToDevices } from './push-tokens.js';
 
 const LOCAL_STATE = resolve('data/ai-jobs.json');
 const DAILY_LIMIT = 10;
@@ -90,8 +91,13 @@ async function updateJob(current, jobId, patch) {
 async function addNotification(current, job, result, errorMessage = '') {
   const failed = Boolean(errorMessage);
   const item = { id: randomUUID(), ownerId: ownerId(current), notificationType: failed ? 'ai_asset_failed' : 'ai_asset_ready', title: failed ? 'AI creation needs attention' : `${result.title || 'Your AI creation'} is ready`, message: failed ? errorMessage : 'Tap to open your new family asset.', href: failed ? '/play-studio' : result.href, assetId: result.assetId || null, jobId: job.id, readAt: null, createdAt: new Date().toISOString() };
-  if (current.mode !== 'supabase') { const state = await readLocalState(); state.notifications.unshift(item); await writeLocalState(state); return; }
-  const { error } = await current.supabase.from('family_notifications').insert({ profile_id: current.authUser.id, notification_type: item.notificationType, title: item.title, message: item.message, href: item.href, asset_id: item.assetId, job_id: job.id }); if (error) throw new Error(error.message);
+  if (current.mode !== 'supabase') { const state = await readLocalState(); state.notifications.unshift(item); await writeLocalState(state); }
+  else {
+    const { data, error } = await current.supabase.from('family_notifications').insert({ profile_id: current.authUser.id, notification_type: item.notificationType, title: item.title, message: item.message, href: item.href, asset_id: item.assetId, job_id: job.id }).select('id').single(); if (error) throw new Error(error.message);
+    item.id = data?.id || null;
+  }
+  // Also reach the family's phones (apps/mobile) through Expo push. Never throws.
+  await pushNotificationToDevices(current, { ...item, assetType: result.assetType || null, pageKey: result.pageKey || null });
 }
 
 async function executeJob(current, job) {

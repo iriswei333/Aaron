@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 
 import { apiRequest } from './api';
 import { isSupabaseConfigured } from './config';
+import { unregisterPushNotifications } from './push-notifications';
 import { supabase } from './supabase';
 
 export type SproutCueUser = {
@@ -95,6 +96,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    // Stop pushes to this phone first: the request needs the session we're about to end.
+    await unregisterPushNotifications();
     if (supabase) await supabase.auth.signOut();
     setUser(null);
   }, []);

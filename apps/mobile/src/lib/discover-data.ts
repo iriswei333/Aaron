@@ -19,7 +19,8 @@ import { Platform } from 'react-native';
 
 import { apiRequest, discover, familyPlans } from './api';
 import type { PlayDate } from './family-data';
-import { geocodeVenue } from './location';
+import { haptics } from './haptics';
+import { geocodeVenuePoint } from './location';
 import { useLocationEditor } from './location-editor';
 import { createPlaydateRequest, joinPlaydateRequest, onPlaydatesChanged } from './playdates';
 import { useSession } from './session';
@@ -60,6 +61,18 @@ type Raw = {
 };
 
 const EMPTY: Raw = { playgrounds: [], playdates: [], familyEvents: [], storyTimes: [], sources: null };
+
+/**
+ * Geocoder query for an event or story time that arrived without coordinates.
+ * Uses the venue/address plus the state (events are Puget Sound calendars), not the family's
+ * own address: appending a home address made the OS geocoder land on the wrong place.
+ */
+function mapQuery(item: DiscoverItem) {
+  if (item.location.latitude != null && item.location.longitude != null) return '';
+  const query = discoverGeocodeQuery(item, '');
+  if (!query) return '';
+  return /\b(WA|Washington)\b/i.test(query) ? query : `${query}, WA, USA`;
+}
 
 function providerStatus(raw: Raw, location: any) {
   const sources = raw.sources;
@@ -106,6 +119,7 @@ export function useDiscoverData() {
   const [todayLoading, setTodayLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [filter, setFilter] = useState<FilterState>({ todayOnly: false, playgroundOnly: false, kinds: [] });
+  // Geocoded venue points, keyed by map query (shared by every item at that venue).
   const [resolved, setResolved] = useState<Record<string, { latitude: number; longitude: number }>>({});
   const loadedKey = useRef('');
   const requestId = useRef(0);
@@ -118,7 +132,8 @@ export function useDiscoverData() {
       else setLoading(true);
       const forceRefresh = mode === 'refresh';
       const [result, mine, saved, nextWeather] = await Promise.allSettled([
-        signedIn && location ? discover.loadDiscover({ location, radiusMiles, forceRefresh }) : Promise.resolve(null),
+        // Playgrounds/playdates need the family's location; family events and story times load without it.
+        signedIn ? discover.loadDiscover({ location, radiusMiles, forceRefresh }) : Promise.resolve(null),
         signedIn ? apiRequest<{ playDates?: PlayDate[] }>('/playdates?mine=1') : Promise.resolve({ playDates: [] }),
         signedIn ? familyPlans.loadFamilyPlans() : Promise.resolve({ plans: [] }),
         coords ? loadTodayWeather(coords) : Promise.resolve(WEATHER_NEEDS_LOCATION),
@@ -159,7 +174,7 @@ export function useDiscoverData() {
 
   // "Today" also asks the event provider for same-day events (web loadTodayFamilyEvents).
   useEffect(() => {
-    if (!filter.todayOnly || todayEvents || !signedIn || !location) return;
+    if (!filter.todayOnly || todayEvents || !signedIn) return;
     let active = true;
     const date = localDatePart(new Date());
     setTodayLoading(true);
@@ -192,7 +207,7 @@ export function useDiscoverData() {
       ...raw.storyTimes.map(normalizeStoryTime),
     ]) as DiscoverItem[];
     return items.map((item) => {
-      const point = resolved[item.id];
+      const point = resolved[mapQuery(item)];
       return point ? { ...item, location: { ...item.location, ...point } } : item;
     });
   }, [playgrounds, raw, minePlaydates, todayEvents, filter.todayOnly, resolved]);
@@ -203,21 +218,43 @@ export function useDiscoverData() {
   );
 
   // Family events and story times often arrive without coordinates: place them with the OS geocoder.
-  const searchLabel = location?.address || location?.label || '';
+  // One look-up at a time (the iOS geocoder throttles bursts), over every loaded event and story time
+  // so switching filters is instant. Each venue is tried once per launch; geocoder errors retry once.
+  const queued = useRef(new Set<string>());
+  const retried = useRef(new Set<string>());
+  const queue = useRef<string[]>([]);
+  const working = useRef(false);
+  const [geocoding, setGeocoding] = useState(0);
+  const pump = useCallback(async () => {
+    if (working.current) return;
+    working.current = true;
+    while (queue.current.length) {
+      setGeocoding(queue.current.length);
+      const query = queue.current.shift()!;
+      try {
+        const point = await geocodeVenuePoint(query);
+        if (point) setResolved((current) => ({ ...current, [query]: point }));
+      } catch {
+        if (!retried.current.has(query)) {
+          retried.current.add(query);
+          await new Promise((done) => setTimeout(done, 2000));
+          queue.current.push(query);
+        }
+      }
+    }
+    setGeocoding(0);
+    working.current = false;
+  }, []);
   useEffect(() => {
-    if (Platform.OS === 'web' || !coords) return;
-    const pending = items.filter((item) => item.location.latitude == null && !resolved[item.id] && discoverGeocodeQuery(item, searchLabel)).slice(0, 15);
-    if (!pending.length) return;
-    let active = true;
-    Promise.all(pending.map(async (item) => [item.id, await geocodeVenue(discoverGeocodeQuery(item, searchLabel))] as const)).then((pairs) => {
-      if (!active) return;
-      const found = Object.fromEntries(pairs.filter(([, point]) => point)) as Record<string, { latitude: number; longitude: number }>;
-      if (Object.keys(found).length) setResolved((current) => ({ ...current, ...found }));
+    if (Platform.OS === 'web') return;
+    const fresh = allItems.map(mapQuery).filter((query) => query && !queued.current.has(query));
+    if (!fresh.length) return;
+    [...new Set(fresh)].forEach((query) => {
+      queued.current.add(query);
+      queue.current.push(query);
     });
-    return () => {
-      active = false;
-    };
-  }, [items, coords, resolved, searchLabel]);
+    pump();
+  }, [allItems, pump]);
 
   // Status messages (saved, joined, created…) fade after a few seconds.
   useEffect(() => {
@@ -244,7 +281,9 @@ export function useDiscoverData() {
           setPlans((current) => current.map((saved) => (saved.kind === plan.kind && saved.externalId === plan.externalId && !saved.id ? response.item : saved)));
         }
         setMessage(existing ? `${label} removed from your family plans.` : `${label} saved to your family plans.`);
+        if (!existing) haptics.success();
       } catch (error: any) {
+        haptics.error();
         setPlans(previous);
         setMessage(`Could not update your plans: ${error?.message || error}`);
       }
@@ -272,7 +311,9 @@ export function useDiscoverData() {
     try {
       await joinPlaydateRequest(item.detail.id);
       setMessage('Joined. This play date is now on your family profile.');
+      haptics.success();
     } catch (error: any) {
+      haptics.error();
       setMessage(`Could not join play date: ${error?.message || error}`);
     }
   }, []);
@@ -281,16 +322,12 @@ export function useDiscoverData() {
   const createPlaydate = useCallback(async (playground: Playground, form: NewPlaydate) => {
     const payload = createPlaydatePayload(playground, form);
     const created = await createPlaydateRequest(payload);
+    haptics.success();
     setMessage(payload.visibility === 'private'
       ? 'Private play date created. Only this family profile can see it.'
       : 'Public play date created. Other signed-in families can find it from this playground.');
     return created;
   }, []);
-
-  // A new search location makes earlier venue look-ups irrelevant.
-  useEffect(() => {
-    setResolved({});
-  }, [locationKey]);
 
   const defaultLocationStatus = !location
     ? 'No location saved. Use your current location or enter an address.'
@@ -329,6 +366,8 @@ export function useDiscoverData() {
     toggleSave,
     join,
     createPlaydate,
+    /** Venues still waiting for a map position. */
+    geocoding,
     message,
     clearMessage: () => setMessage(''),
     signedIn,

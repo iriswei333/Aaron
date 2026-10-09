@@ -7,6 +7,8 @@ export type DiscoverMapProps = {
   /** The family's search location (saved or current). */
   center: { latitude: number; longitude: number } | null;
   radiusMiles: number;
+  /** Event / story-time venues still being placed on the map. */
+  placing?: number;
 };
 
 export function hasPoint(item: DiscoverItem) {

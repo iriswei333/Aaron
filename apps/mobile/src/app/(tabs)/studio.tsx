@@ -1,6 +1,4 @@
-import { childDisplayName, getChildProfile } from '@sproutcue/shared/profile-defaults';
 import { aiJobIsDone, aiJobRemainingSeconds, aiJobTimeLabel, STUDIO_FEATURES } from '@sproutcue/shared/studio';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -9,18 +7,15 @@ import { BookChooserSheet } from '@/components/studio/book-chooser-sheet';
 import { Button, Screen, Sheet } from '@/components/ui';
 import { Colors, Radius, Shadow, Type } from '@/constants/theme';
 import { useAiJobs } from '@/lib/ai-jobs';
-import { useSession } from '@/lib/session';
 import { usePictureBooks } from '@/lib/studio-data';
 
 const FEATURE_TINT: Record<string, string> = { book: '#f7e8d8', toy: '#eaf1da', story: '#eceaf7', voice: '#e3f0ef' };
 
 // Mirrors the web Play Studio landing (apps/web/src/tabs/studio.js studioLanding):
-// hero → four creation cards → recent creations → privacy note.
+// four creation cards → recent creations → privacy note (no hero header on mobile).
 export default function StudioScreen() {
-  const { user } = useSession();
   const ai = useAiJobs();
   const books = usePictureBooks();
-  const childName = childDisplayName(getChildProfile(user));
   const [chooserOpen, setChooserOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const running = ai.job && !aiJobIsDone(ai.job.status) ? ai.job : null;
@@ -40,13 +35,6 @@ export default function StudioScreen() {
 
   return (
     <Screen refreshing={books.refreshing} onRefresh={() => { books.refresh(); ai.refreshNotifications(); }}>
-      <LinearGradient colors={['#fff3e3', '#f1f7e6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
-        <Text style={styles.spark}>✦</Text>
-        <Text style={Type.eyebrow}>A little imagination, made personal</Text>
-        <Text accessibilityRole="header" style={styles.heroTitle}>Play Studio</Text>
-        <Text style={styles.heroLede}>Turn {childName}’s favorite things into new ways to play, learn and grow together.</Text>
-      </LinearGradient>
-
       {running ? (
         <Pressable accessibilityRole="button" accessibilityHint="Shows the progress of your creation" onPress={ai.showSheet} style={({ pressed }) => [styles.running, pressed && styles.pressed]}>
           <View style={styles.runningDot} />
@@ -144,10 +132,6 @@ export default function StudioScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, minWidth: 0 },
   pressed: { opacity: 0.75 },
-  hero: { borderRadius: 30, borderWidth: 1, borderColor: Colors.line, padding: 24, overflow: 'hidden' },
-  spark: { position: 'absolute', right: 20, top: 14, fontSize: 64, color: 'rgba(232, 111, 61, 0.18)' },
-  heroTitle: { color: Colors.ink, fontSize: 48, fontWeight: '800', letterSpacing: -2.8, lineHeight: 46, marginTop: 10, marginBottom: 12 },
-  heroLede: { color: Colors.muted, fontSize: 16, lineHeight: 24 },
   running: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#edf3e5', borderWidth: 1, borderColor: '#d6e3c8', borderRadius: 18, padding: 14 },
   runningDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.sun },
   runningTitle: { color: Colors.greenInk, fontSize: 15, fontWeight: '800' },

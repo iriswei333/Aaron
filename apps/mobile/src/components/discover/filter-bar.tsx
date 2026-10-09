@@ -2,6 +2,7 @@ import { DISCOVER_FILTERS, discoverCountLabel, discoverFilterIsActive } from '@s
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Colors, Layout, Radius, Spacing } from '@/constants/theme';
+import { haptics } from '@/lib/haptics';
 import type { FilterState } from '@/lib/discover-data';
 
 export type DiscoverView = 'map' | 'list';
@@ -21,7 +22,10 @@ export function FilterBar({ filter, onChoose, count, view, onView }: Props) {
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
               accessibilityLabel={label}
-              onPress={() => onChoose(value)}
+              onPress={() => {
+                haptics.select();
+                onChoose(value);
+              }}
               style={({ pressed }) => [styles.pill, active && styles.pillActive, pressed && !active && styles.pillPressed]}>
               <Text style={[styles.pillText, active && styles.pillTextActive]}>{label}</Text>
             </Pressable>
@@ -39,7 +43,10 @@ export function FilterBar({ filter, onChoose, count, view, onView }: Props) {
               accessibilityRole="tab"
               accessibilityState={{ selected: view === value }}
               accessibilityLabel={value === 'map' ? 'Map view' : 'List view'}
-              onPress={() => onView(value)}
+              onPress={() => {
+                if (view !== value) haptics.select();
+                onView(value);
+              }}
               style={[styles.segment, view === value && styles.segmentActive]}>
               <Text style={[styles.segmentText, view === value && styles.segmentTextActive]}>{label}</Text>
             </Pressable>
@@ -53,19 +60,19 @@ export function FilterBar({ filter, onChoose, count, view, onView }: Props) {
 const styles = StyleSheet.create({
   wrap: { gap: Spacing.three },
   scroller: { marginHorizontal: -Layout.gutter },
-  filters: { gap: Spacing.two, paddingHorizontal: Layout.gutter },
+  filters: { gap: 6, paddingHorizontal: Layout.gutter },
   pill: {
-    minHeight: 40,
+    minHeight: 30,
     justifyContent: 'center',
     borderRadius: Radius.pill,
     borderWidth: 1,
     borderColor: Colors.line,
     backgroundColor: Colors.surface,
-    paddingHorizontal: 15,
+    paddingHorizontal: 11,
   },
   pillActive: { backgroundColor: Colors.brand, borderColor: Colors.brand },
   pillPressed: { backgroundColor: Colors.surfaceSoft },
-  pillText: { color: Colors.chipInk, fontSize: 14, fontWeight: '800' },
+  pillText: { color: Colors.chipInk, fontSize: 12, fontWeight: '800' },
   pillTextActive: { color: '#fff' },
   toolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.three },
   count: { color: Colors.muted, fontSize: 14, flexShrink: 1 },

@@ -1,5 +1,5 @@
-import { childAgeLabel, childDisplayName, getChildProfile } from '@sproutcue/shared/profile-defaults';
-import { shortLocation, weatherIsIndoorDay } from '@sproutcue/shared/today';
+import { childAgeLabel, getChildProfile } from '@sproutcue/shared/profile-defaults';
+import { weatherIsIndoorDay } from '@sproutcue/shared/today';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -9,11 +9,9 @@ import { DiscoverMap } from '@/components/discover/discover-map';
 import { EventDetailSheet } from '@/components/discover/event-detail-sheet';
 import { FilterBar, type DiscoverView } from '@/components/discover/filter-bar';
 import type { ItemHandlers } from '@/components/discover/item-actions';
-import { LocationPanel, LocationSummary } from '@/components/discover/location-panel';
 import { PlaygroundDetailSheet } from '@/components/discover/playground-detail-sheet';
 import { ProviderFooter } from '@/components/discover/provider-footer';
 import { ResultCard } from '@/components/discover/result-card';
-import { LocationSheet } from '@/components/location/location-sheet';
 import { PlaydateFormSheet } from '@/components/playdates/playdate-form-sheet';
 import { EmptyResults, SelectionCard } from '@/components/discover/selection-card';
 import { Button, Screen } from '@/components/ui';
@@ -24,16 +22,15 @@ import { rememberPlaydate } from '@/lib/playdates';
 import { useSession } from '@/lib/session';
 
 // Mirrors the web Discover tab (apps/web/src/tabs/play.js renderPlay):
-// heading + weather → search location → filters + Map/List → map with selection card, or result cards.
+// heading → filters + Map/List → map with selection card, or result cards.
+// The family's location (Family details / Today chip) limits playgrounds and playdates only.
 export default function DiscoverScreen() {
   const { user } = useSession();
   const data = useDiscoverData();
   const child = getChildProfile(user);
-  const childName = childDisplayName(child);
   const [view, setView] = useState<DiscoverView>('map');
   const [selectedId, setSelectedId] = useState('');
   const [detailId, setDetailId] = useState('');
-  const [addressOpen, setAddressOpen] = useState(false);
   const [createFor, setCreateFor] = useState<Playground | null>(null);
 
   const selected = data.items.find((item) => item.id === selectedId) ?? data.items[0] ?? null;
@@ -71,12 +68,7 @@ export default function DiscoverScreen() {
 
   return (
     <Screen refreshing={data.refreshing} onRefresh={data.refresh}>
-      <DiscoverHeading childName={childName} />
-      {data.locationSet ? (
-        <LocationSummary label={shortLocation(data.location)} radiusMiles={data.radiusMiles} />
-      ) : (
-        <LocationPanel label={searchLabel} status={data.locationStatus} locating={data.locating} onLocate={data.locateMe} onAddress={() => setAddressOpen(true)} />
-      )}
+      <DiscoverHeading />
       <FilterBar filter={data.filter} onChoose={data.choose} count={data.items.length} view={view} onView={setView} />
 
       {data.message ? (
@@ -94,7 +86,7 @@ export default function DiscoverScreen() {
 
       {view === 'map' ? (
         <>
-          <DiscoverMap items={data.items} selectedId={selected?.id ?? ''} onSelect={setSelectedId} center={data.coords} radiusMiles={data.radiusMiles} />
+          <DiscoverMap items={data.items} selectedId={selected?.id ?? ''} onSelect={setSelectedId} center={data.coords} radiusMiles={data.radiusMiles} placing={data.geocoding} />
           <SelectionCard item={selected} handlers={handlers} filter={data.filter} loading={data.loading || data.todayLoading} />
         </>
       ) : data.items.length ? (
@@ -109,16 +101,6 @@ export default function DiscoverScreen() {
 
       <ProviderFooter loading={data.loading || data.refreshing} status={data.providerStatus} onRefresh={data.refresh} />
 
-      <LocationSheet
-        visible={addressOpen}
-        currentLabel={searchLabel}
-        initialAddress={data.location?.address || ''}
-        status={data.locationStatus}
-        locating={data.locating}
-        onLocate={data.locateMe}
-        onSubmit={data.searchAddress}
-        onClose={() => setAddressOpen(false)}
-      />
       <EventDetailSheet
         item={detail && detail.kind !== 'playground' && detail.kind !== 'playdate' ? detail : null}
         saved={detail ? data.isSaved(detail) : false}

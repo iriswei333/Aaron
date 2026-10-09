@@ -16,12 +16,17 @@ import {
 } from '../../../lib/family-events.js';
 import { getChildProfile } from '@sproutcue/shared/profile-defaults';
 import { getCurrentProfile, profileErrorResponse } from '../../../lib/profile-session.js';
+import { addVenueCoordinates } from '../../../lib/venue-geocoder.js';
 
 export const runtime = 'nodejs';
+// The first look-up of new event venues (Google Places) can take a few seconds.
+export const maxDuration = 60;
 
-function cacheResponse(entry, current, cached) {
+// Events cached before venue look-ups existed get map positions on the way out (shared cache, cheap).
+async function cacheResponse(entry, current, cached) {
   return Response.json({
     ...entry,
+    events: await addVenueCoordinates(current, entry.events),
     dateRangeLabel: familyEventDateRangeLabel(entry.startDate, entry.endDate),
     cached,
     authMode: current.mode,
@@ -34,13 +39,18 @@ export async function GET(request) {
     if (!current.user) return profileErrorResponse(current);
 
     const url = new URL(request.url);
-    const { locationCity, locationZip, startDate, endDate } = normalizeFamilyEventRequest(current.user, url.searchParams);
+    const eventRequest = normalizeFamilyEventRequest(current.user, url.searchParams);
+    const { startDate, endDate } = eventRequest;
+    // The family's saved location only limits playgrounds and playdates. Family events use the
+    // metro-area calendars (city → ParentMap region, Seattle by default) without a ZIP filter.
+    const locationCity = eventRequest.locationCity || 'Seattle';
+    const locationZip = '';
     const filters = {
       provider: 'parentmap',
       secondaryProvider: 'seattles-child',
       range: 'weekend',
       locationZip,
-      version: 4,
+      version: 5,
     };
     const cacheKey = familyEventCacheKey({ locationCity, startDate, endDate, filters });
     const refresh = url.searchParams.get('refresh') === '1';
@@ -75,7 +85,7 @@ export async function GET(request) {
       sourceLabel: fetched.sourceLabel,
       sourceUrls: fetched.sourceUrls,
       filters,
-      events: await resolveFamilyEventWebsites(fetched.events),
+      events: await addVenueCoordinates(current, await resolveFamilyEventWebsites(fetched.events)),
       fallback: fetched.fallback,
       providerStatus: fetched.providerStatus,
       fetchedAt,

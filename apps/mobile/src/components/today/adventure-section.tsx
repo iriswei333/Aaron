@@ -1,8 +1,9 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui';
-import { Colors, Radius, Shadow, Spacing, Type } from '@/constants/theme';
+import { Radius } from '@/constants/theme';
 
+import { DayOfItCard } from './day-of-it-card';
 import { ImageHero } from './image-hero';
 import { TODAY_IMAGES } from './images';
 
@@ -23,28 +24,7 @@ export function AdventureSection({ recommendation, childName, onExplore, onOpenS
         <Button label="Explore this adventure ↗" onPress={onExplore} style={styles.explore} />
       </ImageHero>
 
-      <View style={styles.journey}>
-        <Text style={Type.eyebrow}>More than a place to go</Text>
-        <Text accessibilityRole="header" style={styles.journeyTitle}>Make a little day of it</Text>
-        <View style={styles.steps}>
-          {[
-            ['Get ready together', `Talk about one thing ${childName} might see or try.`],
-            ['Bring one familiar toy', 'Use it to start a simple game while you explore.'],
-            ['Keep one small memory', 'Name a favorite moment on the way home.'],
-          ].map(([title, text], index) => (
-            <View key={title} style={styles.step}>
-              <View style={styles.stepNumber}>
-                <Text style={styles.stepNumberText}>{index + 1}</Text>
-              </View>
-              <View style={styles.stepBody}>
-                <Text style={styles.stepTitle}>{title}</Text>
-                <Text style={styles.stepText}>{text}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-        <Button label="Find a getting-ready story" variant="secondary" fullWidth onPress={onOpenStory} style={styles.storyButton} />
-      </View>
+      <DayOfItCard childName={childName} onOpenStory={onOpenStory} />
     </View>
   );
 }
@@ -58,14 +38,4 @@ const styles = StyleSheet.create({
   description: { color: 'rgba(255,255,255,0.92)', fontSize: 16, lineHeight: 25, marginBottom: 7 },
   detail: { color: 'rgba(255,255,255,0.72)', fontSize: 13 },
   explore: { marginTop: 24 },
-  journey: { backgroundColor: '#fff', borderWidth: 1, borderColor: Colors.line, borderRadius: 28, padding: 24, ...Shadow.card },
-  journeyTitle: { color: Colors.ink, fontSize: 28, fontWeight: '800', letterSpacing: -1.2, lineHeight: 30, marginTop: 7, marginBottom: 25 },
-  steps: { gap: 21 },
-  step: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
-  stepNumber: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.brandSoft, alignItems: 'center', justifyContent: 'center' },
-  stepNumberText: { color: Colors.brandStrong, fontSize: 13, fontWeight: '900' },
-  stepBody: { flex: 1 },
-  stepTitle: { color: Colors.ink, fontSize: 15, fontWeight: '800' },
-  stepText: { color: Colors.muted, fontSize: 13, lineHeight: 19, marginTop: 4 },
-  storyButton: { marginTop: 28 },
 });

@@ -4,26 +4,76 @@ import { Platform, StyleSheet, Text, View } from 'react-native';
 import MapView, { Circle, Marker, type Region } from 'react-native-maps';
 
 import { Colors, Radius } from '@/constants/theme';
+import { haptics } from '@/lib/haptics';
 
 import { KIND_TINT } from './kind-style';
 import { hasPoint, type DiscoverMapProps } from './map-types';
 
 const METERS_PER_MILE = 1609.344;
 
-function regionAround(point: { latitude: number; longitude: number }, radiusMiles: number): Region {
-  // Show the whole search circle: diameter in degrees of latitude, with a little margin.
-  const latitudeDelta = Math.max(0.02, ((radiusMiles * 2.3) / 69));
-  const longitudeDelta = latitudeDelta / Math.max(0.2, Math.cos((point.latitude * Math.PI) / 180));
-  return { ...point, latitudeDelta, longitudeDelta };
+// The family's location and search radius only limit playgrounds and playdates.
+// Family events and story times are shown wherever they are.
+const LOCATION_BOUND_KINDS = new Set(['playground', 'playdate']);
+const MAX_LOCAL_PINS = 40;
+// Every event and story time in the current filter gets a pin; this only guards against a runaway feed.
+const MAX_EVENT_PINS = 250;
+// Ignore far-off outliers (a mis-geocoded venue) when framing the first view.
+const FRAME_LIMIT_MILES = 75;
+
+type Point = { latitude: number; longitude: number };
+
+function milesBetween(a: Point, b: Point) {
+  const dLat = (b.latitude - a.latitude) * 69;
+  const dLng = (b.longitude - a.longitude) * 69 * Math.cos((a.latitude * Math.PI) / 180);
+  return Math.sqrt(dLat * dLat + dLng * dLng);
+}
+
+/** First view: the whole search circle plus every event / story time pin near it. */
+function initialRegionFor(origin: Point, radiusMiles: number, eventPoints: Point[]): Region {
+  const radiusLat = radiusMiles / 69;
+  const radiusLng = radiusLat / Math.max(0.2, Math.cos((origin.latitude * Math.PI) / 180));
+  let minLat = origin.latitude - radiusLat;
+  let maxLat = origin.latitude + radiusLat;
+  let minLng = origin.longitude - radiusLng;
+  let maxLng = origin.longitude + radiusLng;
+  eventPoints
+    .filter((point) => milesBetween(origin, point) <= FRAME_LIMIT_MILES)
+    .forEach((point) => {
+      minLat = Math.min(minLat, point.latitude);
+      maxLat = Math.max(maxLat, point.latitude);
+      minLng = Math.min(minLng, point.longitude);
+      maxLng = Math.max(maxLng, point.longitude);
+    });
+  return {
+    latitude: (minLat + maxLat) / 2,
+    longitude: (minLng + maxLng) / 2,
+    latitudeDelta: Math.max(0.02, (maxLat - minLat) * 1.15),
+    longitudeDelta: Math.max(0.02, (maxLng - minLng) * 1.15),
+  };
 }
 
 // Native map (Apple Maps on iOS, Google Maps on Android) — web .discover-map with real tiles.
-export function DiscoverMap({ items, selectedId, onSelect, center, radiusMiles }: DiscoverMapProps) {
+export function DiscoverMap({ items, selectedId, onSelect, center, radiusMiles, placing = 0 }: DiscoverMapProps) {
   const mapRef = useRef<MapView>(null);
-  const pinned = useMemo(() => items.filter(hasPoint).slice(0, 40), [items]);
+  const pinned = useMemo(() => {
+    const withPoint = items.filter(hasPoint);
+    return [
+      ...withPoint.filter((item) => LOCATION_BOUND_KINDS.has(item.kind)).slice(0, MAX_LOCAL_PINS),
+      ...withPoint.filter((item) => !LOCATION_BOUND_KINDS.has(item.kind)).slice(0, MAX_EVENT_PINS),
+    ];
+  }, [items]);
   const unpinned = items.length - pinned.length;
-  const origin = center ?? (pinned[0] ? { latitude: pinned[0].location.latitude!, longitude: pinned[0].location.longitude! } : null);
-  const initialRegion = useMemo(() => (origin ? regionAround(origin, radiusMiles) : undefined), [origin?.latitude, origin?.longitude, radiusMiles]);
+  const eventPoints = useMemo(
+    () => pinned.filter((item) => !LOCATION_BOUND_KINDS.has(item.kind)).map((item) => ({ latitude: item.location.latitude!, longitude: item.location.longitude! })),
+    [pinned],
+  );
+  const origin = center ?? eventPoints[0] ?? (pinned[0] ? { latitude: pinned[0].location.latitude!, longitude: pinned[0].location.longitude! } : null);
+  // Re-frame only when the location, radius or set of event pins changes (not on every selection).
+  const eventKey = eventPoints.map((point) => `${point.latitude.toFixed(3)},${point.longitude.toFixed(3)}`).join('|');
+  const initialRegion = useMemo(
+    () => (origin ? initialRegionFor(origin, center ? radiusMiles : 0, eventPoints) : undefined),
+    [origin?.latitude, origin?.longitude, radiusMiles, eventKey], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   // Custom marker views must track changes briefly so Android draws them, then stop for smooth panning.
   const [tracking, setTracking] = useState(true);
@@ -33,10 +83,11 @@ export function DiscoverMap({ items, selectedId, onSelect, center, radiusMiles }
     return () => clearTimeout(timer);
   }, [selectedId, pinned.length]);
 
-  // Re-center when the search location changes.
+  // Re-frame when the location, filter or event pins change — but not pin by pin while venues
+  // are still being placed (that would make the map jump); once when placing finishes.
   useEffect(() => {
-    if (initialRegion) mapRef.current?.animateToRegion(initialRegion, 350);
-  }, [initialRegion]);
+    if (initialRegion && placing === 0) mapRef.current?.animateToRegion(initialRegion, 350);
+  }, [initialRegion, placing === 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Bring the selected pin into view.
   useEffect(() => {
@@ -48,8 +99,8 @@ export function DiscoverMap({ items, selectedId, onSelect, center, radiusMiles }
     return (
       <View style={[styles.map, styles.empty]}>
         <Text style={styles.emptyIcon}>⌖</Text>
-        <Text style={styles.emptyTitle}>Set a search location</Text>
-        <Text style={styles.emptyText}>Use your location or enter an address to see adventures on the map.</Text>
+        <Text style={styles.emptyTitle}>Nothing on the map yet</Text>
+        <Text style={styles.emptyText}>Family events and story times appear here as they load. Add your location in Family details to see playgrounds and playdates nearby.</Text>
       </View>
     );
   }
@@ -92,6 +143,7 @@ export function DiscoverMap({ items, selectedId, onSelect, center, radiusMiles }
               accessibilityLabel={`Select ${item.title}`}
               onPress={(event) => {
                 event.stopPropagation?.();
+                if (item.id !== selectedId) haptics.select();
                 onSelect(item.id);
               }}>
               <View style={[styles.pin, { backgroundColor: KIND_TINT[item.kind] }, selected && styles.pinSelected]}>
@@ -106,7 +158,8 @@ export function DiscoverMap({ items, selectedId, onSelect, center, radiusMiles }
       </MapView>
       <View style={styles.label} pointerEvents="none">
         <Text style={styles.labelText}>
-          {radiusMiles} mile search{unpinned > 0 ? ` · ${unpinned} more in List` : ''}
+          {center ? `${radiusMiles} mile search` : 'Events & story times'}
+          {placing > 0 ? ` · placing ${placing} on the map…` : unpinned > 0 ? ` · ${unpinned} without an address (see List)` : ''}
         </Text>
       </View>
     </View>
