@@ -45,7 +45,7 @@ export default function DiscoverScreen() {
 
   const openPlaydate = (playDate: PlayDate) => {
     rememberPlaydate(playDate);
-    router.push({ pathname: '/playdate/[id]', params: { id: playDate.id } });
+    router.push({ pathname: '/playdate/details', params: { playDateId: playDate.id } });
   };
 
   const handlers: ItemHandlers = {

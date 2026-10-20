@@ -17,6 +17,7 @@
     "./family-plans-client": "./src/family-plans-client.js",
     "./family-profile": "./src/family-profile.js",
     "./onboarding": "./src/onboarding.js",
+    "./photo-check": "./src/photo-check.js",
     "./playdates": "./src/playdates.js",
     "./practice-story-options": "./src/practice-story-options.js",
     "./profile-defaults": "./src/profile-defaults.js",

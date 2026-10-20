@@ -23,5 +23,7 @@ test('rate limits and expired links read clearly', () => {
   assert.equal(emailSignInErrorMessage(rate), 'Please wait 42 seconds before asking for another email.');
   assert.match(emailSignInErrorMessage({ code: 'otp_expired', message: 'Token has expired or is invalid' }), /expired/);
   assert.match(emailSignInErrorMessage(new TypeError('Failed to fetch')), /connection/);
+  assert.equal(emailSignInErrorMessage({ code: 'email_address_invalid', message: 'Email address "x@y" is invalid' }), 'Check the email address and try again.');
+  assert.equal(emailSignInErrorMessage({ message: 'Unable to validate email address: invalid format' }), 'Check the email address and try again.');
   assert.equal(emailSignInErrorMessage({ message: 'Signups not allowed for otp' }), 'Signups not allowed for otp');
 });

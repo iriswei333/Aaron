@@ -1,9 +1,12 @@
 import { createFamilyPictureBook, deleteFamilyPictureBook, getFamilyPictureBook, listFamilyPictureBooks, serializeFamilyPictureBook } from '../../../../lib/family-picture-books.js';
+import { photoCheckErrorResponse } from '../../../../lib/child-photo-check.js';
 import { getCurrentProfile, profileErrorResponse } from '../../../../lib/profile-session.js';
 
 export const runtime = 'nodejs';
 
 function uploadFailure(error) {
+  const photoCheck = photoCheckErrorResponse(error);
+  if (photoCheck) return photoCheck;
   const message = error instanceof Error ? error.message : 'Picture-book upload failed.';
   if (/request body|payload|body.*(?:exceed|large)|too large/i.test(message)) {
     return Response.json({
@@ -42,6 +45,7 @@ export async function POST(request) {
       formData = new FormData();
       formData.set('childName', String(body.childName || ''));
       formData.set('templateSlug', String(body.templateSlug || ''));
+      formData.set('language', body.language === 'zh-CN' ? 'zh-CN' : 'en');
       if (body.childId) formData.set('childId', String(body.childId));
       for (const photoId of Array.isArray(body.savedPhotoIds) ? body.savedPhotoIds : []) {
         formData.append('savedPhotoIds', String(photoId));

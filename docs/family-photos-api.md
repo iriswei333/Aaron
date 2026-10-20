@@ -6,6 +6,8 @@ Provide each authenticated family with a private photo library that can be manag
 
 Every library photo is normalized to an orientation-corrected JPEG with a maximum 2048×2048 bounding box. The original upload must be JPEG, PNG, WebP, HEIC, or HEIF and no larger than 20 MB.
 
+Photos uploaded for a picture book or practice story (`sourceKind` `picture_book` / `practice_story`) must pass the [child-photo check](child-photo-check.md). A rejected photo is never saved and the request returns 422 with `code` and `photoErrors`. Saved photos chosen later for those features are checked too, if they weren't checked at upload.
+
 Project workflows copy a selected library photo into their own project storage. This intentional separation means:
 
 - deleting a library photo does not break an existing picture book or saved toy plan;
@@ -29,6 +31,7 @@ Lists the authenticated family's photos, newest first.
       "width": 1536,
       "height": 2048,
       "sourceKind": "picture_book",
+      "childCheck": { "status": "passed", "code": null, "severity": null },
       "createdAt": "2026-09-30T17:00:00.000Z",
       "updatedAt": "2026-09-30T17:00:00.000Z",
       "contentUrl": "/api/family-assets/photos/content?photoId=uuid"
@@ -46,7 +49,11 @@ Uploads one reusable photo using `multipart/form-data`.
 | `photo` | File | Yes |
 | `label` | String, max 100 characters | No |
 
-Returns `201 { "photo": FamilyPhoto }`.
+Returns `201 { "photo": FamilyPhoto }`. General library uploads are not child-checked (`childCheck.status: "unchecked"`).
+
+### `POST /api/family-assets/photos/direct-upload`
+
+Finalizes a photo the client uploaded straight to Storage under `{profile_id}/incoming/`. JSON body: `storagePath`, `originalName`, `mimeType`, `byteSize`, `label`, `sourceKind`, plus optional `photoIndex` (position in the client's selection, echoed in errors) and `language` (`en` or `zh-CN`). The incoming object is always removed. Book and story photos are child-checked: `201 { photo }` on pass (possibly with a warning in `photo.childCheck`), 422 on rejection, 503 if the check is unavailable.
 
 ### `PATCH /api/family-assets/photos`
 

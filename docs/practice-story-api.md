@@ -14,7 +14,7 @@ Use `multipart/form-data`:
 - `photo` — optional JPEG, PNG, WebP, HEIC, or HEIF file, up to 20 MB.
 - `savedPhotoId` — optional alternative to `photo`, referencing the family's private saved-photo library.
 
-The authenticated child's saved age and name are supplied by the server, not accepted from the client. Ages are constrained to the product's birth-to-five audience. If a photo is supplied, it is safety-checked and used to create a private square illustration of the child completing the goal. Without a photo, only story text is generated.
+The authenticated child's saved age and name are supplied by the server, not accepted from the client. Ages are constrained to the product's birth-to-five audience. If photos are supplied, each must pass the [child-photo check](child-photo-check.md) **before the job is queued**: saved photos are reused or checked, new uploads are checked as they are saved. A rejection returns 422 `{ error, code, photoErrors, help }`, with saved photos first in `index` order, then new uploads. It uses no daily AI slot. Passing photos are used to create a private square illustration of the child completing the goal. Without a photo, only story text is generated.
 
 The response is `{ "asset": PracticeStoryAsset }`. Generation is atomic from the UI's perspective: a finished asset is returned and immediately appears in Family AI Assets.
 

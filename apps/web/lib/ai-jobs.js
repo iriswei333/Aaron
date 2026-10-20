@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { generateFamilyPictureBookPage, getFamilyPictureBook } from './family-picture-books.js';
 import { generateAndSavePracticeStory } from './family-practice-stories.js';
 import { generateToyPlay, saveToyPlay } from './family-toy-plays.js';
+import { photoCheckErrorCode } from './child-photo-check.js';
 import { pushNotificationToDevices } from './push-tokens.js';
 
 const LOCAL_STATE = resolve('data/ai-jobs.json');
@@ -24,7 +25,7 @@ function serializeJob(job) {
   return {
     id: job.id, jobType: job.jobType, status: job.status, progress: Number(job.progress) || 0,
     estimatedSeconds: Number(job.estimatedSeconds) || 60, result: job.result || null,
-    error: job.errorMessage || null, createdAt: job.createdAt, startedAt: job.startedAt || null, completedAt: job.completedAt || null,
+    error: job.errorMessage || null, errorCode: job.errorCode || null, createdAt: job.createdAt, startedAt: job.startedAt || null, completedAt: job.completedAt || null,
   };
 }
 function serializeNotification(item) {
@@ -52,7 +53,7 @@ export async function enqueueAiJob(current, { jobType, payload = {}, estimatedSe
   const unlimited = isAdmin(current);
   const used = state.jobs.filter((job) => job.ownerId === ownerId(current) && dayFor(job.createdAt) === today()).length;
   if (!unlimited && used >= DAILY_LIMIT) { const error = new Error('You have used today’s 10 AI creations. Your limit resets tomorrow.'); error.code = 'DAILY_AI_LIMIT_REACHED'; throw error; }
-  const job = { id: randomUUID(), ownerId: ownerId(current), jobType, status: 'queued', payload, result: null, progress: 0, estimatedSeconds: Math.max(1, Number(estimatedSeconds) || 60), errorMessage: null, createdAt: new Date().toISOString(), startedAt: null, completedAt: null };
+  const job = { id: randomUUID(), ownerId: ownerId(current), jobType, status: 'queued', payload, result: null, progress: 0, estimatedSeconds: Math.max(1, Number(estimatedSeconds) || 60), errorMessage: null, errorCode: null, createdAt: new Date().toISOString(), startedAt: null, completedAt: null };
   state.jobs.unshift(job); await writeLocalState(state);
   return { job: serializeJob(job), usage: { used: used + 1, limit: DAILY_LIMIT, unlimited } };
 }
@@ -63,9 +64,9 @@ export async function getAiJob(current, jobId) {
     if (!job) { const error = new Error('AI job not found.'); error.code = 'NOT_FOUND'; throw error; }
     return serializeJob(job);
   }
-  const { data, error } = await current.supabase.from('ai_generation_jobs').select('id, job_type, status, progress, estimated_seconds, result, error_message, created_at, started_at, completed_at').eq('id', jobId).single();
+  const { data, error } = await current.supabase.from('ai_generation_jobs').select('id, job_type, status, progress, estimated_seconds, result, error_message, error_code, created_at, started_at, completed_at').eq('id', jobId).single();
   if (error || !data) { const missing = new Error('AI job not found.'); missing.code = 'NOT_FOUND'; throw missing; }
-  return serializeJob({ id: data.id, jobType: data.job_type, status: data.status, progress: data.progress, estimatedSeconds: data.estimated_seconds, result: data.result, errorMessage: data.error_message, createdAt: data.created_at, startedAt: data.started_at, completedAt: data.completed_at });
+  return serializeJob({ id: data.id, jobType: data.job_type, status: data.status, progress: data.progress, estimatedSeconds: data.estimated_seconds, result: data.result, errorMessage: data.error_message, errorCode: data.error_code, createdAt: data.created_at, startedAt: data.started_at, completedAt: data.completed_at });
 }
 
 async function jobRecord(current, jobId) {
@@ -83,6 +84,7 @@ async function updateJob(current, jobId, patch) {
   if ('progress' in patch) row.progress = patch.progress;
   if ('result' in patch) row.result = patch.result;
   if ('errorMessage' in patch) row.error_message = patch.errorMessage;
+  if ('errorCode' in patch) row.error_code = patch.errorCode;
   if ('startedAt' in patch) row.started_at = patch.startedAt;
   if ('completedAt' in patch) row.completed_at = patch.completedAt;
   if (patch.result?.assetId) row.asset_id = patch.result.assetId;
@@ -149,7 +151,7 @@ export async function processAiJob(current, jobId) {
     return getAiJob(current, jobId);
   } catch (error) {
     const message = String(error.message || 'AI generation failed.').slice(0, 1000); const completedAt = new Date().toISOString();
-    await updateJob(current, jobId, { status: 'failed', progress: 100, errorMessage: message, completedAt });
+    await updateJob(current, jobId, { status: 'failed', progress: 100, errorMessage: message, errorCode: photoCheckErrorCode(error), completedAt });
     try { await addNotification(current, job, {}, message); } catch {}
     return getAiJob(current, jobId);
   }
@@ -157,7 +159,7 @@ export async function processAiJob(current, jobId) {
 
 export async function processPendingAiJobs(supabase, { limit = 2 } = {}) {
   const staleBefore = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-  await supabase.from('ai_generation_jobs').update({ status: 'queued', progress: 0, started_at: null, error_message: null }).eq('status', 'running').lt('started_at', staleBefore);
+  await supabase.from('ai_generation_jobs').update({ status: 'queued', progress: 0, started_at: null, error_message: null, error_code: null }).eq('status', 'running').lt('started_at', staleBefore);
   const { data: jobs, error } = await supabase.from('ai_generation_jobs').select('id, profile_id').eq('status', 'queued').order('created_at').limit(Math.max(1, Math.min(10, limit)));
   if (error) throw new Error(error.message);
   const results = [];

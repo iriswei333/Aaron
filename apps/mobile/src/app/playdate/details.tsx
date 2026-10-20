@@ -16,11 +16,13 @@ import { useSession } from '@/lib/session';
 // One playdate — the web shared invitation page (renderSharedPlayDate) plus the host and guest
 // actions from the web playdate card (renderPlayDateCard): join, can't attend, keep attending,
 // edit, share, cancel, and add to calendar. Opened from Discover, the Family tab,
-// and links like sproutcue://playdate/<id>.
+// and links like sproutcue://playdate/<id> (rewritten by +native-intent.tsx).
+//
+// Opened as /playdate/details?playDateId=<play_dates.id>.
 export default function PlaydateScreen() {
-  const { id = '' } = useLocalSearchParams<{ id: string }>();
+  const { playDateId = '' } = useLocalSearchParams<{ playDateId: string }>();
   const { user } = useSession();
-  const data = usePlaydate(String(id));
+  const data = usePlaydate(String(playDateId));
   const [editing, setEditing] = useState(false);
   const [calendarBusy, setCalendarBusy] = useState(false);
   const playDate = data.playDate;

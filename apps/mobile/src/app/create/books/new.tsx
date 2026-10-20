@@ -9,7 +9,8 @@ import { PhotoPicker } from '@/components/studio/photo-picker';
 import { ChoiceCards, TagGroup } from '@/components/studio/tag-group';
 import { Button, Screen, TextField } from '@/components/ui';
 import { Colors, Type } from '@/constants/theme';
-import type { PickedPhoto } from '@/lib/photo-upload';
+import { haptics } from '@/lib/haptics';
+import { PhotoCheckBlockedError, type PhotoProblem, type PickedPhoto } from '@/lib/photo-upload';
 import { useSession } from '@/lib/session';
 import { usePictureBooks } from '@/lib/studio-data';
 
@@ -21,6 +22,7 @@ export default function NewPictureBook() {
   const [slug, setSlug] = useState(params.template || '');
   const [childName, setChildName] = useState(childDisplayName(getChildProfile(user)));
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
+  const [problems, setProblems] = useState<Record<string, PhotoProblem>>({});
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -28,6 +30,15 @@ export default function NewPictureBook() {
     if (!slug && data.templates[0]) setSlug(data.templates[0].slug);
   }, [slug, data.templates]);
   const selected = data.templates.find((template) => template.slug === slug) || data.templates[0];
+  const language = selected?.slug?.includes('-zh') ? 'zh-CN' : 'en';
+
+  // Removing or replacing a rejected photo clears its mark (and the message once none are left).
+  const changePhotos = (next: PickedPhoto[]) => {
+    setPhotos(next);
+    const kept = Object.fromEntries(Object.entries(problems).filter(([uri]) => next.some((photo) => photo.uri === uri)));
+    setProblems(kept);
+    if (Object.keys(problems).length && !Object.keys(kept).length) setStatus('');
+  };
 
   const submit = async () => {
     const problem = validateAiPhotos(photos, PICTURE_BOOK_PHOTOS);
@@ -35,11 +46,18 @@ export default function NewPictureBook() {
     if (!selected) return setStatus('Templates are still loading.');
     setBusy(true);
     try {
-      const book = await data.createBook({ childName: childName.trim(), templateSlug: selected.slug, photos }, setStatus);
+      const book = await data.createBook({ childName: childName.trim(), templateSlug: selected.slug, photos, language }, setStatus);
       setStatus('');
-      router.replace({ pathname: '/create/books/[id]', params: { id: book.id, created: '1' } });
+      setProblems({});
+      router.replace({ pathname: '/create/books/book', params: { bookId: book.id, created: '1' } });
     } catch (error: any) {
-      setStatus(`Could not create the book: ${error?.message || error}`);
+      if (error instanceof PhotoCheckBlockedError) {
+        setProblems(error.uploads);
+        setStatus(error.message);
+        haptics.error();
+      } else {
+        setStatus(`Could not create the book: ${error?.message || error}`);
+      }
       setBusy(false);
     }
   };
@@ -64,8 +82,8 @@ export default function NewPictureBook() {
         ) : null}
         <TextField label="Child’s name" labelVariant="caps" value={childName} onChangeText={setChildName} maxLength={80} editable={!busy} />
         <TagGroup legend="Reference photos" note="2–5 photos">
-          <Text style={styles.help}>Use clear photos from different angles to help keep {childName || 'your child'} recognizable across the story.</Text>
-          <PhotoPicker photos={photos} onChange={setPhotos} max={PICTURE_BOOK_PHOTOS.max} hint="JPEG, PNG, WebP, or HEIC · 2–5 photos · up to 20 MB each · uploaded privately one at a time" disabled={busy} onError={setStatus} />
+          <Text style={styles.help}>Use clear photos from different angles to help keep {childName || 'your child'} recognizable across the story. One child per photo, face visible, good light.</Text>
+          <PhotoPicker photos={photos} onChange={changePhotos} problems={problems} max={PICTURE_BOOK_PHOTOS.max} hint="JPEG, PNG, WebP, or HEIC · 2–5 photos · up to 20 MB each · uploaded privately one at a time" disabled={busy} onError={setStatus} />
         </TagGroup>
         {status ? <Text style={styles.status} accessibilityLiveRegion="polite">{status}</Text> : null}
       </View>

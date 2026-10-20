@@ -7,6 +7,12 @@ const LOCAL_GEOGRAPHY = {
   Kirkland: ['kirkland', 'eastside', 'king county', 'puyallup', 'washington'],
   Lynnwood: ['lynnwood', 'snohomish county', 'everett', 'puyallup', 'washington'],
   Edmonds: ['edmonds', 'snohomish county', 'everett', 'puyallup', 'washington'],
+  seattle: ['seattle', 'king county', 'washington'],
+  eastside: ['eastside', 'bellevue', 'redmond', 'kirkland', 'issaquah', 'sammamish', 'washington'],
+  'north-sound': ['north sound', 'snohomish county', 'everett', 'lynnwood', 'edmonds', 'shoreline', 'washington'],
+  'south-sound': ['south sound', 'pierce county', 'tacoma', 'puyallup', 'olympia', 'washington'],
+  'greater-puget-sound': ['puget sound', 'washington'],
+  'pacific-northwest': ['pacific northwest', 'washington', 'oregon', 'idaho'],
 };
 
 export const WEEKEND_EVENT_RECOMMENDATIONS = [
@@ -37,6 +43,38 @@ export const WEEKEND_EVENT_RECOMMENDATIONS = [
     months: FALL_MONTHS,
     boost: 18,
     reason: 'seasonal fall trend',
+  },
+  {
+    keyword: 'Halloween',
+    terms: [
+      'halloween',
+      'trick-or-treat',
+      'trick or treat',
+      'trunk-or-treat',
+      'trunk or treat',
+      'haunted house',
+      'haunted forest',
+      'haunted trail',
+      'spooky',
+      'costume party',
+      'costume parade',
+      'monster mash',
+      'monster dash',
+      'boo bash',
+      'zoo boo',
+      'boo at the zoo',
+      'ghost walk',
+      'ghostly',
+      'witch',
+      'fright night',
+      'museum of fright',
+      'day of the dead',
+      'día de los muertos',
+      'dia de los muertos',
+    ],
+    months: FALL_MONTHS,
+    boost: 20,
+    reason: 'seasonal Halloween trend',
   },
   {
     keyword: 'Mid-Autumn Moon Festival',
@@ -81,9 +119,9 @@ function isActiveSeason(recommendation, date) {
   return recommendation.months.has(month);
 }
 
-export function recommendWeekendEvent(event, { city = '', date = '' } = {}) {
+export function recommendWeekendEvent(event, { city = '', region = '', date = '' } = {}) {
   const text = eventText(event);
-  const localTerms = LOCAL_GEOGRAPHY[city] || [normalize(city)];
+  const localTerms = LOCAL_GEOGRAPHY[region] || LOCAL_GEOGRAPHY[city] || [normalize(city || region)];
   const matchingKeywords = [];
   const reasons = [];
   let score = 0;

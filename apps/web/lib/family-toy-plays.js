@@ -4,6 +4,7 @@ import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { getChildProfile } from '@sproutcue/shared/profile-defaults';
 import { createFamilyPhoto, readFamilyPhoto } from './family-photos.js';
+import { moderatePhoto as screenPhoto } from './child-photo-check.js';
 
 const LOCAL_ROOT = resolve('data/family-assets');
 const LOCAL_STATE = join(LOCAL_ROOT, 'toy-plays.json');
@@ -108,23 +109,13 @@ function responseText(payload) {
   return '';
 }
 
-async function moderatePhoto(dataUrl) {
-  const response = await fetch('https://api.openai.com/v1/moderations', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ model: 'omni-moderation-latest', input: [{ type: 'image_url', image_url: { url: dataUrl } }] }),
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload.error?.message || `Photo safety check failed (${response.status}).`);
-  if (payload.results?.[0]?.flagged) throw new Error('This photo cannot be analyzed. Choose a clear photo showing only the toy.');
-}
 
 export async function generateToyPlay(current, formData) {
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not configured on the server.');
   const photo = await resolvePhoto(current, formData);
   const jpeg = await normalizedPhoto(photo);
   const dataUrl = `data:image/jpeg;base64,${jpeg.toString('base64')}`;
-  await moderatePhoto(dataUrl);
+  await screenPhoto(dataUrl, { flaggedMessage: 'This photo cannot be analyzed. Choose a clear photo showing only the toy.' });
   const ageMonths = childAgeMonths(current);
   const language = normalizeToyPlayLanguage(formData.get('language'));
   const prompt = `Analyze the photo for a parent of a ${ageMonths}-month-old child. Identify the main toy only; do not identify people, faces, brands, locations, or personal details. If there is no clear toy, set status to not_a_toy. If identification is unreliable, set status to uncertain. When status is ready, create one simple way to play using the pictured toy and ordinary household items only. Match the child's developmental stage, avoid choking hazards and unsafe climbing, require active adult supervision, and never present the activity as medical or developmental treatment. Keep every step short and practical. For non-ready results, leave play strings and arrays empty but still satisfy the schema. Output language: ${TOY_PLAY_LANGUAGES[language].instruction}`;

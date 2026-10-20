@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui';
 import { Colors, Spacing, Type } from '@/constants/theme';
 import { AiJobsProvider } from '@/lib/ai-jobs';
+import { ChatProvider } from '@/lib/chat';
 import { config } from '@/lib/config';
 import { SessionProvider, useSession } from '@/lib/session';
 
@@ -31,8 +32,10 @@ export default function RootLayout() {
       <ThemeProvider value={sproutCueTheme}>
         <SessionProvider>
           <AiJobsProvider>
-            <StatusBar style="dark" />
-            <RootNavigator />
+            <ChatProvider>
+              <StatusBar style="dark" />
+              <RootNavigator />
+            </ChatProvider>
           </AiJobsProvider>
         </SessionProvider>
       </ThemeProvider>
@@ -59,10 +62,13 @@ function RootNavigator() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.paper } }}>
         <Stack.Protected guard={signedIn && onboarded}>
           <Stack.Screen name="(tabs)" />
-          {/* One playdate: from Discover, Family, or a sproutcue://playdate/<id> link. */}
-          <Stack.Screen name="playdate/[id]" />
+          {/* One playdate (/playdate/details?playDateId=…): from Discover, Family, or a sproutcue://playdate/<id> link. */}
+          <Stack.Screen name="playdate/details" />
           {/* Play Studio flows: picture books, practice stories, toy play. */}
           <Stack.Screen name="create" />
+          {/* Family chat: all conversations, and one conversation (/chat/thread?threadId=…). */}
+          <Stack.Screen name="chat/index" />
+          <Stack.Screen name="chat/thread" />
         </Stack.Protected>
         <Stack.Protected guard={signedIn}>
           <Stack.Screen name="welcome" />

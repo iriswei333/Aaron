@@ -922,6 +922,13 @@ function localPlaydateThreadId(playDateId) {
   return `playdate:${playDateId}`;
 }
 
+// Short preview of a thread's newest message for chat lists (mobile Family tab).
+function chatLastMessagePreview(messages, { createdAt = 'createdAt', senderId = 'senderId', text = 'text', mediaType = 'mediaType' } = {}) {
+  const latest = (messages || []).reduce((newest, message) => (!newest || message[createdAt] > newest[createdAt] ? message : newest), null);
+  if (!latest) return null;
+  return { senderId: latest[senderId] || '', text: String(latest[text] || '').slice(0, 140), mediaType: latest[mediaType] || '' };
+}
+
 export async function listLocalChatThreads(userId) {
   const store = await readStore();
   const threads = [];
@@ -937,7 +944,8 @@ export async function listLocalChatThreads(userId) {
       const threadMessages = store.chatMessages.filter((message) => message.threadId === id);
       const lastMessageAt = threadMessages.reduce((latest, message) => message.createdAt > latest ? message.createdAt : latest, playDate.createdAt || '');
       const unreadCount = threadMessages.filter((message) => message.senderId !== userId && (!readAt || new Date(message.createdAt) > new Date(readAt))).length;
-      threads.push({ id, type: 'playdate', playDateId: playDate.id, title: playDate.playgroundName || 'Playdate chat', participantIds: joined, startsAt: playDate.startsAt || null, endsAt: playDate.endsAt || null, unreadCount, lastMessageAt });
+      const others = joined.filter((joinedId) => joinedId !== userId).map((joinedId) => ({ id: joinedId, displayName: store.users[joinedId]?.displayName || 'Parent' }));
+      threads.push({ id, type: 'playdate', playDateId: playDate.id, title: playDate.playgroundName || 'Playdate chat', participantIds: joined, participants: others, startsAt: playDate.startsAt || null, endsAt: playDate.endsAt || null, unreadCount, lastMessageAt, lastMessage: chatLastMessagePreview(threadMessages) });
     }
   });
   store.chatMessages.forEach((message) => {
@@ -952,7 +960,7 @@ export async function listLocalChatThreads(userId) {
     const threadMessages = store.chatMessages.filter((message) => (message.senderId === userId && message.recipientId === id) || (message.senderId === id && message.recipientId === userId));
     const lastMessageAt = threadMessages.reduce((latest, message) => message.createdAt > latest ? message.createdAt : latest, '');
     const unreadCount = threadMessages.filter((message) => message.senderId !== userId && (!readAt || new Date(message.createdAt) > new Date(readAt))).length;
-    threads.push({ id: threadId, type: 'direct', title: user.displayName || 'Parent', participantIds: [userId, id], contactId: id, participants: [{ id, displayName: user.displayName || 'Parent' }], unreadCount, lastMessageAt });
+    threads.push({ id: threadId, type: 'direct', title: user.displayName || 'Parent', participantIds: [userId, id], contactId: id, participants: [{ id, displayName: user.displayName || 'Parent' }], unreadCount, lastMessageAt, lastMessage: chatLastMessagePreview(threadMessages) });
   });
   return threads;
 }
@@ -1016,7 +1024,7 @@ export async function listSupabaseChatThreads(supabase, authUser) {
   ]);
   if (threadError) throw supabaseError(threadError, 'Could not load chat threads.');
   if (memberError) throw supabaseError(memberError, 'Could not load chat participants.');
-  const { data: readMessages, error: readMessageError } = await supabase.from('chat_messages').select('thread_id, sender_id, created_at').in('thread_id', ids);
+  const { data: readMessages, error: readMessageError } = await supabase.from('chat_messages').select('thread_id, sender_id, created_at, text, media_type').in('thread_id', ids);
   if (readMessageError) throw supabaseError(readMessageError, 'Could not load unread chat counts.');
   const userIds = [...new Set((memberRows || []).map((row) => row.user_id))];
   const { data: profiles, error: profileError } = await supabase.from('profiles').select('id, display_name, email, child_profile').in('id', userIds);
@@ -1034,7 +1042,7 @@ export async function listSupabaseChatThreads(supabase, authUser) {
     const threadMessages = (readMessages || []).filter((message) => message.thread_id === row.id);
     const lastMessageAt = threadMessages.reduce((latest, message) => message.created_at > latest ? message.created_at : latest, row.created_at || '');
     const unreadCount = threadMessages.filter((message) => message.sender_id !== authUser.id && (!readAt || new Date(message.created_at) > new Date(readAt))).length;
-    return { id: row.id, type: row.thread_type, playDateId: row.play_date_id, title: playDate?.playground_name || other[0]?.display_name || 'Direct chat', participantIds, participants: other.map((profile) => ({ id: profile.id, displayName: profile.display_name || 'Parent' })), startsAt: playDate?.starts_at || null, endsAt: playDate?.ends_at || null, unreadCount, lastMessageAt };
+    return { id: row.id, type: row.thread_type, playDateId: row.play_date_id, title: playDate?.playground_name || other[0]?.display_name || 'Direct chat', participantIds, participants: other.map((profile) => ({ id: profile.id, displayName: profile.display_name || 'Parent' })), startsAt: playDate?.starts_at || null, endsAt: playDate?.ends_at || null, unreadCount, lastMessageAt, lastMessage: chatLastMessagePreview(threadMessages, { createdAt: 'created_at', senderId: 'sender_id', text: 'text', mediaType: 'media_type' }) };
   }).filter((thread) => thread.type !== 'playdate' || thread.participantIds.length > 1);
 }
 

@@ -572,7 +572,7 @@ export async function resolveFamilyEventWebsites(events) {
   }));
 }
 
-function parentMapUrl({ date, region, ageSlugs, page = 1 }) {
+export function parentMapUrl({ date, region, ageSlugs, page = 1 }) {
   const url = new URL(PARENTMAP_CALENDAR_URL);
   url.searchParams.set('date', date);
   url.searchParams.set('page', String(page));
@@ -859,7 +859,9 @@ export function familyEventCacheEntriesFromSocialRun(run = {}, now = new Date())
   });
 
   return [...grouped.values()].map(({ locationCity, posts: cityPosts }) => {
-    const locationRegion = regionForCity(locationCity) || cleanText(cityPosts[0]?.region, 80);
+    const locationRegion = cleanText(cityPosts[0]?.regionSlug, 80)
+      || regionForCity(locationCity)
+      || cleanText(cityPosts[0]?.region, 80);
     const filters = {
       origin: 'weekly-social-agent',
       locationRegion,
@@ -888,13 +890,15 @@ export function familyEventCacheEntriesFromSocialRun(run = {}, now = new Date())
 
 export async function fetchFamilyEvents({
   locationCity,
+  locationRegion: requestedLocationRegion = '',
   startDate,
   endDate,
   childProfile = {},
   locationZip = '',
   includeParentMapCandidates = false,
+  parentMapOnly = false,
 }) {
-  const locationRegion = regionForCity(locationCity);
+  const locationRegion = cleanText(requestedLocationRegion, 80) || regionForCity(locationCity);
   const [parentMap, seattlesChild] = await Promise.all([
     fetchParentMapEvents({
       locationRegion,
@@ -903,14 +907,16 @@ export async function fetchFamilyEvents({
       childProfile,
       pages: Array.from({ length: FAMILY_EVENT_PROVIDER_PAGE_COUNT }, (_, index) => index + 1),
     }),
-    fetchSeattlesChildEvents({ startDate, endDate, zip: locationZip }),
+    parentMapOnly
+      ? Promise.resolve({ events: [], sourceUrls: [], errors: [] })
+      : fetchSeattlesChildEvents({ startDate, endDate, zip: locationZip }),
   ]);
   const sourceUrls = [...parentMap.sourceUrls, ...seattlesChild.sourceUrls];
   const errors = [...parentMap.errors, ...seattlesChild.errors];
   const parentMapCandidates = includeParentMapCandidates
     ? dedupeAndRankEvents(parentMap.events, startDate, endDate)
     : [];
-  const rankedEvents = dedupeAndRankEvents([...parentMap.events, ...seattlesChild.events], startDate, endDate);
+  const rankedEvents = dedupeAndRankEvents(parentMapOnly ? parentMap.events : [...parentMap.events, ...seattlesChild.events], startDate, endDate);
   const hasParsedEvents = rankedEvents.length > 0;
   const events = hasParsedEvents
     ? rankedEvents
@@ -922,13 +928,13 @@ export async function fetchFamilyEvents({
     startDate,
     endDate,
     dateRangeLabel: dateRangeLabel(startDate, endDate),
-    source: hasParsedEvents ? 'parentmap+seattles-child' : 'search-link',
-    sourceLabel: hasParsedEvents ? "ParentMap + Seattle's Child" : 'Search links',
+    source: hasParsedEvents ? (parentMapOnly ? 'parentmap' : 'parentmap+seattles-child') : 'search-link',
+    sourceLabel: hasParsedEvents ? (parentMapOnly ? 'ParentMap' : "ParentMap + Seattle's Child") : 'Search links',
     sourceUrls: sourceUrls.length ? sourceUrls : [PARENTMAP_CALENDAR_URL, SEATTLES_CHILD_CALENDAR_URL],
     events,
     fallback: !hasParsedEvents,
     providerStatus: hasParsedEvents
-      ? `Updated from ParentMap and Seattle's Child for ${cleanText(locationCity, 80)}; showing all ${rankedEvents.length} matched events.`
+      ? `Updated from ${parentMapOnly ? 'ParentMap' : "ParentMap and Seattle's Child"} for ${cleanText(locationCity, 80)}; showing all ${rankedEvents.length} matched events.`
       : `${locationRegion ? 'No parsed event results matched yet' : 'No supported local event region was found'}; showing live search links.`,
     errors,
     ...(includeParentMapCandidates ? { parentMapCandidates } : {}),

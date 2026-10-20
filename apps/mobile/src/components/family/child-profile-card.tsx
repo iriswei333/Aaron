@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Colors, Radius, Shadow, Spacing, Type } from '@/constants/theme';
 
@@ -9,10 +9,12 @@ type ChildProfileCardProps = {
   storyLanguage: string;
   favorites: string[];
   practicing: string[];
+  /** Shows an Edit pill in the corner (opens Edit family details). */
+  onEdit?: () => void;
 };
 
 // Web .family-child-card: warm gradient panel, rounded orange avatar, Favorites + Practicing now.
-export function ChildProfileCard({ name, ageLabel, storyLanguage, favorites, practicing }: ChildProfileCardProps) {
+export function ChildProfileCard({ name, ageLabel, storyLanguage, favorites, practicing, onEdit }: ChildProfileCardProps) {
   return (
     <LinearGradient
       colors={[Colors.childCardFrom, Colors.childCardMid, Colors.childCardTo]}
@@ -30,6 +32,16 @@ export function ChildProfileCard({ name, ageLabel, storyLanguage, favorites, pra
           <Text accessibilityRole="header" style={styles.name}>{name || 'Add your kid'}</Text>
           <Text style={styles.meta}>{`${ageLabel || 'Age not set'} · Stories in ${storyLanguage}`}</Text>
         </View>
+        {onEdit ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Edit family details"
+            onPress={onEdit}
+            hitSlop={6}
+            style={({ pressed }) => [styles.edit, pressed && styles.editPressed]}>
+            <Text style={styles.editText}>Edit</Text>
+          </Pressable>
+        ) : null}
       </View>
       <TagGroup label="Favorites" items={favorites} empty="Add a few favorite things to personalize play and stories." />
       <TagGroup label="Practicing now" items={practicing} empty="Add a little step such as brushing teeth or meeting new friends." />
@@ -85,6 +97,9 @@ const styles = StyleSheet.create({
   },
   avatarText: { color: '#fff', fontSize: 28, fontWeight: '800' },
   intro: { flex: 1, gap: 3 },
+  edit: { minHeight: 36, paddingHorizontal: 14, borderRadius: Radius.pill, borderWidth: 1, borderColor: Colors.brandBorder, backgroundColor: '#fff', justifyContent: 'center' },
+  editPressed: { backgroundColor: Colors.brandSoft },
+  editText: { color: Colors.brandDeep, fontSize: 13, fontWeight: '800' },
   name: { color: Colors.ink, fontSize: 23, fontWeight: '800', letterSpacing: -0.3 },
   meta: { color: '#756b62', fontSize: 15 },
   group: { gap: 9 },

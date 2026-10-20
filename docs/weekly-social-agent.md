@@ -1,6 +1,6 @@
 # Weekly Social Agent
 
-The weekly social agent fetches ParentMap weekend family events by region and day, reads the detail-page description when available, creates Mandarin captions and one short Mandarin highlight of 2–3 sentences per event, and generates at most 8 social-post images per week. When more than 8 events match, poster selection rotates across cities before taking a second day from any city. Each configured city has two slots: one Saturday highlight and one Sunday highlight.
+The weekly social agent fetches ParentMap weekend family events with the native `seattle`, `eastside`, `north-sound`, `south-sound`, `greater-puget-sound`, and `pacific-northwest` region parameters. It reads detail pages, creates Mandarin captions and one short Mandarin highlight per event, and selects eight events: two each from Seattle and Eastside, and one from each remaining region. A region's events may fall on the same weekend day. The detail-page venue locality—not the discovery region—becomes the city in the roundup.
 
 ## Activate the Python environment
 
@@ -67,21 +67,31 @@ For a no-image test:
 npm run social:weekly -- --dry-run
 ```
 
-ParentMap venue-distance filtering is enabled by default with a 15-mile radius:
+Normal runs use ParentMap's six region parameters directly. To run only a subset:
 
 ```bash
-npm run social:weekly -- --dry-run
+npm run social:weekly -- --regions seattle,eastside --dry-run
 ```
 
-The agent opens each ParentMap event page, reads the venue from `tribe-block__venue__meta`, geocodes its full address, and prefers events inside the distance limit. Events with no venue or an address that cannot be geocoded remain ineligible. If no geocoded event is inside the radius, the agent ranks all geocoded ParentMap candidates by recommendation score and selects the highest-scoring event; equal scores are resolved in favor of the nearest venue. DuckDuckGo and Seattle's Child results are not used in this mode because they do not provide the required ParentMap venue block. Forced partnership events remain eligible independently of ParentMap. Override the radius with `--max-distance-miles`, for example `--max-distance-miles 25`.
+Only the six supported ParentMap slugs are accepted by `--regions`. Seattle's Child and DuckDuckGo are not mixed into normal region runs. The older venue-distance workflow is optional; enable it with `--venue-distance-filter` and override its 15-mile radius with `--max-distance-miles 25`.
 
-To restore the original normal search behavior, including Seattle's Child and DuckDuckGo fallback results, disable the default filter:
+To print every ParentMap candidate and its complete scoring breakdown for a region without generating images:
+
+```bash
+npm run social:weekly -- --regions seattle --list-scores --dry-run
+```
+
+The report includes total score, component scores, matched recommendation keywords, selected/rejected state, date, title, and event URL. The same data is saved as `candidateScores` in the weekly JSON manifest.
+
+During fall, the recommendation score also recognizes Halloween-related wording: `halloween`, trick-or-treat and trunk-or-treat variants, haunted houses/forests/trails, `spooky`, costume parties/parades, Monster Mash/Dash, Boo events, ghost walks, witches, fright events, and English or Spanish Day of the Dead wording. A match adds 20 points and reports the `Halloween` keyword with the `seasonal Halloween trend` reason.
+
+To use the legacy merged-provider and web-search fallback behavior, pass:
 
 ```bash
 npm run social:weekly -- --normal-event-search --dry-run
 ```
 
-`--no-venue-distance-filter` is an equivalent opt-out. The older `--venue-distance-filter` flag remains harmless for command compatibility, although filtering is now already enabled by default. Google Places is used when `GOOGLE_PLACES_API_KEY` is configured; otherwise the agent falls back to OpenStreetMap Nominatim.
+`--no-venue-distance-filter` remains accepted for command compatibility. When distance filtering is explicitly enabled, Google Places is used when `GOOGLE_PLACES_API_KEY` is configured; otherwise the agent falls back to OpenStreetMap Nominatim.
 
 ## Force one event from a URL
 
@@ -109,29 +119,41 @@ npm run social:weekly -- \
 
 The saved record is sanitized to the supported partnership fields and marked as a forced partnership recommendation. Running the same URL, city, and date again does not create a duplicate entry. Review the extracted title, time, venue, address, and description in the file after saving because third-party page markup can change.
 
+## Import a hand-picked event set
+
+Use `--events-file` when one weekly package combines several direct event URLs. The file must be a non-empty JSON array; every entry requires `url`, `city`, and either `date` or a `dates` array using `YYYY-MM-DD`. Optional fields such as `title`, `dateLabel`, `timeLabel`, `venue`, `venueAddress`, `summary`, and `highlights` override facts extracted from the source page. Multiple dates remain on one event poster through `dateLabel`.
+
+```bash
+npm run social:weekly -- \
+  --events-file data/social-events-2026-10-17.json \
+  --skip-images
+```
+
+This mode creates one individual poster prompt per event plus the usual all-events summary prompt. Poster filenames include the event title so multiple events in the same city and date cannot overwrite one another.
+
 For a test run that writes one weekly roundup and generates only one sample poster:
 
 ```bash
 npm run social:weekly -- --sample
 ```
 
-To regenerate a poster that received negative feedback while keeping the same city and day:
+To regenerate a poster that received negative feedback while keeping the same ParentMap region and day:
 
 ```bash
-npm run social:weekly -- --regenerate Seattle,2026-09-05
+npm run social:weekly -- --regenerate seattle,2026-09-05
 ```
 
 If the event itself is unsuitable, persist that feedback so future runs exclude it:
 
 ```bash
-npm run social:weekly -- --reject-event "Seattle|2026-09-05|Event name|Event location is too far from the recommended city"
+npm run social:weekly -- --reject-event "Event name|Reason for rejection"
 ```
 
-The rejected-event registry is saved in `event-feedback.json` in the output directory. New records preserve the readable event title, store a normalized title for punctuation-insensitive matching, and save the fourth pipe-separated field as the reason, such as `duplicated events in the history posters` or `event location is too far from recommended city`. Titles with a location or content suffix such as `Event Series at Venue A` or `Downtown Issaquah Story Stroll: Watercress` also create a global event-family exclusion for the shared series, so another location or edition will not be selected. Older compact normalized records remain supported. Repeat `--reject-event` for multiple events; the normal event scoring and no-duplicate selection still apply to the remaining results.
+The rejected-event registry is saved in `event-feedback.json` in the output directory. Matching uses only the punctuation-insensitive normalized event title and applies across every region and date. The optional second field stores the reason. Older `City|YYYY-MM-DD|Event name|Reason` records remain readable but are normalized to the same title-only rule. Repeat `--reject-event` for multiple events.
 
-Use the `--regenerate City,YYYY-MM-DD` flag more than once for multiple posters. Each request searches that city/day again and selects a different eligible event from the results. When an alternate event is found, the matching `weekly-YYYY-MM-DD-roundup.md` file is regenerated too. The roundup includes only the up-to-eight events represented by the poster set, lists each event’s city, name, venue, and detailed address without exact event times, uses one sentence of highlights per event, and is capped at 670 words. Add `--feedback "..."` to include the critique in the replacement prompt. Regeneration intentionally overwrites only the requested poster; all other existing posters remain skipped.
+Use the `--regenerate Region,YYYY-MM-DD` flag more than once for multiple posters. Each request searches that region/day again and selects a different eligible event. When an alternate event is found, the matching `weekly-YYYY-MM-DD-roundup.md` file is regenerated too. The roundup includes only the eight selected events and lists each event's actual venue city, name, venue, and address. Add `--feedback "..."` to include the critique in the replacement prompt.
 
-Generated manifests, prompts, and poster images are saved under `output/social-posts/` by default. Posters use a fixed 1024×1536 (2:3) reference-inspired template: navy top ribbon, rounded orange event card, cream weekend banner, family illustration, three event-specific feature tiles, navy date/time/location bar, green Mandarin call-to-action, and SproutCue footer pill. The feature tiles are derived from the event title, theme, highlights, description, and trend keywords rather than fixed generic copy. Only event content and a subtle city illustration vary. Event selection applies trend recommendations: regional state fairs receive a geographic boost; fall festivals, pumpkin events, harvest events, and Mid-Autumn Moon Festival/Moon Festival events receive seasonal boosts in fall; and story-time events receive an early-learning boost plus an age-fit boost when they welcome toddlers, preschoolers, or all ages. Matching keywords and recommendation reasons are written to the manifest and roundup. Poster selection uses a per-city quota: Seattle and Bellevue can receive two posters, while other cities default to one; each city’s quota is ranked by recommendation score rather than assuming Saturday first. Before generating images, the agent checks that directory and skips any poster whose expected `{city}-{date}.png` file already exists; the weekly limit is filled with other missing posters when available.
+Generated manifests, prompts, and poster images are saved under `output/social-posts/` by default. Posters use a fixed 1024×1536 (2:3) template. The top banner contains the day/weekend headline and explicitly excludes city and region names; the location remains in the facts bar. Selection uses per-region quotas, not per-city quotas. Seattle and Eastside receive two posters, while North Sound, South Sound, Greater Puget Sound, and Pacific Northwest receive one each. Before generating images, the agent skips existing poster filenames when appropriate.
 
 Normal weekend recommendation runs also create one `weekly-YYYY-MM-DD-all-events.png` summary poster using the same text-first two-column style as URL imports. It includes every matched weekend event with its exact date label and venue, independently of the eight-poster individual-event limit. Regenerating a weekend event refreshes this summary poster so it stays aligned with the updated event set. Forced single-event URL runs do not create a redundant summary image.
 
@@ -143,4 +165,4 @@ npm run social:weekly -- --from-roundup output/social-posts/weekly-2026-09-19-ro
 
 The agent loads the companion `weekly-YYYY-MM-DD.json` manifest for the full event facts, including exact poster date/time/location fields that are not shown in the shortened roundup.
 
-Partnership events can be configured in `lib/social-partnership-events.js`. A forced partnership event is injected for its exact city/date and receives priority over ordinary search results, while still respecting event rejection and duplicate-selection rules.
+Partnership events can be configured in `lib/social-partnership-events.js`. Legacy city-based partnership records are mapped into their ParentMap region for normal weekly selection and still respect title rejection and duplicate-selection rules.

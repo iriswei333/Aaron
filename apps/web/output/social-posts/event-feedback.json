@@ -1,306 +1,137 @@
 [
   {
-    "city": "seattle",
-    "date": "2026-09-20",
     "title": "aiweiweicircleofanimalszodiacheads",
     "normalizedTitle": "aiweiweicircleofanimalszodiacheads",
-    "family": "",
     "reason": ""
   },
   {
-    "city": "kirkland",
-    "date": "2026-09-19",
     "title": "downtownissaquahstorystrollwatercress",
     "normalizedTitle": "downtownissaquahstorystrollwatercress",
-    "family": "downtownissaquahstorystrollw",
     "reason": "duplicated events in history"
   },
   {
-    "city": "seattle",
-    "date": "2026-09-20",
     "title": "salmonseeson",
     "normalizedTitle": "salmonseeson",
-    "family": "",
     "reason": "too many relevant events"
   },
   {
-    "city": "seattle",
-    "date": "2026-09-20",
     "title": "salmonseesonatnorthcreektrailpark",
     "normalizedTitle": "salmonseesonatnorthcreektrailpark",
-    "family": "salmonseeson",
     "reason": "too many relevant events"
   },
   {
-    "city": "kirkland",
-    "date": "2026-09-26",
     "title": "Salmon SEEson at Issaquah Creek",
     "normalizedTitle": "salmonseesonatissaquahcreek",
-    "family": "salmonseeson",
     "reason": ""
   },
   {
-    "city": "lynnwood",
-    "date": "2026-09-26",
     "title": "Fall Festival at Bob’s Corn and Pumpkin Farm",
     "normalizedTitle": "fallfestivalatbobscornandpumpkinfarm",
-    "family": "fallfestival",
     "reason": "too many relevent events"
   },
   {
-    "city": "seattle",
-    "date": "2026-09-26",
-    "title": "Ai Weiwei: Circle of Animals/Zodiac Heads",
-    "normalizedTitle": "aiweiweicircleofanimalszodiacheads",
-    "family": "aiweiwei",
-    "reason": "too many relevent events"
-  },
-  {
-    "city": "seattle",
-    "date": "2026-09-26",
     "title": "Renton parkrun",
     "normalizedTitle": "rentonparkrun",
-    "family": "",
     "reason": "not attractive"
   },
   {
-    "city": "tacoma",
-    "date": "2026-09-26",
     "title": "Tumwater Falls Festival",
     "normalizedTitle": "tumwaterfallsfestival",
-    "family": "",
     "reason": "too far"
   },
   {
-    "city": "edmonds",
-    "date": "2026-09-27",
     "title": "Sky Valley Heritage Hunt",
     "normalizedTitle": "skyvalleyheritagehunt",
-    "family": "",
     "reason": "not attractive"
   },
   {
-    "city": "kirkland",
-    "date": "2026-09-26",
-    "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
-    "normalizedTitle": "downtownissaquahstorystrollwatercress",
-    "family": "downtownissaquahstorystroll",
-    "reason": "duplicated event"
-  },
-  {
-    "city": "bellevue",
-    "date": "2026-09-26",
-    "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
-    "normalizedTitle": "downtownissaquahstorystrollwatercress",
-    "family": "downtownissaquahstorystroll",
-    "reason": "duplicated event"
-  },
-  {
-    "city": "bellevue",
-    "date": "2026-09-27",
-    "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
-    "normalizedTitle": "downtownissaquahstorystrollwatercress",
-    "family": "downtownissaquahstorystroll",
-    "reason": "duplicated event"
-  },
-  {
-    "city": "lynnwood",
-    "date": "2026-10-03",
     "title": "Craven Farm Fall Festival",
     "normalizedTitle": "cravenfarmfallfestival",
-    "family": "",
     "reason": "too many relevent events"
   },
   {
-    "city": "bellevue",
-    "date": "2026-10-03",
     "title": "Pumpkin Farm and Puzzle Patch",
     "normalizedTitle": "pumpkinfarmandpuzzlepatch",
-    "family": "",
     "reason": "too many relevent events"
   },
   {
-    "city": "bellevue",
-    "date": "2026-10-04",
-    "title": "Pumpkin Farm and Puzzle Patch",
-    "normalizedTitle": "pumpkinfarmandpuzzlepatch",
-    "family": "",
-    "reason": "too many relevent events"
-  },
-  {
-    "city": "kirkland",
-    "date": "2026-10-03",
-    "title": "Pumpkin Farm and Puzzle Patch",
-    "normalizedTitle": "pumpkinfarmandpuzzlepatch",
-    "family": "",
-    "reason": "too many relevent events"
-  },
-  {
-    "city": "kirkland",
-    "date": "2026-10-04",
-    "title": "Pumpkin Farm and Puzzle Patch",
-    "normalizedTitle": "pumpkinfarmandpuzzlepatch",
-    "family": "",
-    "reason": "too many relevent events"
-  },
-  {
-    "city": "kirkland",
-    "date": "2026-10-03",
     "title": "Issaquah Salmon Days",
     "normalizedTitle": "issaquahsalmondays",
-    "family": "",
     "reason": "too many relevent events"
   },
   {
-    "city": "kirkland",
-    "date": "2026-10-03",
-    "title": "Renton parkrun",
-    "normalizedTitle": "rentonparkrun",
-    "family": "",
-    "reason": "too many relevent events"
-  },
-  {
-    "city": "seattle",
-    "date": "2026-10-11",
     "title": "Family Game Dayattractive",
     "normalizedTitle": "familygamedayattractive",
-    "family": "familygameday",
     "reason": ""
   },
   {
-    "city": "seattle",
-    "date": "2026-10-11",
     "title": "Family Game Day",
     "normalizedTitle": "familygameday",
-    "family": "",
     "reason": "not attractive"
   },
   {
-    "city": "seattle",
-    "date": "2026-10-11",
     "title": "Spooky Science at the Burke Museum",
     "normalizedTitle": "spookyscienceattheburkemuseum",
-    "family": "spookyscience",
     "reason": "duplicated events"
   },
   {
-    "city": "bellevue",
-    "date": "2026-10-11",
-    "title": "Pumpkin Farm and Puzzle Patch",
-    "normalizedTitle": "pumpkinfarmandpuzzlepatch",
-    "family": "",
-    "reason": "duplicated events"
-  },
-  {
-    "city": "tacoma",
-    "date": "2026-10-10",
     "title": "Storywalk at Alderwood Park: César’s Cerulean Surprise",
     "normalizedTitle": "storywalkatalderwoodparkcsarsceruleansurprise",
-    "family": "storywalk",
     "reason": "duplicated events"
   },
   {
-    "city": "tacoma",
-    "date": "Picha Farms Fall Festival",
     "title": "2026-10-10",
     "normalizedTitle": "20261010",
-    "family": "",
     "reason": "|duplicated events"
   },
   {
-    "city": "kirkland",
-    "date": "2026-10-11",
-    "title": "Pumpkin Farm and Puzzle Patch",
-    "normalizedTitle": "pumpkinfarmandpuzzlepatch",
-    "family": "",
-    "reason": "duplicated events"
-  },
-  {
-    "city": "bellevue",
-    "date": "2026-10-10",
     "title": "October Weekends at Jubilee Harvest Festival",
     "normalizedTitle": "octoberweekendsatjubileeharvestfestival",
-    "family": "octoberweekends",
     "reason": "duplicated events"
   },
   {
-    "city": "tacoma",
-    "date": "2026-10-11",
     "title": "Picha Farms Fall Festival",
     "normalizedTitle": "pichafarmsfallfestival",
-    "family": "",
     "reason": "duplicated events--reject-event"
   },
   {
-    "city": "edmonds",
-    "date": "2026-10-11",
     "title": "Stocker Farms Fall Festival",
     "normalizedTitle": "stockerfarmsfallfestival",
-    "family": "",
     "reason": "duplicated events"
   },
   {
-    "city": "lynnwood",
-    "date": "2026-10-10",
-    "title": "Craven Farm Fall Festival",
-    "normalizedTitle": "cravenfarmfallfestival",
-    "family": "",
-    "reason": "duplicated events"
-  },
-  {
-    "city": "edmonds",
-    "date": "2026-10-10",
-    "title": "Stocker Farms Fall Festival",
-    "normalizedTitle": "stockerfarmsfallfestival",
-    "family": "",
-    "reason": "duplicated events"
-  },
-  {
-    "city": "edmonds",
-    "date": "2026-10-10",
     "title": "Harvest Festival at Swans Trail Farms",
     "normalizedTitle": "harvestfestivalatswanstrailfarms",
-    "family": "harvestfestival",
     "reason": "duplicated events"
   },
   {
-    "city": "lynnwood",
-    "date": "2026-10-10",
     "title": "Thomas Family Farm",
     "normalizedTitle": "thomasfamilyfarm",
-    "family": "",
     "reason": "duplicated events"
   },
   {
-    "city": "lynnwood",
-    "date": "2026-10-10",
     "title": "Thomas Family Farm Fall Festival Fun Park",
     "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
-    "family": "",
     "reason": "duplicated events"
   },
   {
-    "city": "edmonds",
-    "date": "2026-10-10",
-    "title": "Thomas Family Farm Fall Festival Fun Park",
-    "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
-    "family": "",
+    "title": "Story Time with Seattle Botanic Gardens",
+    "normalizedTitle": "storytimewithseattlebotanicgardens",
     "reason": "duplicated events"
   },
   {
-    "city": "edmonds",
-    "date": "2026-10-11",
-    "title": "Thomas Family Farm Fall Festival Fun Park",
-    "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
-    "family": "",
+    "title": "StoryWalk at Lake Wilderness Arboretum",
+    "normalizedTitle": "storywalkatlakewildernessarboretum",
     "reason": "duplicated events"
   },
   {
-    "city": "lynnwood",
-    "date": "2026-10-10",
-    "title": "Stocker Farms Fall Festival",
-    "normalizedTitle": "stockerfarmsfallfestival",
-    "family": "",
+    "title": "Salmon SEEson at Longfellow Creek",
+    "normalizedTitle": "salmonseesonatlongfellowcreek",
+    "reason": "duplicated events"
+  },
+  {
+    "title": "Red Barn Farm Fall Festival",
+    "normalizedTitle": "redbarnfarmfallfestival",
     "reason": "duplicated events"
   }
 ]

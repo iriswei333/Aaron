@@ -1,3 +1,4 @@
+import { photoCheckJobMessage } from '@sproutcue/shared/photo-check';
 import { aiJobIsDone, aiJobProgressPercent, aiJobRemainingSeconds, aiJobTimeLabel, aiUsageLabel } from '@sproutcue/shared/studio';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
@@ -53,7 +54,7 @@ export function AiWaitSheet({ visible, job, usage, error, onLeave, onOpen }: Pro
           {done ? job.result?.title || 'Your new creation is ready' : failed ? 'We couldn’t finish this creation' : 'Making something special…'}
         </Text>
         <Text style={styles.copy} accessibilityLiveRegion="polite">
-          {done ? 'Your new family asset is ready to open.' : failed ? job.error || 'Please try again.' : 'You can stay here, or leave this screen. We’ll let you know when it’s ready.'}
+          {done ? 'Your new family asset is ready to open.' : failed ? photoCheckJobMessage(job) || job.error || 'Please try again.' : 'You can stay here, or leave this screen. We’ll let you know when it’s ready.'}
         </Text>
         {!done && !failed ? (
           <>
@@ -93,7 +94,7 @@ export function AiCompletionToast({ job, onOpen, onDismiss }: { job: AiJob; onOp
       </View>
       <View style={styles.toastCopy}>
         <Text style={styles.toastTitle} numberOfLines={1}>{failed ? 'A creation couldn’t finish' : job.result?.title || 'Your creation is ready'}</Text>
-        <Text style={styles.toastText} numberOfLines={1}>{failed ? job.error || 'Please try again.' : 'Tap to open it'}</Text>
+        <Text style={styles.toastText} numberOfLines={1}>{failed ? photoCheckJobMessage(job) || job.error || 'Please try again.' : 'Tap to open it'}</Text>
       </View>
       {failed ? null : (
         <Pressable accessibilityRole="button" onPress={onOpen} hitSlop={6} style={({ pressed }) => [styles.toastOpen, pressed && { opacity: 0.7 }]}>

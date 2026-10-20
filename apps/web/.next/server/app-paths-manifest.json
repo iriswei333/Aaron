@@ -1,11 +1,7 @@
 {
-  "/api/family-assets/picture-books/route": "app/api/family-assets/picture-books/route.js",
-  "/api/playdates/route": "app/api/playdates/route.js",
-  "/api/family-assets/toy-plays/route": "app/api/family-assets/toy-plays/route.js",
-  "/api/family-assets/practice-stories/route": "app/api/family-assets/practice-stories/route.js",
-  "/api/playgrounds/route": "app/api/playgrounds/route.js",
-  "/api/family-events/route": "app/api/family-events/route.js",
-  "/api/story-times/route": "app/api/story-times/route.js",
-  "/api/family-plans/route": "app/api/family-plans/route.js",
-  "/api/notifications/route": "app/api/notifications/route.js"
+  "/api/notifications/route": "app/api/notifications/route.js",
+  "/api/family-assets/picture-book-templates/route": "app/api/family-assets/picture-book-templates/route.js",
+  "/api/family-assets/photos/direct-upload/route": "app/api/family-assets/photos/direct-upload/route.js",
+  "/[...slug]/page": "app/[...slug]/page.js",
+  "/page": "app/page.js"
 }

@@ -27,6 +27,8 @@ export type AiJob = {
   createdAt?: string;
   result?: { assetId?: string; title?: string; assetType?: string; pageKey?: string; href?: string } | null;
   error?: string | null;
+  /** Set when the job failed on a photo (e.g. PHOTO_UNSAFE); see @sproutcue/shared/photo-check. */
+  errorCode?: string | null;
 };
 export type AiUsage = { unlimited?: boolean; used?: number; limit?: number } | null;
 export type AiNotification = { id: string; type?: string; title?: string; message?: string; href?: string; assetId?: string | null; readAt?: string | null; createdAt?: string };
@@ -143,8 +145,8 @@ export function AiJobsProvider({ children }: { children: ReactNode }) {
       router.push('/family');
       return;
     }
-    if (destination.kind === 'picture_book') router.push({ pathname: '/create/books/[id]', params: { id: destination.id, ...(destination.pageKey ? { page: destination.pageKey } : {}) } });
-    else if (destination.kind === 'practice_story') router.push({ pathname: '/create/stories/[id]', params: { id: destination.id } });
+    if (destination.kind === 'picture_book') router.push({ pathname: '/create/books/book', params: { bookId: destination.id, ...(destination.pageKey ? { page: destination.pageKey } : {}) } });
+    else if (destination.kind === 'practice_story') router.push({ pathname: '/create/stories/reader', params: { storyId: destination.id } });
     else router.push({ pathname: '/family', params: { toyPlay: destination.id } });
   }, []);
 

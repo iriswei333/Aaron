@@ -12,6 +12,7 @@ import {
   fetchForcedEventFromUrl,
   generateSocialPostsFromRecommendationUrl,
   generateWeeklySocialPosts,
+  makeSocialPost,
   makeWeeklyRoundup,
 } from '../lib/social-post-agent.js';
 import { getForcedPartnershipEvents } from '../lib/social-partnership-events.js';
@@ -21,11 +22,8 @@ const projectRoot = resolve(new URL('..', import.meta.url).pathname);
 const imageGen = process.env.IMAGE_GEN || join(process.env.CODEX_HOME || join(homedir(), '.codex'), 'skills/.system/imagegen/scripts/image_gen.py');
 const MAX_WEEKLY_POSTERS = 8;
 const MAX_ROUNDUP_WORDS = 670;
-const DEFAULT_CITY_POSTER_LIMIT = 1;
-const CITY_POSTER_LIMITS = new Map([
-  ['seattle', 2],
-  ['bellevue', 2],
-]);
+const DEFAULT_REGION_POSTER_LIMIT = 1;
+const REGION_POSTER_LIMITS = new Map(DEFAULT_SOCIAL_REGIONS.map((region) => [region.slug, region.eventLimit]));
 const POSTER_FORMAT = {
   width: 1024,
   height: 1536,
@@ -50,23 +48,18 @@ function parseRejectedEvent(value) {
   if (value && typeof value === 'object') {
     const title = String(value.title || '').trim();
     return {
-      city: String(value.city || '').trim().toLowerCase(),
-      date: String(value.date || '').trim(),
       title,
       normalizedTitle: normalizeFeedbackText(value.normalizedTitle || title),
-      family: normalizeFeedbackText(value.family || eventFamilyKey(title)),
       reason: String(value.reason || '').trim(),
     };
   }
-  const [city, date, title, ...reasonParts] = value.split('|');
-  const rawTitle = (title || '').trim();
+  const parts = value.split('|');
+  const legacyFormat = parts.length >= 3 && /^\d{4}-\d{2}-\d{2}$/.test(parts[1]?.trim());
+  const rawTitle = (legacyFormat ? parts[2] : parts[0] || '').trim();
   return {
-    city: (city || '').trim().toLowerCase(),
-    date: (date || '').trim(),
     title: rawTitle,
     normalizedTitle: normalizeFeedbackText(rawTitle),
-    family: eventFamilyKey(rawTitle),
-    reason: reasonParts.join('|').trim(),
+    reason: (legacyFormat ? parts.slice(3) : parts.slice(1)).join('|').trim(),
   };
 }
 
@@ -74,55 +67,47 @@ function normalizeFeedbackText(value) {
   return String(value ?? '').trim().toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, '');
 }
 
-function eventFamilyKey(value) {
-  const title = String(value ?? '').trim().toLowerCase();
-  // Treat the shared series name before a location suffix as one family, so
-  // rejecting “Salmon SEEson at North Creek Trail Park” also rejects its
-  // “Salmon SEEson at Issaquah Creek” variant.
-  const spacedFamily = /\s+at\s+/i.test(title) ? title.split(/\s+at\s+/i)[0] : '';
-  const colonFamily = /\s*:\s*/.test(title) ? title.split(/\s*:\s*/)[0] : '';
-  const compactSeriesMatch = title.match(/^(.{8,}storystroll)/);
-  const compactMatch = title.match(/^(.{8,})at[a-z0-9\u4e00-\u9fff]{5,}$/);
-  const family = normalizeFeedbackText(spacedFamily || colonFamily || compactSeriesMatch?.[1] || compactMatch?.[1] || '');
-  return family.length >= 8 ? family : '';
-}
-
 function rejectedEventKey(event) {
-  return `${event.city}|${event.date}|${event.normalizedTitle || normalizeFeedbackText(event.title)}`;
+  return `title|${event.normalizedTitle || normalizeFeedbackText(event.title)}`;
 }
 
 function rejectedEventKeys(event) {
-  const keys = [rejectedEventKey(event)];
-  if (event.family) keys.push(`family|${event.family}`);
-  return keys;
+  return [rejectedEventKey(event)];
 }
 
 const dryRun = process.argv.includes('--dry-run');
 const skipImages = process.argv.includes('--skip-images');
 const sampleRun = process.argv.includes('--sample');
+const listScores = process.argv.includes('--list-scores');
 const regenerationRequests = argValues('--regenerate');
 const rejectedEventRequests = argValues('--reject-event');
 const feedback = argValue('--feedback');
 const sourceRoundupPath = argValue('--from-roundup');
 const forceEventUrlInput = argValue('--force-event-url');
 const recommendationUrlInput = argValue('--recommendations-url') || argValue('--events-url');
+const handpickedEventsPathInput = argValue('--events-file');
 const excludedRecommendationUrlInputs = argValues('--exclude-event-url');
 const forcedCity = argValue('--city').trim();
 const forcedDate = argValue('--date').trim();
 const savePartnership = process.argv.includes('--save-partnership');
-const venueDistanceFilter = !process.argv.includes('--no-venue-distance-filter')
-  && !process.argv.includes('--normal-event-search');
+const normalEventSearch = process.argv.includes('--normal-event-search');
+const venueDistanceFilter = process.argv.includes('--venue-distance-filter')
+  && !normalEventSearch;
 const requestedDistanceMiles = Number(argValue('--max-distance-miles', String(DEFAULT_EVENT_DISTANCE_MILES)));
 const maxDistanceMiles = Number.isFinite(requestedDistanceMiles) && requestedDistanceMiles > 0
   ? requestedDistanceMiles
   : DEFAULT_EVENT_DISTANCE_MILES;
 const outputDir = resolve(argValue('--output', join(projectRoot, 'output/social-posts')));
-const defaultRegionList = DEFAULT_SOCIAL_REGIONS.map((item) => item.city).join(',');
+const defaultRegionList = DEFAULT_SOCIAL_REGIONS.map((item) => item.slug).join(',');
 const configuredRegions = argValue('--regions', defaultRegionList)
   .split(',')
-  .map((city) => city.trim())
+  .map((regionSlug) => regionSlug.trim().toLowerCase())
   .filter(Boolean)
-  .map((city) => ({ city, label: city }));
+  .map((regionSlug) => {
+    const region = DEFAULT_SOCIAL_REGIONS.find((candidate) => candidate.slug === regionSlug);
+    if (!region) throw new Error(`Unsupported ParentMap region "${regionSlug}". Use: ${defaultRegionList}.`);
+    return region;
+  });
 
 function normalizedForcedEventUrl(value) {
   const markdownUrl = String(value || '').trim().match(/^\[(https?:\/\/[^\]]+)\]\(https?:\/\/[^)]+\)$/i)?.[1];
@@ -189,7 +174,7 @@ function posterPrompt(post) {
   const revisionFeedback = feedback ? `\nRevision feedback to address: ${feedback}\n` : '';
   const featureTiles = eventFeatureTiles(post);
   const featureTileText = featureTiles.map((tile, index) => `${index + 1}. “${tile.title}” / “${tile.subtitle}”`).join('\n');
-  const headline = post.headline || `${post.city} · 周末亲子精选`;
+  const headline = post.headline || '周末亲子精选';
   const posterHighlight = String(post.highlights?.[0] || post.bannerText || '带上家人，一起去玩！')
     .match(/^.*?[。！？.!?](?:[”’」』")\)]*)?/)?.[0]
     ?.replace(/^[^\p{L}\p{N}\u4e00-\u9fff]+/u, '')
@@ -197,10 +182,10 @@ function posterPrompt(post) {
     || '带上家人，一起去玩！';
   return `Use case: ads-marketing
 Asset type: fixed-format vertical ${POSTER_FORMAT.aspectRatio} Mandarin social media event poster
-Primary request: Create a polished family-event poster for ${post.title} in ${post.city} using the exact reusable SproutCue template modeled on the supplied reference layout.
+Primary request: Create a polished family-event poster for ${post.title} using the exact reusable SproutCue template modeled on the supplied reference layout. Do not put a city or region name in the top banner.
 Canvas: exactly ${POSTER_FORMAT.width}x${POSTER_FORMAT.height} px, ${POSTER_FORMAT.aspectRatio}; keep all content inside a ${POSTER_FORMAT.safeMargin} safe margin.
-Fixed visual system: warm cream paper-textured background; deep navy #082b52 ribbon and facts bar; rounded coral-orange #f0643d event panel; cream stitched banners; leafy green #3c713d accents; three cheerful flat-cartoon family characters; crisp dark outlines; soft print texture; consistent bright family-friendly palette. Only the event content and a subtle city landmark may change between posters.
-Fixed reference layout, from top to bottom: (1) top 11% — a centered navy swallowtail ribbon containing the city/day headline, with small orange accent marks and leafy sprigs around it; (2) 11–34% — one large rounded coral-orange panel with a thin cream stitched border containing the event name in large cream display type, wrapping across no more than three lines; (3) 31–40% — a cream swallowtail banner overlapping the lower edge of the orange panel with the fixed weekend label; (4) 36–70% — a welcoming city scene with exactly three family characters, centered beneath the banners, with no text over the illustration; (5) 69–79% — one rounded cream feature strip divided into three equal tiles with circular icons; (6) 79–88% — one full-width navy facts bar divided into three columns for date, time, and location; (7) 88–96% — a centered green Mandarin event-highlight band with leafy/orange accents, allowing two compact lines when needed; (8) 96–100% — a centered navy pill containing the SproutCue credit. Preserve this order, alignment, proportions, and generous spacing for every poster.
+Fixed visual system: warm cream paper-textured background; deep navy #082b52 ribbon and facts bar; rounded coral-orange #f0643d event panel; cream stitched banners; leafy green #3c713d accents; three cheerful flat-cartoon family characters; crisp dark outlines; soft print texture; consistent bright family-friendly palette. Only the event-specific content and illustration details may change between posters.
+Fixed reference layout, from top to bottom: (1) top 11% — a centered navy swallowtail ribbon containing the day/weekend headline without a city or region name, with small orange accent marks and leafy sprigs around it; (2) 11–34% — one large rounded coral-orange panel with a thin cream stitched border containing the event name in large cream display type, wrapping across no more than three lines; (3) 31–40% — a cream swallowtail banner overlapping the lower edge of the orange panel with the fixed weekend label; (4) 36–70% — a welcoming event-themed scene with exactly three family characters, centered beneath the banners, with no text over the illustration; (5) 69–79% — one rounded cream feature strip divided into three equal tiles with circular icons; (6) 79–88% — one full-width navy facts bar divided into three columns for date, time, and location; (7) 88–96% — a centered green Mandarin event-highlight band with leafy/orange accents, allowing two compact lines when needed; (8) 96–100% — a centered navy pill containing the SproutCue credit. Preserve this order, alignment, proportions, and generous spacing for every poster.
 Feature tile copy: use these exact three event-specific feature tiles in the three equal feature tiles, in this order:
 ${featureTileText}
 Text rules: render only the following text blocks in their assigned template sections, with no extra copy, labels, QR codes, logos, watermarks, or decorative lettering:
@@ -253,6 +238,10 @@ function posterEventKey(post) {
   return `${post.city.toLowerCase()}|${post.date || ''}|${identity}`.toLowerCase();
 }
 
+function regenerationSlotKey(post, weekKey = '') {
+  return `${String(post.regionSlug || post.region || post.city).toLowerCase()}|${post.date || weekKey}`;
+}
+
 function limitWords(value, limit = MAX_ROUNDUP_WORDS) {
   const words = value.trim().split(/\s+/);
   return words.length <= limit ? value : `${words.slice(0, limit).join(' ')}\n\n（内容已截取至 ${limit} 字以内。）`;
@@ -271,7 +260,7 @@ async function readExistingPosterNames(directory) {
 async function readRejectedEvents(path) {
   try {
     const value = JSON.parse(await readFile(path, 'utf8'));
-    return Array.isArray(value) ? value.map(parseRejectedEvent).filter((event) => event.city && event.date && event.title) : [];
+    return Array.isArray(value) ? value.map(parseRejectedEvent).filter((event) => event.title) : [];
   } catch (error) {
     if (error.code === 'ENOENT') return [];
     throw error;
@@ -291,24 +280,25 @@ async function loadRunFromRoundup(roundupPath) {
   return { ...run, sourceManifestPath: manifestPath };
 }
 
-function cityPosterLimit(city) {
-  return CITY_POSTER_LIMITS.get(city.toLowerCase()) || DEFAULT_CITY_POSTER_LIMIT;
+function regionPosterLimit(post) {
+  return REGION_POSTER_LIMITS.get(String(post.regionSlug || '').toLowerCase()) || DEFAULT_REGION_POSTER_LIMIT;
 }
 
 function selectPosterSet(posts, limit = MAX_WEEKLY_POSTERS, weekKey = '', regenerationTargets = new Set()) {
   const groups = new Map();
   for (const post of posts) {
-    if (!groups.has(post.city)) groups.set(post.city, []);
-    groups.get(post.city).push(post);
+    const regionKey = post.regionSlug || post.region || post.city;
+    if (!groups.has(regionKey)) groups.set(regionKey, []);
+    groups.get(regionKey).push(post);
   }
   const selected = [];
   const selectedEventKeys = new Set();
-  const isRegenerationTarget = (post) => regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || weekKey}`);
-  for (const cityPosts of groups.values()) {
-    const targets = cityPosts.filter(isRegenerationTarget);
-    const ranked = [...cityPosts].sort((a, b) => (b.recommendationScore || 0) - (a.recommendationScore || 0));
-    const cityCandidates = [...targets, ...ranked].filter((post, index, candidates) => candidates.findIndex((candidate) => candidate.id === post.id) === index);
-    for (const post of cityCandidates.slice(0, cityPosterLimit(cityPosts[0].city))) {
+  const isRegenerationTarget = (post) => regenerationTargets.has(regenerationSlotKey(post, weekKey));
+  for (const regionPosts of groups.values()) {
+    const targets = regionPosts.filter(isRegenerationTarget);
+    const ranked = [...regionPosts].sort((a, b) => (b.recommendationScore || 0) - (a.recommendationScore || 0));
+    const regionCandidates = [...targets, ...ranked].filter((post, index, candidates) => candidates.findIndex((candidate) => candidate.id === post.id) === index);
+    for (const post of regionCandidates.slice(0, regionPosterLimit(regionPosts[0]))) {
       if (selected.length >= limit) break;
       const eventKey = posterEventKey(post);
       if (!selectedEventKeys.has(eventKey)) {
@@ -327,6 +317,30 @@ function showProgress(completed, total, current = '') {
   const bar = `${'█'.repeat(filled)}${'░'.repeat(Math.max(0, width - filled))}`;
   process.stdout.write(`\rGenerating posters [${bar}] ${completed}/${total}${current ? ` · ${current}` : ''}`);
   if (completed >= total) process.stdout.write('\n');
+}
+
+function printCandidateScores(candidateScores = []) {
+  if (!candidateScores.length) {
+    console.log('Candidate scores: no ParentMap candidates found.');
+    return;
+  }
+  console.log('Candidate scores:');
+  let currentRegion = '';
+  candidateScores.forEach((candidate, index) => {
+    if (candidate.region !== currentRegion) {
+      currentRegion = candidate.region;
+      console.log(`\n${candidate.regionLabel || candidate.region}`);
+    }
+    const componentText = Object.entries(candidate.components || {})
+      .filter(([, score]) => score)
+      .map(([name, score]) => `${name} +${score}`)
+      .join(', ');
+    const state = candidate.rejected ? 'rejected' : candidate.selected ? 'selected' : 'not selected';
+    console.log(`${index + 1}. ${candidate.total} · ${state} · ${candidate.date} · ${candidate.title}`);
+    console.log(`   ${componentText || 'no positive score components'}`);
+    if (candidate.matchingKeywords?.length) console.log(`   keywords: ${candidate.matchingKeywords.join(', ')}`);
+    if (candidate.url) console.log(`   ${candidate.url}`);
+  });
 }
 
 function runImageBatch(jobs, promptPath, outputDir, force = false) {
@@ -382,6 +396,7 @@ async function writeSocialRunToFamilyEventCache(run) {
 async function main() {
   const hasForcedArguments = Boolean(forceEventUrlInput || forcedCity || forcedDate);
   const recommendationUrl = normalizedForcedEventUrl(recommendationUrlInput);
+  const handpickedEventsPath = handpickedEventsPathInput ? resolve(handpickedEventsPathInput) : '';
   const excludedRecommendationUrls = excludedRecommendationUrlInputs.map(normalizedForcedEventUrl);
   if (excludedRecommendationUrls.length && !recommendationUrl) {
     throw new Error('--exclude-event-url requires --recommendations-url or --events-url.');
@@ -398,6 +413,9 @@ async function main() {
   if (recommendationUrl && (hasForcedArguments || sourceRoundupPath || regenerationRequests.length || savePartnership)) {
     throw new Error('--recommendations-url cannot be combined with forced, roundup, regeneration, or partnership options.');
   }
+  if (handpickedEventsPath && (recommendationUrl || hasForcedArguments || sourceRoundupPath || regenerationRequests.length || savePartnership)) {
+    throw new Error('--events-file cannot be combined with recommendation, forced, roundup, regeneration, or partnership options.');
+  }
   const forceEventUrl = normalizedForcedEventUrl(forceEventUrlInput);
   const forcedInputEvents = forceEventUrl
     ? [await fetchForcedEventFromUrl({ url: forceEventUrl, city: forcedCity, date: forcedDate })]
@@ -411,27 +429,82 @@ async function main() {
       partnershipSaved = true;
     }
   }
-  const regions = forcedInputEvents.length ? [{ city: forcedCity, label: forcedCity }] : configuredRegions;
+  const regions = forcedInputEvents.length ? [{ slug: forcedCity.toLowerCase().replace(/\s+/g, '-'), city: forcedCity, label: forcedCity, eventLimit: 1 }] : configuredRegions;
   const regenerationTargets = new Set(regenerationRequests.map(parseRegenerationRequest).map(regenerationKey));
   await mkdir(outputDir, { recursive: true });
   const rejectedEventsPath = join(outputDir, 'event-feedback.json');
   const rejectedEvents = [...await readRejectedEvents(rejectedEventsPath), ...rejectedEventRequests.map(parseRejectedEvent)]
-    .filter((event, index, events) => event.city && event.date && event.title
+    .filter((event, index, events) => event.title
       && events.findIndex((candidate) => rejectedEventKey(candidate) === rejectedEventKey(event)) === index);
   if (rejectedEventRequests.length) {
     await writeFile(rejectedEventsPath, `${JSON.stringify(rejectedEvents, null, 2)}\n`);
   }
   const excludedEventSlots = new Set(rejectedEvents.flatMap(rejectedEventKeys));
+  let handpickedEvents = [];
+  if (handpickedEventsPath) {
+    const specs = JSON.parse(await readFile(handpickedEventsPath, 'utf8'));
+    if (!Array.isArray(specs) || !specs.length) throw new Error('--events-file must contain a non-empty JSON array.');
+    handpickedEvents = await Promise.all(specs.map(async (spec, index) => {
+      const dates = (Array.isArray(spec.dates) ? spec.dates : [spec.date]).filter(Boolean);
+      if (!spec.url || !spec.city || !dates.length || dates.some((date) => !validForcedDate(date))) {
+        throw new Error(`Invalid event at --events-file index ${index}; url, city, and valid YYYY-MM-DD date(s) are required.`);
+      }
+      let fetched = {};
+      try {
+        fetched = await fetchForcedEventFromUrl({ url: spec.url, city: spec.city, date: dates[0] });
+      } catch (error) {
+        if (!spec.title) throw error;
+        fetched = { sourceUrl: spec.url, url: spec.url, sourceLabel: new URL(spec.url).hostname };
+      }
+      const event = {
+        ...fetched,
+        ...spec,
+        date: dates[0],
+        dateLabel: spec.dateLabel || dates.join(', '),
+        sourceUrl: spec.url,
+        url: spec.url,
+      };
+      const post = makeSocialPost({
+        event,
+        city: spec.city,
+        regionLabel: spec.city,
+        dateLabel: event.dateLabel,
+        sourceUrl: spec.url,
+        sourceLabel: event.sourceLabel,
+      });
+      if (Array.isArray(spec.highlights) && spec.highlights.length) post.highlights = spec.highlights;
+      return post;
+    }));
+  }
+  const handpickedDates = handpickedEvents.flatMap((post) => post.dateLabel.match(/\d{4}-\d{2}-\d{2}/g) || [post.date]).sort();
+  const handpickedWeekKey = handpickedDates.find((date) => new Date(`${date}T12:00:00Z`).getUTCDay() === 6)
+    || handpickedDates[0];
+  const handpickedRun = handpickedEvents.length ? {
+    generatedAt: new Date().toISOString(),
+    weekKey: handpickedWeekKey,
+    startDate: handpickedDates[0],
+    endDate: handpickedDates[handpickedDates.length - 1],
+    regions: [...new Set(handpickedEvents.map((post) => post.city))].map((city) => ({ city, label: city })),
+    slotCount: handpickedEvents.length,
+    posts: handpickedEvents,
+    statuses: handpickedEvents.map((post) => ({ city: post.city, day: post.dateLabel, matched: true, providerStatus: 'Hand-picked URL selected.' })),
+    searchMode: 'handpicked-urls',
+    sourcePath: handpickedEventsPath,
+  } : null;
   const run = sourceRoundupPath
     ? await loadRunFromRoundup(sourceRoundupPath)
     : recommendationUrl
       ? await generateSocialPostsFromRecommendationUrl({ url: recommendationUrl, excludeUrls: excludedRecommendationUrls })
+    : handpickedRun
+      ? handpickedRun
     : await generateWeeklySocialPosts({
       regions,
       alternateSlots: regenerationTargets,
       excludedEventSlots,
       forcedInputEvents,
       dates: forcedInputEvents.length ? [forcedDate] : [],
+      includeCandidateScores: listScores,
+      parentMapOnly: !normalEventSearch,
       venueDistanceFilter,
       maxDistanceMiles,
     });
@@ -443,7 +516,8 @@ async function main() {
   }
   const existingPosterNames = await readExistingPosterNames(outputDir);
   const posterLimit = sampleRun ? 1 : MAX_WEEKLY_POSTERS;
-  const isRecommendationRun = Boolean(recommendationUrl || run.searchMode === 'recommendations-url');
+  const isHandpickedRun = run.searchMode === 'handpicked-urls';
+  const isRecommendationRun = Boolean(recommendationUrl || run.searchMode === 'recommendations-url' || isHandpickedRun);
   const posterSet = isRecommendationRun
     ? [...run.posts].sort((a, b) => (b.recommendationScore || 0) - (a.recommendationScore || 0)).slice(0, posterLimit)
     : selectPosterSet(run.posts, posterLimit, run.weekKey, regenerationTargets);
@@ -458,20 +532,20 @@ async function main() {
     return posterFilename(post, run.weekKey, includeTitleInFilename || filenameSlotCounts.get(slot) > 1);
   };
   const posterPosts = posterSet.filter((post) => forcedInputEvents.length
-    || regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)
+    || regenerationTargets.has(regenerationSlotKey(post, run.weekKey))
     || !existingPosterNames.has(filenameFor(post)));
-  const supportsSummaryPoster = Boolean(run.posts.length && !forcedInputEvents.length && run.searchMode !== 'forced-url');
+  const supportsSummaryPoster = Boolean(run.posts.length && (!forcedInputEvents.length || isHandpickedRun) && run.searchMode !== 'forced-url');
   const summaryPosterFilename = supportsSummaryPoster
-    ? `${isRecommendationRun ? 'recommendations' : 'weekly'}-${run.weekKey}-all-events.png`
+    ? `${isHandpickedRun ? 'weekly' : isRecommendationRun ? 'recommendations' : 'weekly'}-${run.weekKey}-all-events.png`
     : '';
   const shouldGenerateSummaryPoster = Boolean(summaryPosterFilename
     && (!existingPosterNames.has(summaryPosterFilename) || regenerationTargets.size > 0));
   const roundupPosterPosts = posterSet;
   const roundup = makeWeeklyRoundup(roundupPosterPosts, run.startDate, run.endDate);
   roundup.caption = limitWords(roundup.caption);
-  const matchedRegenerationTargets = new Set(posterPosts.filter((post) => regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)).map((post) => `${post.city.toLowerCase()}|${post.date || run.weekKey}`));
+  const matchedRegenerationTargets = new Set(posterPosts.filter((post) => regenerationTargets.has(regenerationSlotKey(post, run.weekKey))).map((post) => regenerationSlotKey(post, run.weekKey)));
   const unmatchedRegenerationRequests = [...regenerationTargets].filter((target) => !matchedRegenerationTargets.has(target));
-  const artifactPrefix = `${isRecommendationRun ? 'recommendations' : 'weekly'}-${run.weekKey}`;
+  const artifactPrefix = `${isHandpickedRun ? 'weekly' : isRecommendationRun ? 'recommendations' : 'weekly'}-${run.weekKey}`;
   const manifestPath = join(outputDir, `${artifactPrefix}.json`);
   const promptPath = join(outputDir, `${artifactPrefix}.jsonl`);
   const manifest = {
@@ -482,7 +556,7 @@ async function main() {
     posterLimit,
     existingPosterCount: existingPosterNames.size,
     skippedExistingPosterCount: forcedInputEvents.length ? 0 : posterSet.filter((post) => existingPosterNames.has(filenameFor(post))
-      && !regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)).length,
+      && !regenerationTargets.has(regenerationSlotKey(post, run.weekKey))).length,
     regenerationRequests,
     feedback,
     rejectedEvents,
@@ -496,7 +570,8 @@ async function main() {
       eventPostIds: run.posts.map((post) => post.id),
       generatedThisRun: shouldGenerateSummaryPoster,
     } : null,
-    posterLimitByCity: Object.fromEntries([...new Set(posterSet.map((post) => post.city))].map((city) => [city, cityPosterLimit(city)])),
+    posterLimitByRegion: Object.fromEntries([...new Set(posterSet.map((post) => post.regionSlug || post.region))]
+      .map((region) => [region, regionPosterLimit(posterSet.find((post) => (post.regionSlug || post.region) === region))])),
     roundupPostIds: roundupPosterPosts.map((post) => post.id),
     roundupWordLimit: MAX_ROUNDUP_WORDS,
   };
@@ -525,23 +600,28 @@ async function main() {
   console.log(forcedInputEvents.length ? `Event date: ${run.startDate}` : `Weekend: ${run.startDate}–${run.endDate}`);
   if (sourceRoundupPath) console.log(`Source roundup: ${sourceRoundupPath} (event search skipped).`);
   else if (recommendationUrl) console.log(`Event search mode: recommendations from ${recommendationUrl}.`);
+  else if (isHandpickedRun) console.log(`Event search mode: hand-picked URLs from ${run.sourcePath}.`);
   else if (forcedInputEvents.length) console.log(`Event search mode: forced URL for ${forcedCity} on ${forcedDate}.`);
-  else console.log(`Event search mode: ${venueDistanceFilter ? `ParentMap venues within ${maxDistanceMiles} miles` : 'normal'}.`);
+  else console.log(`Event search mode: ${venueDistanceFilter ? `ParentMap venues within ${maxDistanceMiles} miles` : normalEventSearch ? 'legacy merged providers and web fallback' : 'ParentMap region parameters'}.`);
   if (savePartnership) console.log(partnershipSaved
     ? 'Saved forced event to lib/social-partnership-events.js.'
     : 'Partnership event already exists; source file was unchanged.');
   if (excludedRecommendationUrls.length) console.log(`Excluded recommendation URLs: ${excludedRecommendationUrls.join(', ')}`);
+  if (listScores) printCandidateScores(run.candidateScores || []);
   console.log(`Matched ${run.posts.length} of ${run.slotCount || run.regions.length * 2} event slots.`);
   console.log(`Family-event cache: wrote ${cacheWrite.count} city row${cacheWrite.count === 1 ? '' : 's'} to ${cacheWrite.target}.`);
   const skippedExistingCount = forcedInputEvents.length ? 0 : posterSet.filter((post) => existingPosterNames.has(filenameFor(post))
-    && !regenerationTargets.has(`${post.city.toLowerCase()}|${post.date || run.weekKey}`)).length;
+    && !regenerationTargets.has(regenerationSlotKey(post, run.weekKey))).length;
   console.log(`Poster jobs: ${jobs.length} (${posterPosts.length} individual of ${run.posts.length} matched events${supportsSummaryPoster ? ` plus ${shouldGenerateSummaryPoster ? '1' : '0'} all-events summary` : ''}; ${sampleRun ? 'sample limit: 1' : `weekly individual limit: ${MAX_WEEKLY_POSTERS}`}; skipped ${skippedExistingCount} existing).`);
   if (regenerationRequests.length) console.log(`Regenerating: ${regenerationRequests.join('; ')}`);
   if (unmatchedRegenerationRequests.length) console.warn(`No matching event found for regeneration request(s): ${unmatchedRegenerationRequests.join(', ')}`);
   console.log(`Manifest: ${manifestPath}`);
   console.log(`Prompts:  ${promptPath}`);
   console.log(`Roundup:  ${roundupPath}${shouldWriteRoundup ? '' : ' (unchanged; no alternate event found)'}`);
-  for (const status of run.statuses) console.log(`${status.city} ${status.day}: ${status.matched ? 'matched' : status.providerStatus}`);
+  for (const status of run.statuses) {
+    const cities = Array.isArray(status.cities) && status.cities.length ? ` in ${status.cities.join(', ')}` : '';
+    console.log(`${status.regionLabel || status.region || status.city} ${status.day}: ${status.matched ? `matched ${status.selectedCount || 1}${cities}` : status.providerStatus}`);
+  }
 
   if (dryRun || skipImages || jobs.length === 0) {
     console.log(dryRun ? 'Dry run: no images generated.' : 'Image generation skipped.');

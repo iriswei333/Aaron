@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { getChildProfile } from '@sproutcue/shared/profile-defaults';
+import { moderatePhoto as screenPhoto } from './child-photo-check.js';
 import { createFamilyPhoto, readFamilyPhoto } from './family-photos.js';
 import {
   PRACTICE_STORY_CHALLENGES, PRACTICE_STORY_LENGTHS, PRACTICE_STORY_PARENT_GOALS, PRACTICE_STORY_THEMES,
@@ -145,12 +146,6 @@ async function optionalPhotos(current, formData) {
   return photos;
 }
 
-async function moderatePhoto(jpeg) {
-  const response = await fetch('https://api.openai.com/v1/moderations', { method: 'POST', headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'content-type': 'application/json' }, body: JSON.stringify({ model: 'omni-moderation-latest', input: [{ type: 'image_url', image_url: { url: `data:image/jpeg;base64,${jpeg.toString('base64')}` } }] }) });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload.error?.message || `Photo safety check failed (${response.status}).`);
-  if (payload.results?.[0]?.flagged) throw new Error('This photo cannot be used. Choose a clear, everyday photo of your child.');
-}
 
 function ageGuidance(ageMonths) {
   if (ageMonths < 24) return 'The listener is a baby or young toddler: address the caregiver, keep each storyText to 1–2 very short sentences, and lean on sensory words, sounds, and repetition.';
@@ -269,7 +264,7 @@ export async function savePlaygroundPracticeStory(current, draft = {}) {
 
 async function generateCover(photos, story, childName, interests, theme = null) {
   const jpegs = await Promise.all(photos.map((photo) => normalizedPhoto(photo)));
-  await Promise.all(jpegs.map((jpeg) => moderatePhoto(jpeg)));
+  await Promise.all(jpegs.map((jpeg) => screenPhoto(jpeg, { flaggedMessage: 'This photo cannot be used. Choose a clear, everyday photo of your child.' })));
   const form = new FormData();
   form.set('model', IMAGE_MODEL);
   form.set('size', '1024x1024');

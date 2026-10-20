@@ -1,0 +1,950 @@
+{
+  "id": "recommendations-2026-10-16",
+  "weekKey": "2026-10-16",
+  "startDate": "2026-10-16",
+  "endDate": "2026-10-18",
+  "regions": [
+    "Seattle",
+    "Everett",
+    "Puyallup",
+    "Kenmore"
+  ],
+  "posts": [
+    {
+      "id": "social-seattle-2026-10-16-hamlin-halloween-haunt",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "Hamlin Halloween Haunt",
+      "theme": "Family event recommendation",
+      "headline": "Seattle · 周末亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "篝火旁唱歌、乘坐干草车、玩万圣节主题游戏，秋日氛围满满。穿上万圣节装扮，在照相亭拍下全家趣味合影。"
+      ],
+      "description": "Speaking of quintessential fall activities, this community haunt will have you singing songs around the campfire, taking a hayride and playing Halloween-themed games. Wear your costumes for the photo booth!",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Hamlin Halloween Haunt\n免费入场，Friday, Oct. 16 · 5:30–8:30 p.m. · Hamlin Park\n\nSpeaking of quintessential fall activities, this community haunt will have you singing songs around the campfire, taking a hayride and playing Halloween-themed games. Wear your costumes for the photo booth!\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-16",
+      "dateLabel": "Friday, Oct. 16",
+      "occurrenceDates": [
+        "2026-10-16"
+      ],
+      "timeLabel": "5:30–8:30 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Hamlin Park",
+      "venueAddress": "16006 15th Ave. N.E., Seattle",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775079920240-campfire-1031141_1280-69e6c4f603e3.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/hamlin-halloween-haunt-1/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/hamlin-halloween-haunt-1/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-seattle-2026-10-17-fracture",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "Fracture!",
+      "theme": "Family event recommendation",
+      "headline": "Seattle · 星期六亲子精选",
+      "bannerText": "把周末过成美好回忆！",
+      "highlights": [
+        "👨‍👩‍👧‍👦 适合亲子一起体验。💛 适合安排周末亲子时光。"
+      ],
+      "description": "As if math wasn’t scary enough on its own! This experience has elements of an escape room, a haunted house and live theater, all rolled into one. Solve problems and save the day. (Come 1–4 p.m. for the family-friendly version, or 7–10 p.m. for after-dark scares.)",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Fracture!\nFriday–Sunday, Oct. 16–18 · 1–4 p.m. · Pacific Science Center\n\nAs if math wasn’t scary enough on its own! This experience has elements of an escape room, a haunted house and live theater, all rolled into one. Solve problems and save the day. (Come 1–4 p.m. for the family-friendly version, or 7–10 p.m. for after-dark scares.)\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-17",
+      "dateLabel": "Friday–Sunday, Oct. 16–18",
+      "occurrenceDates": [
+        "2026-10-16",
+        "2026-10-17",
+        "2026-10-18"
+      ],
+      "timeLabel": "1–4 p.m.",
+      "cost": "Pay-what-you-want admission, starting at $10 per person",
+      "free": null,
+      "venue": "Pacific Science Center",
+      "venueAddress": "200 Sue Bird Court N., Seattle",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/09/FRACTURE2026_InstagramVertical_1080x1359-1.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/fracture-family-friendly-2/2026-10-17/",
+      "seriesUrl": "https://www.parentmap.com/series/fracture-2/",
+      "sourceUrl": "https://www.parentmap.com/calendar/fracture-family-friendly-2/2026-10-17/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-seattle-2026-10-17-diwali-family-festival-at-saam",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "Diwali Family Festival at SAAM",
+      "theme": "Family event recommendation",
+      "headline": "Seattle · 星期六亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "亲子同乐的排灯节庆典，欣赏青少年艺术展与现场表演，互动活动不停歇。与艺术家Deepti Agrawal一起动手创作，还能体验定制海娜彩绘。Spice Waala 餐车供应风味美食。"
+      ],
+      "description": "Celebrate Diwali at this fantastic cultural festival. The Seattle Asian Art Museum will have a youth art exhibition, live performances and special activities throughout the day. Make art with artist Deepti Agrawal, get a custom henna design and indulge in flavorful dishes from the Spice Waala food truck.",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Diwali Family Festival at SAAM\n免费入场，Saturday, Oct. 17 · 11 a.m.–4 p.m. · Seattle Asian Art Museum\n\nCelebrate Diwali at this fantastic cultural festival. The Seattle Asian Art Museum will have a youth art exhibition, live performances and special activities throughout the day. Make art with artist Deepti Agrawal, get a custom henna design and indulge in flavorful dishes from the Spice Waala food truck.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-17",
+      "dateLabel": "Saturday, Oct. 17",
+      "occurrenceDates": [
+        "2026-10-17"
+      ],
+      "timeLabel": "11 a.m.–4 p.m.",
+      "cost": "Free; reserve tickets for timed activities",
+      "free": true,
+      "venue": "Seattle Asian Art Museum",
+      "venueAddress": "1400 E. Prospect St., Seattle",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775185290696-unnamed-3_7-272ab93455f1.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/diwali-family-festival-saam/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/diwali-family-festival-saam/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-everett-2026-10-17-autumnfest-family-fun-at-evergreen-arboretum-and-gardens",
+      "region": "Everett",
+      "city": "Everett",
+      "title": "AutumnFest Family Fun at Evergreen Arboretum and Gardens",
+      "theme": "Family event recommendation",
+      "headline": "Everett · 星期六亲子精选",
+      "bannerText": "一起发现身边的小惊喜！",
+      "highlights": [
+        "🎟️ 活动免费参加。💛 适合安排周末亲子时光。"
+      ],
+      "description": "The votes are in! Three honorary pet mayors will be inaugurated this weekend at the arboretum: a dog mayor, a cat mayor and a stuffie mayor. Celebrate the occasion, meet puppies from the Everett Animal Shelter and make sure you’re registered to vote in the real election. Plus, kids can help plant spring-flowering bulbs (and even take some home).",
+      "caption": "这个周末去Everett玩什么？🌿\n\n推荐：AutumnFest Family Fun at Evergreen Arboretum and Gardens\n免费入场，Saturday, Oct. 17 · 10 a.m.–12 p.m. · Evergreen Arboretum & Gardens\n\nThe votes are in! Three honorary pet mayors will be inaugurated this weekend at the arboretum: a dog mayor, a cat mayor and a stuffie mayor. Celebrate the occasion, meet puppies from the Everett Animal Shelter and make sure you’re registered to vote in the real election. Plus, kids can help plant spring-flowering bulbs (and even take some home).\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-17",
+      "dateLabel": "Saturday, Oct. 17",
+      "occurrenceDates": [
+        "2026-10-17"
+      ],
+      "timeLabel": "10 a.m.–12 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Evergreen Arboretum & Gardens",
+      "venueAddress": "145 Alverson Blvd., Everett",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775080015883-naturescolorsgabby-orcutt-7e29j_4gbni-unsplash-043640de235c.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/autumnfest-family-fun/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/autumnfest-family-fun/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-puyallup-2026-10-17-zap-a-day-of-electric-discovery",
+      "region": "Puyallup",
+      "city": "Puyallup",
+      "title": "Zap: A Day of Electric Discovery",
+      "theme": "Family event recommendation",
+      "headline": "Puyallup · 星期六亲子精选",
+      "bannerText": "带上家人，一起去玩！",
+      "highlights": [
+        "免费亲子科学活动，亲手搭建电路，了解风力涡轮与可再生能源。工作人员现场答疑，让孩子在玩中爱上科学。"
+      ],
+      "description": "I love hands-on activities, and this free event is jam-packed with them. Build your own electrical circuit, learn about wind turbines and renewable energy, and encourage a love of science. (And let someone else answer your kids’ endless questions about how things work for a change.)",
+      "caption": "这个周末去Puyallup玩什么？🌿\n\n推荐：Zap: A Day of Electric Discovery\n免费入场，Saturday, Oct. 17 · 12–5 p.m. · Karshner Museum and Center for Culture & Arts\n\nI love hands-on activities, and this free event is jam-packed with them. Build your own electrical circuit, learn about wind turbines and renewable energy, and encourage a love of science. (And let someone else answer your kids’ endless questions about how things work for a change.)\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-17",
+      "dateLabel": "Saturday, Oct. 17",
+      "occurrenceDates": [
+        "2026-10-17"
+      ],
+      "timeLabel": "12–5 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Karshner Museum and Center for Culture & Arts",
+      "venueAddress": "309 Fourth St. N.E., Puyallup",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/09/825273312_1730348185757996_2855028764570297832_n.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/zap-a-day-of-electric-discovery/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/zap-a-day-of-electric-discovery/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-seattle-2026-10-17-indigenous-peoples-day-at-the-burke-museum",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "Indigenous Peoples’ Day at the Burke Museum",
+      "theme": "Family event recommendation",
+      "headline": "Seattle · 星期六亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "原住民日免费入馆，亲子友好。欣赏 WestShore Canoe Family 的特别演出。到艺术家工作室近距离观看 Siobhan Amelia 创作，并探索各类展览。"
+      ],
+      "description": "The Burke Museum is an incredible museum to visit anytime, but this is a special opportunity to go for free! In celebration of Indigenous Peoples’ Day, enjoy a special performance from the WestShore Canoe Family. Then see artist Siobhan Amelia at work in the Artist Studio and explore the museum’s exhibits.",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Indigenous Peoples’ Day at the Burke Museum\n免费入场，Saturday, Oct. 17 · 10 a.m.–5 p.m. · Burke Museum\n\nThe Burke Museum is an incredible museum to visit anytime, but this is a special opportunity to go for free! In celebration of Indigenous Peoples’ Day, enjoy a special performance from the WestShore Canoe Family. Then see artist Siobhan Amelia at work in the Artist Studio and explore the museum’s exhibits.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-17",
+      "dateLabel": "Saturday, Oct. 17",
+      "occurrenceDates": [
+        "2026-10-17"
+      ],
+      "timeLabel": "10 a.m.–5 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Burke Museum",
+      "venueAddress": "4303 Memorial Way N.E., Seattle",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775189979099-indigenous-peoples-day-teaser-500x500-2e72364404de.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/indigenous-peoples-day-burke-museum/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/indigenous-peoples-day-burke-museum/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-seattle-2026-10-18-benaroya-hall-open-house",
+      "region": "Seattle",
+      "city": "Seattle",
+      "title": "Benaroya Hall Open House",
+      "theme": "Family event recommendation",
+      "headline": "Seattle · 星期日亲子精选",
+      "bannerText": "带上家人，一起去玩！",
+      "highlights": [
+        "🎟️ 活动免费参加。💛 适合安排周末亲子时光。"
+      ],
+      "description": "Check out the newly renovated Benaroya Hall with a full day of free festivities. Musicians, storytellers and more artists take to the stage. The day ends with a free performance from the Seattle Symphony Orchestra and The Head and the Heart (but you’ll have to get there early to snag tickets for that!).",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Benaroya Hall Open House\n免费入场，Sunday, Oct. 18 · 10 a.m.–4 p.m. · Benaroya Hall\n\nCheck out the newly renovated Benaroya Hall with a full day of free festivities. Musicians, storytellers and more artists take to the stage. The day ends with a free performance from the Seattle Symphony Orchestra and The Head and the Heart (but you’ll have to get there early to snag tickets for that!).\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-18",
+      "dateLabel": "Sunday, Oct. 18",
+      "occurrenceDates": [
+        "2026-10-18"
+      ],
+      "timeLabel": "10 a.m.–4 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Benaroya Hall",
+      "venueAddress": "200 University St., Seattle",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/08/2627-1018-OHtemp2-1760x990-1.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/benaroya-hall-open-house/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/benaroya-hall-open-house/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-kenmore-2026-10-18-pumpkin-painting-social",
+      "region": "Kenmore",
+      "city": "Kenmore",
+      "title": "Pumpkin Painting Social",
+      "theme": "Family event recommendation",
+      "headline": "Kenmore · 星期日亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "免费南瓜送给小朋友，现场备有画笔和彩饰材料，尽情为南瓜上色创作。还有糖霜饼干装饰，欢迎穿上有趣的装扮同乐。"
+      ],
+      "description": "Having watched our carved pumpkins disintegrate on our front steps over the last two weeks, I am thinking painted pumpkins are the way to go. This fun annual bash includes free pumpkins for little ones, with plenty of paint pens and craft supplies to bring their pumpkin to life. If cookies are more your speed, there will be sugar cookie decorating too. Costumes encouraged!",
+      "caption": "这个周末去Kenmore玩什么？🌿\n\n推荐：Pumpkin Painting Social\n免费入场，Sunday, Oct. 18 · 11 a.m.–2 p.m. · Copperworks Distilling\n\nHaving watched our carved pumpkins disintegrate on our front steps over the last two weeks, I am thinking painted pumpkins are the way to go. This fun annual bash includes free pumpkins for little ones, with plenty of paint pens and craft supplies to bring their pumpkin to life. If cookies are more your speed, there will be sugar cookie decorating too. Costumes encouraged!\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-18",
+      "dateLabel": "Sunday, Oct. 18",
+      "occurrenceDates": [
+        "2026-10-18"
+      ],
+      "timeLabel": "11 a.m.–2 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Copperworks Distilling",
+      "venueAddress": "7324 N.E. 175th St., Suite A, Kenmore",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775186715750-copperworks-kenmore-pumpkin-painting-social-d8c785c02545.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/pumpkin-painting-social/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/pumpkin-painting-social/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "pumpkin"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 18,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    }
+  ],
+  "roundup": {
+    "title": "本周末亲子活动精选｜4城8场",
+    "caption": "这个周末，4 个城市都有适合家庭的活动！🌿\n\n本周亮点包括「Pumpkin Painting Social」和「Hamlin Halloween Haunt」，适合安排轻松又充实的亲子时光。从户外探索到社区活动，各个城市都有值得带孩子一起体验的选择。\n\n我们整理了 8 场地区亮点：\n\n- Kenmore：Pumpkin Painting Social\n  日期：Sunday, Oct. 18\n  地点：Copperworks Distilling · 7324 N.E. 175th St., Suite A, Kenmore\n  亮点：免费南瓜送给小朋友，现场备有画笔和彩饰材料，尽情为南瓜上色创作。\n\n- Seattle：Hamlin Halloween Haunt\n  日期：Friday, Oct. 16\n  地点：Hamlin Park · 16006 15th Ave. N.E., Seattle\n  亮点：篝火旁唱歌、乘坐干草车、玩万圣节主题游戏，秋日氛围满满。\n\n- Seattle：Fracture!\n  重复活动：Friday–Sunday, Oct. 16–18；本次采用：Saturday, Oct 17\n  系列页面：https://www.parentmap.com/series/fracture-2/\n  活动详情：https://www.parentmap.com/calendar/fracture-family-friendly-2/2026-10-17/\n  地点：Pacific Science Center · 200 Sue Bird Court N., Seattle\n  亮点：👨‍👩‍👧‍👦 适合亲子一起体验。\n\n- Seattle：Diwali Family Festival at SAAM\n  日期：Saturday, Oct. 17\n  地点：Seattle Asian Art Museum · 1400 E. Prospect St., Seattle\n  亮点：亲子同乐的排灯节庆典，欣赏青少年艺术展与现场表演，互动活动不停歇。\n\n- Everett：AutumnFest Family Fun at Evergreen Arboretum and Gardens\n  日期：Saturday, Oct. 17\n  地点：Evergreen Arboretum & Gardens · 145 Alverson Blvd., Everett\n  亮点：🎟️ 活动免费参加。\n\n- Puyallup：Zap: A Day of Electric Discovery\n  日期：Saturday, Oct. 17\n  地点：Karshner Museum and Center for Culture & Arts · 309 Fourth St. N.E., Puyallup\n  亮点：免费亲子科学活动，亲手搭建电路，了解风力涡轮与可再生能源。\n\n- Seattle：Indigenous Peoples’ Day at the Burke Museum\n  日期：Saturday, Oct. 17\n  地点：Burke Museum · 4303 Memorial Way N.E., Seattle\n  亮点：原住民日免费入馆，亲子友好。\n\n- Seattle：Benaroya Hall Open House\n  日期：Sunday, Oct. 18\n  地点：Benaroya Hall · 200 University St., Seattle\n  亮点：🎟️ 活动免费参加。\n\n收藏这份周末清单，带上家人一起出门玩吧！\n\n想让周末更轻松？来 SproutCue 找附近的 playdate、游乐场、故事时间和周末活动吧！🛝📚 创建你的家庭卡片，认识附近愿意一起玩的家庭，一起发现更多亲子时光！💛\n\n资料整理：SproutCue\n活动日期：2026-10-16–2026-10-18",
+    "posts": [
+      {
+        "city": "Kenmore",
+        "title": "Pumpkin Painting Social",
+        "date": "2026-10-18",
+        "dateLabel": "Sunday, Oct. 18",
+        "occurrenceDates": [
+          "2026-10-18"
+        ],
+        "timeLabel": "11 a.m.–2 p.m.",
+        "venue": "Copperworks Distilling",
+        "venueAddress": "7324 N.E. 175th St., Suite A, Kenmore",
+        "highlights": [
+          "免费南瓜送给小朋友，现场备有画笔和彩饰材料，尽情为南瓜上色创作。还有糖霜饼干装饰，欢迎穿上有趣的装扮同乐。"
+        ],
+        "matchingKeywords": [
+          "pumpkin"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/pumpkin-painting-social/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Seattle",
+        "title": "Hamlin Halloween Haunt",
+        "date": "2026-10-16",
+        "dateLabel": "Friday, Oct. 16",
+        "occurrenceDates": [
+          "2026-10-16"
+        ],
+        "timeLabel": "5:30–8:30 p.m.",
+        "venue": "Hamlin Park",
+        "venueAddress": "16006 15th Ave. N.E., Seattle",
+        "highlights": [
+          "篝火旁唱歌、乘坐干草车、玩万圣节主题游戏，秋日氛围满满。穿上万圣节装扮，在照相亭拍下全家趣味合影。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/hamlin-halloween-haunt-1/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Seattle",
+        "title": "Fracture!",
+        "date": "2026-10-17",
+        "dateLabel": "Friday–Sunday, Oct. 16–18",
+        "occurrenceDates": [
+          "2026-10-16",
+          "2026-10-17",
+          "2026-10-18"
+        ],
+        "timeLabel": "1–4 p.m.",
+        "venue": "Pacific Science Center",
+        "venueAddress": "200 Sue Bird Court N., Seattle",
+        "highlights": [
+          "👨‍👩‍👧‍👦 适合亲子一起体验。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/fracture-family-friendly-2/2026-10-17/",
+        "seriesUrl": "https://www.parentmap.com/series/fracture-2/"
+      },
+      {
+        "city": "Seattle",
+        "title": "Diwali Family Festival at SAAM",
+        "date": "2026-10-17",
+        "dateLabel": "Saturday, Oct. 17",
+        "occurrenceDates": [
+          "2026-10-17"
+        ],
+        "timeLabel": "11 a.m.–4 p.m.",
+        "venue": "Seattle Asian Art Museum",
+        "venueAddress": "1400 E. Prospect St., Seattle",
+        "highlights": [
+          "亲子同乐的排灯节庆典，欣赏青少年艺术展与现场表演，互动活动不停歇。与艺术家Deepti Agrawal一起动手创作，还能体验定制海娜彩绘。Spice Waala 餐车供应风味美食。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/diwali-family-festival-saam/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Everett",
+        "title": "AutumnFest Family Fun at Evergreen Arboretum and Gardens",
+        "date": "2026-10-17",
+        "dateLabel": "Saturday, Oct. 17",
+        "occurrenceDates": [
+          "2026-10-17"
+        ],
+        "timeLabel": "10 a.m.–12 p.m.",
+        "venue": "Evergreen Arboretum & Gardens",
+        "venueAddress": "145 Alverson Blvd., Everett",
+        "highlights": [
+          "🎟️ 活动免费参加。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/autumnfest-family-fun/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Puyallup",
+        "title": "Zap: A Day of Electric Discovery",
+        "date": "2026-10-17",
+        "dateLabel": "Saturday, Oct. 17",
+        "occurrenceDates": [
+          "2026-10-17"
+        ],
+        "timeLabel": "12–5 p.m.",
+        "venue": "Karshner Museum and Center for Culture & Arts",
+        "venueAddress": "309 Fourth St. N.E., Puyallup",
+        "highlights": [
+          "免费亲子科学活动，亲手搭建电路，了解风力涡轮与可再生能源。工作人员现场答疑，让孩子在玩中爱上科学。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/zap-a-day-of-electric-discovery/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Seattle",
+        "title": "Indigenous Peoples’ Day at the Burke Museum",
+        "date": "2026-10-17",
+        "dateLabel": "Saturday, Oct. 17",
+        "occurrenceDates": [
+          "2026-10-17"
+        ],
+        "timeLabel": "10 a.m.–5 p.m.",
+        "venue": "Burke Museum",
+        "venueAddress": "4303 Memorial Way N.E., Seattle",
+        "highlights": [
+          "原住民日免费入馆，亲子友好。欣赏 WestShore Canoe Family 的特别演出。到艺术家工作室近距离观看 Siobhan Amelia 创作，并探索各类展览。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/indigenous-peoples-day-burke-museum/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Seattle",
+        "title": "Benaroya Hall Open House",
+        "date": "2026-10-18",
+        "dateLabel": "Sunday, Oct. 18",
+        "occurrenceDates": [
+          "2026-10-18"
+        ],
+        "timeLabel": "10 a.m.–4 p.m.",
+        "venue": "Benaroya Hall",
+        "venueAddress": "200 University St., Seattle",
+        "highlights": [
+          "🎟️ 活动免费参加。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/benaroya-hall-open-house/",
+        "seriesUrl": ""
+      }
+    ],
+    "startDate": "2026-10-16",
+    "endDate": "2026-10-18",
+    "author": "SproutCue"
+  },
+  "source": "parentmap",
+  "sourceUrl": "https://www.parentmap.com/things-to-do/the-weekender/",
+  "excludedEventUrls": [
+    "https://www.parentmap.com/calendar/54920/"
+  ],
+  "searchMode": "recommendations-url",
+  "maxDistanceMiles": null,
+  "slotCount": 8,
+  "generatedAt": "2026-10-15T18:44:12.996Z",
+  "statuses": [
+    {
+      "city": "Seattle",
+      "day": "2026-10-16",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/hamlin-halloween-haunt-1/"
+    },
+    {
+      "city": "Seattle",
+      "day": "2026-10-17",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/fracture-family-friendly-2/2026-10-17/"
+    },
+    {
+      "city": "Seattle",
+      "day": "2026-10-17",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/diwali-family-festival-saam/"
+    },
+    {
+      "city": "Everett",
+      "day": "2026-10-17",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/autumnfest-family-fun/"
+    },
+    {
+      "city": "Puyallup",
+      "day": "2026-10-17",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/zap-a-day-of-electric-discovery/"
+    },
+    {
+      "city": "Seattle",
+      "day": "2026-10-17",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/indigenous-peoples-day-burke-museum/"
+    },
+    {
+      "city": "Seattle",
+      "day": "2026-10-18",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/benaroya-hall-open-house/"
+    },
+    {
+      "city": "Kenmore",
+      "day": "2026-10-18",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/pumpkin-painting-social/"
+    }
+  ],
+  "imageDirectory": "/Users/iriswei/Documents/AaronDaily/apps/web/output/social-posts",
+  "imageGenCommand": "/Users/iriswei/.codex/skills/.system/imagegen/scripts/image_gen.py",
+  "posterLimit": 8,
+  "existingPosterCount": 75,
+  "skippedExistingPosterCount": 7,
+  "regenerationRequests": [],
+  "feedback": "",
+  "rejectedEvents": [
+    {
+      "city": "seattle",
+      "date": "2026-09-20",
+      "title": "aiweiweicircleofanimalszodiacheads",
+      "normalizedTitle": "aiweiweicircleofanimalszodiacheads",
+      "family": "",
+      "reason": ""
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-09-19",
+      "title": "downtownissaquahstorystrollwatercress",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "family": "downtownissaquahstorystrollw",
+      "reason": "duplicated events in history"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-20",
+      "title": "salmonseeson",
+      "normalizedTitle": "salmonseeson",
+      "family": "",
+      "reason": "too many relevant events"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-20",
+      "title": "salmonseesonatnorthcreektrailpark",
+      "normalizedTitle": "salmonseesonatnorthcreektrailpark",
+      "family": "salmonseeson",
+      "reason": "too many relevant events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-09-26",
+      "title": "Salmon SEEson at Issaquah Creek",
+      "normalizedTitle": "salmonseesonatissaquahcreek",
+      "family": "salmonseeson",
+      "reason": ""
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-09-26",
+      "title": "Fall Festival at Bob’s Corn and Pumpkin Farm",
+      "normalizedTitle": "fallfestivalatbobscornandpumpkinfarm",
+      "family": "fallfestival",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-26",
+      "title": "Ai Weiwei: Circle of Animals/Zodiac Heads",
+      "normalizedTitle": "aiweiweicircleofanimalszodiacheads",
+      "family": "aiweiwei",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-09-26",
+      "title": "Renton parkrun",
+      "normalizedTitle": "rentonparkrun",
+      "family": "",
+      "reason": "not attractive"
+    },
+    {
+      "city": "tacoma",
+      "date": "2026-09-26",
+      "title": "Tumwater Falls Festival",
+      "normalizedTitle": "tumwaterfallsfestival",
+      "family": "",
+      "reason": "too far"
+    },
+    {
+      "city": "edmonds",
+      "date": "2026-09-27",
+      "title": "Sky Valley Heritage Hunt",
+      "normalizedTitle": "skyvalleyheritagehunt",
+      "family": "",
+      "reason": "not attractive"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-09-26",
+      "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "family": "downtownissaquahstorystroll",
+      "reason": "duplicated event"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-09-26",
+      "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "family": "downtownissaquahstorystroll",
+      "reason": "duplicated event"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-09-27",
+      "title": "Downtown Issaquah Story Stroll: ‘Watercress‘",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "family": "downtownissaquahstorystroll",
+      "reason": "duplicated event"
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-10-03",
+      "title": "Craven Farm Fall Festival",
+      "normalizedTitle": "cravenfarmfallfestival",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-10-03",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-10-04",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-03",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-04",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-03",
+      "title": "Issaquah Salmon Days",
+      "normalizedTitle": "issaquahsalmondays",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-03",
+      "title": "Renton parkrun",
+      "normalizedTitle": "rentonparkrun",
+      "family": "",
+      "reason": "too many relevent events"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-10-11",
+      "title": "Family Game Dayattractive",
+      "normalizedTitle": "familygamedayattractive",
+      "family": "familygameday",
+      "reason": ""
+    },
+    {
+      "city": "seattle",
+      "date": "2026-10-11",
+      "title": "Family Game Day",
+      "normalizedTitle": "familygameday",
+      "family": "",
+      "reason": "not attractive"
+    },
+    {
+      "city": "seattle",
+      "date": "2026-10-11",
+      "title": "Spooky Science at the Burke Museum",
+      "normalizedTitle": "spookyscienceattheburkemuseum",
+      "family": "spookyscience",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-10-11",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "tacoma",
+      "date": "2026-10-10",
+      "title": "Storywalk at Alderwood Park: César’s Cerulean Surprise",
+      "normalizedTitle": "storywalkatalderwoodparkcsarsceruleansurprise",
+      "family": "storywalk",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "tacoma",
+      "date": "Picha Farms Fall Festival",
+      "title": "2026-10-10",
+      "normalizedTitle": "20261010",
+      "family": "",
+      "reason": "|duplicated events"
+    },
+    {
+      "city": "kirkland",
+      "date": "2026-10-11",
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "bellevue",
+      "date": "2026-10-10",
+      "title": "October Weekends at Jubilee Harvest Festival",
+      "normalizedTitle": "octoberweekendsatjubileeharvestfestival",
+      "family": "octoberweekends",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "tacoma",
+      "date": "2026-10-11",
+      "title": "Picha Farms Fall Festival",
+      "normalizedTitle": "pichafarmsfallfestival",
+      "family": "",
+      "reason": "duplicated events--reject-event"
+    },
+    {
+      "city": "edmonds",
+      "date": "2026-10-11",
+      "title": "Stocker Farms Fall Festival",
+      "normalizedTitle": "stockerfarmsfallfestival",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-10-10",
+      "title": "Craven Farm Fall Festival",
+      "normalizedTitle": "cravenfarmfallfestival",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "edmonds",
+      "date": "2026-10-10",
+      "title": "Stocker Farms Fall Festival",
+      "normalizedTitle": "stockerfarmsfallfestival",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "edmonds",
+      "date": "2026-10-10",
+      "title": "Harvest Festival at Swans Trail Farms",
+      "normalizedTitle": "harvestfestivalatswanstrailfarms",
+      "family": "harvestfestival",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-10-10",
+      "title": "Thomas Family Farm",
+      "normalizedTitle": "thomasfamilyfarm",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-10-10",
+      "title": "Thomas Family Farm Fall Festival Fun Park",
+      "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "edmonds",
+      "date": "2026-10-10",
+      "title": "Thomas Family Farm Fall Festival Fun Park",
+      "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "edmonds",
+      "date": "2026-10-11",
+      "title": "Thomas Family Farm Fall Festival Fun Park",
+      "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
+      "family": "",
+      "reason": "duplicated events"
+    },
+    {
+      "city": "lynnwood",
+      "date": "2026-10-10",
+      "title": "Stocker Farms Fall Festival",
+      "normalizedTitle": "stockerfarmsfallfestival",
+      "family": "",
+      "reason": "duplicated events"
+    }
+  ],
+  "unmatchedRegenerationRequests": [],
+  "sampleRun": false,
+  "posterPostIds": [
+    "social-seattle-2026-10-18-benaroya-hall-open-house"
+  ],
+  "posterSetPostIds": [
+    "social-kenmore-2026-10-18-pumpkin-painting-social",
+    "social-seattle-2026-10-16-hamlin-halloween-haunt",
+    "social-seattle-2026-10-17-fracture",
+    "social-seattle-2026-10-17-diwali-family-festival-at-saam",
+    "social-everett-2026-10-17-autumnfest-family-fun-at-evergreen-arboretum-and-gardens",
+    "social-puyallup-2026-10-17-zap-a-day-of-electric-discovery",
+    "social-seattle-2026-10-17-indigenous-peoples-day-at-the-burke-museum",
+    "social-seattle-2026-10-18-benaroya-hall-open-house"
+  ],
+  "summaryPoster": {
+    "filename": "recommendations-2026-10-16-all-events.png",
+    "eventCount": 8,
+    "eventPostIds": [
+      "social-seattle-2026-10-16-hamlin-halloween-haunt",
+      "social-seattle-2026-10-17-fracture",
+      "social-seattle-2026-10-17-diwali-family-festival-at-saam",
+      "social-everett-2026-10-17-autumnfest-family-fun-at-evergreen-arboretum-and-gardens",
+      "social-puyallup-2026-10-17-zap-a-day-of-electric-discovery",
+      "social-seattle-2026-10-17-indigenous-peoples-day-at-the-burke-museum",
+      "social-seattle-2026-10-18-benaroya-hall-open-house",
+      "social-kenmore-2026-10-18-pumpkin-painting-social"
+    ],
+    "generatedThisRun": true
+  },
+  "posterLimitByCity": {
+    "Kenmore": 1,
+    "Seattle": 2,
+    "Everett": 1,
+    "Puyallup": 1
+  },
+  "roundupPostIds": [
+    "social-kenmore-2026-10-18-pumpkin-painting-social",
+    "social-seattle-2026-10-16-hamlin-halloween-haunt",
+    "social-seattle-2026-10-17-fracture",
+    "social-seattle-2026-10-17-diwali-family-festival-at-saam",
+    "social-everett-2026-10-17-autumnfest-family-fun-at-evergreen-arboretum-and-gardens",
+    "social-puyallup-2026-10-17-zap-a-day-of-electric-discovery",
+    "social-seattle-2026-10-17-indigenous-peoples-day-at-the-burke-museum",
+    "social-seattle-2026-10-18-benaroya-hall-open-house"
+  ],
+  "roundupWordLimit": 670
+}

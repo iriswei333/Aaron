@@ -1,3 +1,4 @@
+import { photoCheckErrorResponse } from '../../../../../lib/child-photo-check.js';
 import { createFamilyPhotoFromDirectUpload } from '../../../../../lib/family-photos.js';
 import { getCurrentProfile, profileErrorResponse } from '../../../../../lib/profile-session.js';
 
@@ -16,9 +17,12 @@ export async function POST(request) {
     const photo = await createFamilyPhotoFromDirectUpload(current, body, {
       label: body.label || body.originalName,
       sourceKind,
+      photoIndex: Number.isInteger(body.photoIndex) ? body.photoIndex : 0,
+      language: body.language === 'zh-CN' ? 'zh-CN' : 'en',
     });
     return Response.json({ photo }, { status: 201 });
   } catch (error) {
-    return Response.json({ error: error.message || 'The photo could not be saved.' }, { status: 400 });
+    return photoCheckErrorResponse(error)
+      ?? Response.json({ error: error.message || 'The photo could not be saved.' }, { status: 400 });
   }
 }

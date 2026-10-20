@@ -29,20 +29,21 @@ see `apps/mobile/README.md`.
 
 ## Weekly social-post agent
 
-The social-post generator runs outside the web app. It checks the existing ParentMap weekend-event logic separately for Saturday and Sunday in Seattle, Bellevue, Tacoma, Kirkland, Lynnwood, and Edmonds. It reads matched event detail descriptions, then uses the OpenAI API to translate and generate one short Mandarin highlight of 2–3 sentences per event when `OPENAI_API_KEY` is available. It selects up to two highlights per region, writes Mandarin captions and source metadata, generates a Mandarin roundup Markdown post, and generates at most 8 fixed-format vertical PNG posters per week. ParentMap venue-distance filtering is enabled by default with a 15-mile radius. Events with no detail-page venue or an address that cannot be geocoded are skipped. If no candidate is within 15 miles, the agent picks the highest recommendation score across geocoded candidates and uses nearest distance to break a score tie. Use `--max-distance-miles N` to override the radius, or `--normal-event-search` to disable venue-distance filtering and restore the original ParentMap, Seattle's Child, and DuckDuckGo behavior.
+The social-post generator runs outside the web app. It queries ParentMap directly with its six region parameters: `seattle`, `eastside`, `north-sound`, `south-sound`, `greater-puget-sound`, and `pacific-northwest`. It selects two weekend events each for Seattle and Eastside and one each for the other four regions, for at most 8 individual posters plus one all-events summary poster. Event detail pages supply the actual venue city shown in the roundup; the region is used for discovery and quotas, not as the event city. Individual poster banners contain only the day/weekend headline, without a city or region name. The agent also reads event descriptions and can use the OpenAI API to produce one short Mandarin highlight when `OPENAI_API_KEY` is available. Optional legacy venue-distance filtering can be enabled with `--venue-distance-filter` and adjusted with `--max-distance-miles N`.
 
 To bypass search and generate one specific event from its official page, provide `--force-event-url URL --city CITY --date YYYY-MM-DD`. This mode supports arbitrary dates, extracts event facts from the page, and creates only the requested city/date slot. Add `--skip-images` when only the manifest, roundup, and prompt files are needed. Add `--save-partnership` to also append a sanitized, deduplicated record to `lib/social-partnership-events.js`.
 
 ```bash
 npm run social:weekly -- --dry-run
-npm run social:weekly -- --regions Seattle,Bellevue --output output/social-posts
+npm run social:weekly -- --regions seattle,eastside --output output/social-posts
+npm run social:weekly -- --regions seattle --list-scores --dry-run
 npm run social:weekly -- --sample
-# Regenerate an existing poster after feedback (city,date)
-npm run social:weekly -- --regenerate Seattle,2026-09-05
+# Regenerate an existing poster after feedback (region,date)
+npm run social:weekly -- --regenerate seattle,2026-09-05
 # Include the feedback in the replacement prompt
-npm run social:weekly -- --regenerate Seattle,2026-09-05 --feedback "The headline is too small and the layout feels crowded."
-# Permanently exclude an unsuitable event from that city/day
-npm run social:weekly -- --reject-event "Seattle|2026-09-05|Event name|Event location is too far from the recommended city"
+npm run social:weekly -- --regenerate seattle,2026-09-05 --feedback "The headline is too small and the layout feels crowded."
+# Permanently exclude an unsuitable event title from every region and date
+npm run social:weekly -- --reject-event "Event name|Reason for rejection"
 # Generate posters from an existing roundup/manifest without searching again
 npm run social:weekly -- --from-roundup output/social-posts/weekly-2026-09-19-roundup.md
 
@@ -53,9 +54,9 @@ npm run social:weekly -- --recommendations-url "https://www.parentmap.com/things
 npm run social:weekly -- --recommendations-url "https://www.parentmap.com/things-to-do/the-weekender/" --exclude-event-url "https://www.parentmap.com/calendar/japan-week-bellevue-college-2025/" --exclude-event-url "https://www.parentmap.com/calendar/bigfoot-kids-book-festival/"
 ```
 
-Image generation requires `OPENAI_API_KEY`. The command uses the bundled GPT Image CLI; set `IMAGE_GEN=/path/to/image_gen.py` if the default Codex skill path is different. Existing `{city}-{date}.png` files in the output directory are skipped, so rerunning the agent only generates missing posters. Normal weekend runs create one `weekly-YYYY-MM-DD-all-events.png` summary image, and recommendation-URL runs create `recommendations-YYYY-MM-DD-all-events.png`; both list every matched event with its date and venue. Use `--reject-event "City|YYYY-MM-DD|Event name|Reason for rejection"` to persistently exclude an unsuitable event from future picks for that city/day and save the reason; the registry is stored in `event-feedback.json`. The weekly roundup contains only the up-to-eight events represented by the poster set, lists each event’s city, name, venue, and detailed address without exact event times, uses one sentence of highlights per event, includes a Mandarin invitation to create a family card and discover nearby playdates, playgrounds, storytimes, and family events, and is capped at 670 words. If a poster is not good enough, pass `--regenerate City,YYYY-MM-DD` to search that same city/day again, select a different eligible event, and replace that poster; the weekly roundup and all-events poster are regenerated as well when an alternate event is found. Repeat the flag for multiple posters. Add `--feedback "..."` to include the critique in the replacement prompt. Use `--sample` to write one weekly roundup and generate only one missing sample poster plus the all-events summary. A weekly run is saved as `weekly-YYYY-MM-DD.json`, with prompts in the matching `.jsonl` file and generated posters in the same output directory. Use cron, launchd, or GitHub Actions to run it weekly.
+Image generation requires `OPENAI_API_KEY`. The command uses the bundled GPT Image CLI; set `IMAGE_GEN=/path/to/image_gen.py` if the default Codex skill path is different. Existing `{city}-{date}.png` files in the output directory are skipped, so rerunning the agent only generates missing posters. Normal weekend runs create one `weekly-YYYY-MM-DD-all-events.png` summary image, and recommendation-URL runs create `recommendations-YYYY-MM-DD-all-events.png`; both list every matched event with its date and venue. Use `--reject-event "Event name|Reason for rejection"` to persistently exclude that event title from all regions and dates; the registry is stored in `event-feedback.json`. Older city/date rejection records are still read, but are normalized to title-only matching. The weekly roundup contains only the up-to-eight events represented by the poster set, lists each event’s actual venue city, name, venue, and detailed address without exact event times, uses one sentence of highlights per event, includes a Mandarin invitation to create a family card and discover nearby playdates, playgrounds, storytimes, and family events, and is capped at 670 words. If a poster is not good enough, pass `--regenerate Region,YYYY-MM-DD` to search that same ParentMap region/day again, select a different eligible event, and replace that poster; the weekly roundup and all-events poster are regenerated as well when an alternate event is found. Repeat the flag for multiple posters. Add `--feedback "..."` to include the critique in the replacement prompt. Use `--sample` to write one weekly roundup and generate only one missing sample poster plus the all-events summary. A weekly run is saved as `weekly-YYYY-MM-DD.json`, with prompts in the matching `.jsonl` file and generated posters in the same output directory. Use cron, launchd, or GitHub Actions to run it weekly.
 
-The event recommender boosts geographically relevant state fairs and seasonal fall festival, pumpkin, harvest, and Mid-Autumn/Moon Festival events; matching keywords and recommendation reasons are included in the manifest and roundup. Official partnership events can be force-injected for an exact city/date from `lib/social-partnership-events.js` and take priority over ordinary search results. To generate posters from an existing roundup without searching for events again, use `--from-roundup path/to/weekly-YYYY-MM-DD-roundup.md`; the agent loads the companion JSON manifest for the full event facts.
+The event recommender boosts geographically relevant state fairs and seasonal fall festival, pumpkin, harvest, Halloween-related, and Mid-Autumn/Moon Festival events; matching keywords and recommendation reasons are included in the manifest and score report. Halloween matching includes trick-or-treat, trunk-or-treat, haunted and spooky events, costumes, Monster Mash/Dash, Boo events, ghosts, witches, fright events, and Day of the Dead wording during fall. Official partnership events can be force-injected for an exact city/date from `lib/social-partnership-events.js` and take priority over ordinary search results. To generate posters from an existing roundup without fetching weekend events again, use `--from-roundup path/to/weekly-YYYY-MM-DD-roundup.md`; the agent loads the companion JSON manifest for the full event facts.
 
 See [docs/weekly-social-agent.md](docs/weekly-social-agent.md) for environment activation and setup instructions.
 
@@ -146,6 +147,9 @@ supabase/migrations/202607290003_playdate_chat_profile_visibility.sql
 supabase/migrations/202608050001_remove_legacy_amazon_errands.sql
 supabase/migrations/202608050003_parenting_resource_cache.sql
 supabase/migrations/202608190001_deprecate_legacy_family_planning.sql
+…
+supabase/migrations/202610200001_explicit_public_table_grants.sql
+supabase/migrations/202610210001_child_photo_check.sql
 ```
 
 When Supabase is not configured, the backend writes profile data, generated post history, saved family-event decisions, play dates, and local cache entries to:
@@ -189,7 +193,7 @@ The app stores a few browser-local values such as the login email and selected H
 - `POST /api/auth/login` keeps the local JSON fallback working when Supabase is not configured.
 - `POST /api/auth/logout` clears the local fallback profile cookie.
 - `GET /api/family-assets/picture-book-templates` lists active reusable picture-book templates. Add `?slug=career-recognition-v1` or `?slug=kindergarten-transition-zh-v1` to retrieve one template and its ordered pages.
-- `POST /api/family-assets/picture-books` accepts 2–5 `photos` image files (JPEG, PNG, WebP, HEIC, or HEIF), up to 20 MB each and 90 MB combined, and creates a private family-owned picture-book asset. HEIC and HEIF uploads are converted privately to a 2048 px maximum JPEG before storage and generation. Optional `childId`, `childName`, and `templateSlug` are stored with the asset.
+- `POST /api/family-assets/picture-books` accepts 2–5 `photos` image files (JPEG, PNG, WebP, HEIC, or HEIF), up to 20 MB each and 90 MB combined, and creates a private family-owned picture-book asset. HEIC and HEIF uploads are converted privately to a 2048 px maximum JPEG before storage and generation. Optional `childId`, `childName`, `templateSlug`, and `language` are stored with the asset or used for messages. Every reference photo must pass the child-photo check; rejections return 422 with `code` and `photoErrors` (see [docs/child-photo-check.md](docs/child-photo-check.md)).
 - `GET /api/family-assets/picture-books` lists the signed-in family's picture-book assets.
 - `GET /api/family-assets/picture-books?bookAssetId=...` reads one family asset and its page statuses.
 - `POST /api/family-assets/picture-book-pages` with `{ "bookAssetId": "...", "pageKey": "cover" }` generates one page from the submitted reference photos. Generate one page at a time so clients can show progress and retry individual pages.
@@ -203,6 +207,7 @@ The picture-book API is a server-side image-generation workflow. It keeps `OPENA
 
 ```bash
 OPENAI_API_KEY=your_server_side_api_key
+CHILD_PHOTO_CHECK_MODEL=gpt-5-mini   # child-photo check; set CHILD_PHOTO_CHECK_MODE=off only for keyless local dev
 PICTURE_BOOK_IMAGE_MODEL=gpt-image-2.5-sunburst
 PICTURE_BOOK_IMAGE_QUALITY=high
 ```

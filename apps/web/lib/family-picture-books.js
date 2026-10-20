@@ -2,7 +2,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
-import { createFamilyPhoto, readFamilyPhoto } from './family-photos.js';
+import { createFamilyPhoto, readFamilyPhoto, requireChildPhotos } from './family-photos.js';
 
 const LOCAL_ROOT = resolve('data/family-assets');
 const LOCAL_STATE = join(LOCAL_ROOT, 'picture-books.json');
@@ -392,10 +392,13 @@ export async function createFamilyPictureBook(current, formData) {
   const uploads = validatePhotos(formData);
   const reusablePhotoIds = savedPhotoIds(formData);
   if (uploads.length + reusablePhotoIds.length < 2 || uploads.length + reusablePhotoIds.length > MAX_PHOTOS) throw new Error('Choose 2 to 5 uploaded or saved child reference photos.');
+  const language = formData.get('language') === 'zh-CN' ? 'zh-CN' : 'en';
+  // Child-photo check: saved photos first (no side effects), then each new upload as it is saved.
+  await requireChildPhotos(current, reusablePhotoIds, { startIndex: uploads.length, language });
   const photos = [];
-  for (const upload of uploads) {
+  for (const [index, upload] of uploads.entries()) {
     const photo = await normalizeReferencePhoto(upload);
-    await createFamilyPhoto(current, { ...photo, originalName: upload.name }, { label: childName ? `${childName} picture-book photo` : upload.name, sourceKind: 'picture_book' });
+    await createFamilyPhoto(current, { ...photo, originalName: upload.name }, { label: childName ? `${childName} picture-book photo` : upload.name, sourceKind: 'picture_book', photoIndex: index, language });
     photos.push(photo);
   }
   for (const photoId of reusablePhotoIds) {

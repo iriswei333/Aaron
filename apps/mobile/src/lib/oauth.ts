@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 
 import { supabase } from './supabase';
 
-// Google sign-in and email magic links through Supabase.
+// Google sign-in and email one-time codes through Supabase.
 //
 // Google sign-in through Supabase (the same Google setup the web app uses):
 // 1. Ask Supabase for the Google sign-in URL (PKCE, so the result is a one-time code).
@@ -111,15 +111,15 @@ export async function signInWithGoogle(): Promise<OAuthResult> {
   return { status: 'error', message: 'Google sign-in didn’t open. Please try again.' };
 }
 
-// ── Email magic link ─────────────────────────────────────────────────────────
-// Supabase emails a link → it opens sproutcue://auth/callback?code=… on this phone →
-// src/app/auth/callback.tsx exchanges the code (PKCE, so it must be the same device).
-// If the email also shows a one-time code (Supabase email template {{ .Token }}),
-// it can be typed in instead, which works even if the email was opened elsewhere.
+// ── Email one-time code ──────────────────────────────────────────────────────
+// Supabase emails a code (email template {{ .Token }}) → the parent types it in →
+// verifyEmailCode() signs them in. Works no matter which device opened the email.
+// emailRedirectTo is still sent, so if the template also includes a link it opens
+// sproutcue://auth/callback and src/app/auth/callback.tsx finishes sign-in.
 
 export type EmailResult = { status: 'sent' } | { status: 'signed-in' } | { status: 'error'; message: string; retryAfter?: number };
 
-export async function sendMagicLink(email: string): Promise<EmailResult> {
+export async function sendEmailCode(email: string): Promise<EmailResult> {
   if (!supabase) return { status: 'error', message: 'Sign-in is not configured for this build.' };
   try {
     const { error } = await supabase.auth.signInWithOtp({

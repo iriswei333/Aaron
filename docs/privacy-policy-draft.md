@@ -29,6 +29,7 @@ We collect only information needed for the purposes described below.
 - Location information, such as a city, address or place entered by the user, and precise latitude/longitude when the user chooses “Use current location.”
 - Play-date information, such as playground, address, coordinates, date and time, visibility, age range, capacity, notes, host, and participants.
 - Parent-to-parent messages and media shared in chat. Media selected for chat may be encoded in the message and stored by the service.
+- Photos a parent chooses for Play Studio features (picture books, practice-story illustrations, toy play), stored privately in the family's photo library. Photos chosen for a picture book or story illustration are screened to confirm they show one young child; only the screening result (for example, number of people, approximate age range, and whether the face is visible) is stored with the photo.
 - Social-planning information, such as links to albums or social accounts, selected media file name/type, caption preferences, and locally drafted captions. Media selected for local caption drafting is previewed in the browser and is not uploaded for that feature.
 - Requests sent to us, including parent access, correction, deletion, or consent-withdrawal requests.
 
@@ -38,7 +39,7 @@ We collect only information needed for the purposes described below.
 - Browser-local values, including the login email and selected Home background, stored in local storage.
 - Basic technical information needed to operate and secure the service, such as request metadata, approximate network information, and error logs. **[Confirm whether production logging or analytics tools collect IP addresses, device identifiers, cookies, or similar identifiers, and list each tool here.]**
 
-SproutCue does not intentionally collect a child’s voice, biometric information, advertising identifier, or behavioral profile. Do not upload or enter those data unless the parent has reviewed and approved the applicable use.
+SproutCue does not intentionally collect a child’s voice, biometric information, advertising identifier, or behavioral profile. Photo screening does not recognize or identify people and does not create or store facial templates, face embeddings, or other biometric identifiers. Do not upload or enter those data unless the parent has reviewed and approved the applicable use.
 
 ## 4. How we use information
 
@@ -51,6 +52,7 @@ We use information to:
 - create, display, and manage public or private play dates;
 - enable parent-to-parent chat for people connected through a play date;
 - provide local caption drafting based on the parent’s selected preferences;
+- create the AI picture books, story illustrations, and play ideas a parent requests, including screening photos chosen for a picture book or story to confirm they show a child, and declining photos that do not;
 - maintain, troubleshoot, secure, and improve the service;
 - comply with law and respond to valid legal requests; and
 - communicate with a parent about the account, consent, security, and service changes.
@@ -67,6 +69,7 @@ We disclose information only as described below and only as needed for the state
 | **[Hosting provider legal name and contact details]** | Hosting, security, and application delivery. | Required to operate the service. |
 | **[Map/geocoding/places provider legal name and contact details]** | Place or location queries needed to find nearby playgrounds or maps. | Optional feature; the user can omit precise location. |
 | **[Weather/event/resource source names and contact details]** | Server-side requests for weather, events, playgrounds, and parenting resources. | Required only when the related feature is used. |
+| **[OpenAI legal name and contact details]** | Photos and text a parent submits to Play Studio, sent to generate the requested picture book, story, or play idea and to screen photos (safety and child-photo checks). Requests are sent with storage disabled where the API allows it. **[Confirm OpenAI data-retention and training terms for the account.]** | Optional; used only when the parent requests a Play Studio creation. |
 | **Other SproutCue users** | Parent display name and limited profile information may be visible to users who share a public play date; messages and media are visible to their intended chat participants. | Public play-date participation and chat are optional. |
 | **Authorities or successors** | Information when required by law, to protect rights and safety, or in a merger, acquisition, financing, or sale of assets. | Not used for routine marketing. |
 
@@ -108,6 +111,7 @@ We retain information only while it is reasonably necessary for the specific pur
 | Authentication, consent, and audit records | **[period]** | After the legal/accountability need ends. |
 | Parent contact information collected only to seek consent | Delete if consent is not completed within **[reasonable period]**. | Consent not completed or request withdrawn. |
 | Uploaded ID or verification artifacts | Delete immediately after verification, unless law requires otherwise. | Verification complete. |
+| Play Studio photos and screening results | Saved photos until the parent deletes them or closes the account. Photos rejected by the child-photo check are deleted immediately and never saved; a screening record without the image is kept for **[period]** to monitor accuracy. | Parent request, account closure, or end of the stated period. |
 | Backups and logs | **[period and deletion process]** | Scheduled expiry and secure disposal. |
 
 We securely delete or de-identify information when the retention period ends. We do not retain children’s personal information indefinitely.

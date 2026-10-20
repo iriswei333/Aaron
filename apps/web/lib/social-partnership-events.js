@@ -116,7 +116,22 @@ const PARTNERSHIP_EVENTS = [
   },
 ];
 
-export function getForcedPartnershipEvents({ city, date } = {}) {
-  return PARTNERSHIP_EVENTS.filter((event) => event.city.toLowerCase() === String(city || '').trim().toLowerCase()
+const PARTNERSHIP_CITY_REGIONS = new Map([
+  ['seattle', 'seattle'],
+  ['bellevue', 'eastside'],
+  ['kirkland', 'eastside'],
+  ['redmond', 'eastside'],
+  ['lynnwood', 'north-sound'],
+  ['edmonds', 'north-sound'],
+  ['tacoma', 'south-sound'],
+  ['taacoma', 'south-sound'],
+  ['puyallup', 'south-sound'],
+]);
+
+export function getForcedPartnershipEvents({ city, region, date } = {}) {
+  const normalizedCity = String(city || '').trim().toLowerCase();
+  const normalizedRegion = String(region || '').trim().toLowerCase();
+  return PARTNERSHIP_EVENTS.filter((event) => (event.city.toLowerCase() === normalizedCity
+    || (normalizedRegion && PARTNERSHIP_CITY_REGIONS.get(event.city.toLowerCase()) === normalizedRegion))
     && event.date === date).map((event) => ({ ...event }));
 }

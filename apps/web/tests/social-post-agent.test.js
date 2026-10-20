@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { familyEventCacheEntriesFromSocialRun, parseParentMapEventVenue } from '../lib/family-events.js';
+import { familyEventCacheEntriesFromSocialRun, parentMapUrl, parseParentMapEventVenue } from '../lib/family-events.js';
 import { getForcedPartnershipEvents } from '../lib/social-partnership-events.js';
 import { appendPartnershipEventSource, partnershipEventRecord } from '../lib/social-partnership-events-file.js';
+import { recommendWeekendEvent } from '../lib/social-recommendations.js';
 import {
   DEFAULT_EVENT_DISTANCE_MILES,
+  DEFAULT_SOCIAL_REGIONS,
   distanceMiles,
   filterParentMapEventsByDistance,
   fetchEventRecommendationsFromUrl,
@@ -14,7 +16,132 @@ import {
   parseForcedEventPage,
   rankLocationFallbackCandidates,
   resolveParentMapEventUrl,
+  socialEventScore,
 } from '../lib/social-post-agent.js';
+
+describe('ParentMap social regions', () => {
+  it('uses all six native regions with an eight-event weekend quota', () => {
+    expect(DEFAULT_SOCIAL_REGIONS).toEqual([
+      { slug: 'seattle', label: 'Seattle', eventLimit: 2 },
+      { slug: 'eastside', label: 'Eastside', eventLimit: 2 },
+      { slug: 'north-sound', label: 'North Sound', eventLimit: 1 },
+      { slug: 'south-sound', label: 'South Sound', eventLimit: 1 },
+      { slug: 'greater-puget-sound', label: 'Greater Puget Sound', eventLimit: 1 },
+      { slug: 'pacific-northwest', label: 'Pacific Northwest', eventLimit: 1 },
+    ]);
+    expect(DEFAULT_SOCIAL_REGIONS.reduce((sum, region) => sum + region.eventLimit, 0)).toBe(8);
+    expect(DEFAULT_SOCIAL_REGIONS.map((region) => new URL(parentMapUrl({
+      date: '2026-10-24',
+      region: region.slug,
+      ageSlugs: ['all-ages'],
+    })).searchParams.get('region'))).toEqual(DEFAULT_SOCIAL_REGIONS.map((region) => region.slug));
+  });
+
+  it('keeps the city out of the poster banner and uses the venue city in post metadata', () => {
+    const post = makeSocialPost({
+      event: {
+        title: 'Family Art Day',
+        date: '2026-10-24',
+        venue: 'Imagine Museum',
+        venueAddress: '5501 6th Ave S, Tacoma, WA 98408',
+        resultType: 'event',
+      },
+      city: 'South Sound',
+      regionLabel: 'South Sound',
+      regionSlug: 'south-sound',
+      dateLabel: 'Saturday, Oct. 24',
+    });
+
+    expect(post).toMatchObject({ city: 'Tacoma', region: 'South Sound', regionSlug: 'south-sound' });
+    expect(post.headline).toBe('星期六亲子精选');
+    expect(post.headline).not.toContain('Tacoma');
+    expect(post.headline).not.toContain('South Sound');
+  });
+
+  it('can fill a two-event region quota from the same weekend day and rejects by title alone', async () => {
+    const forcedInputEvents = ['Keep Me', 'Reject Me', 'Second Choice'].map((title, index) => ({
+      title,
+      city: 'Seattle',
+      date: '2026-10-24',
+      dateLabel: 'Saturday, Oct. 24',
+      venue: `Venue ${index + 1}`,
+      url: `https://events.example/${index + 1}`,
+      source: 'partnership',
+      sourceLabel: 'Official website',
+      resultType: 'event',
+    }));
+    const run = await generateWeeklySocialPosts({
+      regions: [{ slug: 'seattle', label: 'Seattle', city: 'Seattle', eventLimit: 2 }],
+      dates: ['2026-10-24'],
+      forcedInputEvents,
+      excludedEventSlots: new Set(['title|rejectme']),
+      includeCandidateScores: true,
+    });
+
+    expect(run.posts.map((post) => post.title)).toEqual(['Keep Me', 'Second Choice']);
+    expect(run.slotCount).toBe(2);
+    expect(run.statuses[0]).toMatchObject({ region: 'seattle', selectedCount: 2, requestedCount: 2 });
+    expect(run.candidateScores).toEqual(expect.arrayContaining([
+      expect.objectContaining({ title: 'Keep Me', selected: true, rejected: false }),
+      expect.objectContaining({ title: 'Reject Me', selected: false, rejected: true }),
+      expect.objectContaining({ title: 'Second Choice', selected: true, rejected: false }),
+    ]));
+  });
+
+  it('provides an auditable scoring breakdown', () => {
+    expect(socialEventScore({
+      title: 'Free Fall Festival',
+      theme: 'Festivals + Community',
+      date: '2026-10-24',
+      venue: 'Seattle Center',
+      imageUrl: 'https://images.example/festival.jpg',
+      free: true,
+      resultType: 'event',
+    }, { region: 'seattle', date: '2026-10-24' })).toMatchObject({
+      total: 55,
+      components: {
+        validEvent: 20,
+        free: 6,
+        venue: 3,
+        familyTheme: 4,
+        image: 2,
+        recommendation: 20,
+      },
+      matchingKeywords: ['fall festival'],
+    });
+  });
+});
+
+describe('Seasonal Halloween recommendations', () => {
+  it.each([
+    'Family Halloween Party',
+    'Neighborhood Trick-or-Treat',
+    'Community Trunk or Treat',
+    'Spooky Science Night',
+    'Haunted Forest Walk',
+    'Kids Costume Parade',
+    'Monster Mash Dance',
+    'West Seattle Monster Dash',
+    'Zoo Boo',
+    'Family Ghost Walk',
+    'Witch Crafts for Kids',
+    'Museum of Fright',
+    'Día de los Muertos Celebration',
+  ])('adds the Halloween trend score for %s during fall', (title) => {
+    expect(recommendWeekendEvent({ title }, { date: '2026-10-24' })).toMatchObject({
+      score: 20,
+      matchingKeywords: ['Halloween'],
+      reasons: ['seasonal Halloween trend'],
+    });
+  });
+
+  it('does not apply the Halloween seasonal boost outside fall', () => {
+    expect(recommendWeekendEvent({ title: 'Spooky Costume Party' }, { date: '2026-07-18' })).toMatchObject({
+      score: 0,
+      matchingKeywords: [],
+    });
+  });
+});
 
 describe('Event recommendation URL imports', () => {
   const recommendationHtml = `
@@ -33,6 +160,7 @@ describe('Event recommendation URL imports', () => {
     expect(events[0]).toMatchObject({
       title: 'Spooky Science at the Burke Museum',
       date: '2026-10-02',
+      occurrenceDates: ['2026-10-02', '2026-10-03', '2026-10-04'],
       dateLabel: 'Friday–Sunday, Oct. 2–4',
       city: 'Seattle',
       venue: 'Burke Museum',
@@ -67,6 +195,66 @@ describe('Event recommendation URL imports', () => {
       '2026-10-02',
       { fetchImpl },
     )).resolves.toBe('https://www.parentmap.com/calendar/spooky-science-burke-museum/2026-10-02/');
+  });
+
+  it('uses the first available recurring occurrence inside the recommendation date range', async () => {
+    const roundupUrl = 'https://www.parentmap.com/things-to-do/the-weekender/';
+    const seriesUrl = 'https://www.parentmap.com/series/trolls-a-field-study-at-nw-trek/';
+    const occurrenceUrl = 'https://www.parentmap.com/calendar/trolls-a-field-study-at-nw-trek/2026-10-17/';
+    const html = `
+      <meta property="article:published_time" content="2026-10-14T08:00:00+00:00">
+      <h3 class="wp-block-heading is-style-listicle-heading"><a href="${seriesUrl}">Trolls: A Field Study at NW Trek and PDZA</a></h3>
+      <p class="wp-block-paragraph"><strong>Date:</strong> Friday–Sunday, Oct. 16–18<br><strong>Cost:</strong> Included with admission<br><strong>Location:</strong> <a href="https://maps.example/nw-trek">Northwest Trek</a>, 11610 Trek Dr. E., Eatonville<br><br>Meet the new Dambo trolls.</p>`;
+    const fetchImpl = vi.fn(async (url) => {
+      if (url === roundupUrl) return { ok: true, url, text: async () => html };
+      if (url === seriesUrl) return {
+        ok: true,
+        url,
+        text: async () => `
+          <h4 class="tribe-events-pro-summary__event-title"><a href="/calendar/trolls-a-field-study-at-nw-trek/2026-10-16/">Friday occurrence</a></h4>
+          <h4 class="tribe-events-pro-summary__event-title"><a href="/calendar/trolls-a-field-study-at-nw-trek/2026-10-24/">Later occurrence</a></h4>
+          <h4 class="tribe-events-pro-summary__event-title"><a href="${occurrenceUrl}">Weekend occurrence</a></h4>`,
+      };
+      if (url === occurrenceUrl) return {
+        ok: true,
+        url,
+        text: async () => `<script type="application/ld+json">{
+          "@type":"Event",
+          "name":"Trolls: A Field Study at NW Trek and PDZA",
+          "startDate":"2026-10-17T09:30:00",
+          "endDate":"2026-10-17T15:00:00",
+          "location":{"name":"Northwest Trek Wildlife Park","address":{"streetAddress":"11610 Trek Dr E","addressLocality":"Eatonville","addressRegion":"WA","postalCode":"98328"}}
+        }</script>`,
+      };
+      throw new Error(`Unexpected request: ${url}`);
+    });
+
+    const events = await fetchEventRecommendationsFromUrl({ url: roundupUrl }, { fetchImpl });
+
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      date: '2026-10-17',
+      occurrenceDates: ['2026-10-16', '2026-10-17', '2026-10-18'],
+      seriesUrl,
+      sourceUrl: occurrenceUrl,
+      timeLabel: '9:30 a.m.–3 p.m.',
+    });
+    expect(fetchImpl.mock.calls.map(([url]) => url)).toEqual([roundupUrl, seriesUrl, occurrenceUrl]);
+  });
+
+  it('does not silently choose an occurrence outside the recommendation range', async () => {
+    const seriesUrl = 'https://www.parentmap.com/series/trolls-a-field-study-at-nw-trek/';
+    const fetchImpl = vi.fn(async () => ({
+      ok: true,
+      url: seriesUrl,
+      text: async () => '<a href="/calendar/trolls-a-field-study-at-nw-trek/2026-10-24/">Next weekend</a>',
+    }));
+
+    await expect(resolveParentMapEventUrl(
+      seriesUrl,
+      ['2026-10-16', '2026-10-17', '2026-10-18'],
+      { fetchImpl },
+    )).rejects.toThrow('No ParentMap recurring occurrence matched recommendation date(s)');
   });
 
   it('keeps direct calendar links without an extra series-page request', async () => {
@@ -168,7 +356,7 @@ describe('ParentMap venue distance filtering', () => {
         venue: { name: nearby ? 'Seattle Aquarium' : 'Olympia Center', address: nearby ? 'Seattle address' : 'Olympia address' },
       };
     });
-    const geocode = vi.fn(async (address) => address === 'Seattle address'
+    const geocode = vi.fn(async (address) => address === 'Seattle address' || address === 'Seattle, Washington, USA'
       ? { latitude: 47.607, longitude: -122.342 }
       : { latitude: 47.0379, longitude: -122.9007 });
 
@@ -224,10 +412,33 @@ describe('ParentMap venue distance filtering', () => {
     }], '2026-09-26', '2026-09-27');
 
     expect(roundup.caption).toContain('- Seattle：Aquarium Family Day');
+    expect(roundup.caption).toContain('日期：');
     expect(roundup.caption).toContain('地点：Seattle Aquarium · 1483 Alaskan Way Pier 59, Seattle, WA 98101-2015');
     expect(roundup.caption).not.toContain('趋势关键词');
     expect(roundup.caption).not.toContain('United States');
     expect(roundup.posts[0].venueAddress).toBe('1483 Alaskan Way Pier 59, Seattle, WA, 98101-2015, United States');
+  });
+
+  it('adds recurring-series dates and resolved occurrence links to recommendation roundups', () => {
+    const seriesUrl = 'https://www.parentmap.com/series/trolls-a-field-study-at-nw-trek/';
+    const eventUrl = 'https://www.parentmap.com/calendar/trolls-a-field-study-at-nw-trek/2026-10-17/';
+    const roundup = makeWeeklyRoundup([{
+      city: 'Eatonville',
+      title: 'Trolls: A Field Study at NW Trek and PDZA',
+      date: '2026-10-17',
+      dateLabel: 'Friday–Sunday, Oct. 16–18',
+      occurrenceDates: ['2026-10-16', '2026-10-17', '2026-10-18'],
+      seriesUrl,
+      eventUrl,
+      venue: 'Northwest Trek Wildlife Park',
+      venueAddress: '11610 Trek Dr E, Eatonville, WA 98328',
+      highlights: ['与巨型森林巨魔见面。'],
+    }], '2026-10-17', '2026-10-18');
+
+    expect(roundup.caption).toContain('重复活动：Friday–Sunday, Oct. 16–18；本次采用：Saturday, Oct 17');
+    expect(roundup.caption).toContain(`系列页面：${seriesUrl}`);
+    expect(roundup.caption).toContain(`活动详情：${eventUrl}`);
+    expect(roundup.posts[0]).toMatchObject({ seriesUrl, eventUrl, occurrenceDates: ['2026-10-16', '2026-10-17', '2026-10-18'] });
   });
 });
 
@@ -329,6 +540,13 @@ describe('Forced partnership events', () => {
       }),
     ]);
     expect(getForcedPartnershipEvents({ city: 'Bellevue', date: '2026-09-26' })).toEqual([]);
+  });
+
+  it('can match legacy city-based partnership records through a ParentMap region', () => {
+    expect(getForcedPartnershipEvents({ region: 'eastside', date: '2026-10-03' }).map((event) => event.title)).toEqual([
+      'Autumn Moon Night Market',
+      'Redmond Town Center Exotics Car Show',
+    ]);
   });
 });
 

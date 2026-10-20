@@ -3,25 +3,17 @@ import { recommendWeekendEvent } from './social-recommendations.js';
 import { getForcedPartnershipEvents } from './social-partnership-events.js';
 
 export const DEFAULT_SOCIAL_REGIONS = [
-  { city: 'Seattle', label: 'Seattle' },
-  { city: 'Bellevue', label: 'Bellevue' },
-  { city: 'Tacoma', label: 'Tacoma' },
-  { city: 'Kirkland', label: 'Kirkland' },
-  { city: 'Lynnwood', label: 'Lynnwood' },
-  { city: 'Edmonds', label: 'Edmonds' },
+  { slug: 'seattle', label: 'Seattle', eventLimit: 2 },
+  { slug: 'eastside', label: 'Eastside', eventLimit: 2 },
+  { slug: 'north-sound', label: 'North Sound', eventLimit: 1 },
+  { slug: 'south-sound', label: 'South Sound', eventLimit: 1 },
+  { slug: 'greater-puget-sound', label: 'Greater Puget Sound', eventLimit: 1 },
+  { slug: 'pacific-northwest', label: 'Pacific Northwest', eventLimit: 1 },
 ];
 
 const SEARCH_ENDPOINT = 'https://html.duckduckgo.com/html/';
 const OPENAI_RESPONSES_ENDPOINT = 'https://api.openai.com/v1/responses';
 export const DEFAULT_EVENT_DISTANCE_MILES = 15;
-const SOCIAL_CITY_COORDINATES = new Map([
-  ['seattle', { latitude: 47.6062, longitude: -122.3321 }],
-  ['bellevue', { latitude: 47.6101, longitude: -122.2015 }],
-  ['tacoma', { latitude: 47.2529, longitude: -122.4443 }],
-  ['kirkland', { latitude: 47.6769, longitude: -122.2060 }],
-  ['lynnwood', { latitude: 47.8209, longitude: -122.3151 }],
-  ['edmonds', { latitude: 47.8107, longitude: -122.3774 }],
-]);
 const geocodeCache = new Map();
 const parentMapDetailsCache = new Map();
 let nominatimQueue = Promise.resolve();
@@ -37,18 +29,29 @@ function clean(value, fallback = '') {
   return String(value ?? fallback).trim();
 }
 
-function normalizeFeedbackText(value) {
-  return clean(value).toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, '');
+function cityFromAddress(value) {
+  const address = clean(value).replace(/,?\s*(?:United States|USA|US)$/i, '');
+  const stateMatch = address.match(/,\s*([^,]+?),\s*[A-Z]{2}(?:,?\s+\d{5}(?:-\d{4})?)?$/i);
+  if (stateMatch) return clean(stateMatch[1], '').replace(/^.*?,\s*/, '');
+  const parts = address.split(',').map((part) => part.trim()).filter(Boolean);
+  return parts.length >= 2 ? parts.at(-1).replace(/\s+\d{5}(?:-\d{4})?$/, '').trim() : '';
 }
 
-function eventFamilyKey(value) {
-  const title = clean(value).toLowerCase();
-  const spacedFamily = /\s+at\s+/i.test(title) ? title.split(/\s+at\s+/i)[0] : '';
-  const colonFamily = /\s*:\s*/.test(title) ? title.split(/\s*:\s*/)[0] : '';
-  const compactSeriesMatch = title.match(/^(.{8,}storystroll)/);
-  const compactMatch = title.match(/^(.{8,})at[a-z0-9\u4e00-\u9fff]{5,}$/);
-  const family = normalizeFeedbackText(spacedFamily || colonFamily || compactSeriesMatch?.[1] || compactMatch?.[1] || '');
-  return family.length >= 8 ? family : '';
+function socialRegionSlug(region = {}) {
+  return clean(region.slug || region.region || region.city || region.label).toLowerCase().replace(/\s+/g, '-');
+}
+
+function socialRegionLabel(region = {}) {
+  return clean(region.label || region.city || region.slug || region.region);
+}
+
+function socialRegionLimit(region = {}) {
+  const limit = Number(region.eventLimit || region.limit);
+  return Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 1;
+}
+
+function normalizeFeedbackText(value) {
+  return clean(value).toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, '');
 }
 
 function firstSentence(value) {
@@ -184,13 +187,31 @@ function recommendationYear(html, now = new Date()) {
   return Number(published) || now.getFullYear();
 }
 
-function recommendationDate(value, year) {
-  const match = clean(value).match(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+(\d{1,2})\b/i);
-  if (!match) return '';
+function recommendationDates(value, year) {
+  const monthPattern = '(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)';
+  const match = clean(value).match(new RegExp(`\\b${monthPattern}\\.?\\s+(\\d{1,2})(?:\\s*[-–—]\\s*(?:${monthPattern}\\.?\\s+)?(\\d{1,2}))?\\b`, 'i'));
+  if (!match) return [];
   const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-  const month = months.indexOf(match[1].slice(0, 3).toLowerCase()) + 1;
-  const day = Number(match[2]);
-  return month && day ? `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}` : '';
+  const startMonth = months.indexOf(match[1].slice(0, 3).toLowerCase());
+  const startDay = Number(match[2]);
+  const endMonth = match[3] ? months.indexOf(match[3].slice(0, 3).toLowerCase()) : startMonth;
+  const endDay = Number(match[4] || startDay);
+  if (startMonth < 0 || endMonth < 0 || !startDay || !endDay) return [];
+  const start = new Date(Date.UTC(year, startMonth, startDay));
+  const endYear = endMonth < startMonth ? year + 1 : year;
+  const end = new Date(Date.UTC(endYear, endMonth, endDay));
+  if (start.getUTCMonth() !== startMonth || start.getUTCDate() !== startDay
+    || end.getUTCMonth() !== endMonth || end.getUTCDate() !== endDay
+    || end < start) return [];
+  const dates = [];
+  for (let cursor = start; cursor <= end && dates.length < 32; cursor = new Date(cursor.getTime() + 86400000)) {
+    dates.push(cursor.toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
+function recommendationDate(value, year) {
+  return recommendationDates(value, year)[0] || '';
 }
 
 function recommendationCity(locationText, venue = '') {
@@ -243,11 +264,13 @@ export function parseEventRecommendationPage(html, { url = 'https://www.parentma
     const venueAddress = clean(decodeHtml(locationHtml.replace(locationAnchor?.[0] || '', '').replace(/^\s*,\s*/, '')));
     const summary = clean(decodeHtml(paragraph.split(/<br\s*\/?>\s*<br\s*\/?>/i).slice(1).join(' ')));
     const eventUrl = absoluteHttpUrl(anchor[1], url);
-    const date = recommendationDate(dateLabel, year);
+    const occurrenceDates = recommendationDates(dateLabel, year);
+    const date = occurrenceDates[0] || recommendationDate(dateLabel, year);
     if (!eventUrl || !date) return null;
     return {
       city: recommendationCity(venueAddress, venue),
       date,
+      occurrenceDates,
       title: clean(decodeHtml(anchor[2])),
       summary,
       theme: 'Family event recommendation',
@@ -257,6 +280,7 @@ export function parseEventRecommendationPage(html, { url = 'https://www.parentma
       venueAddress,
       url: eventUrl,
       sourceUrl: eventUrl,
+      seriesUrl: new URL(eventUrl).pathname.includes('/series/') ? eventUrl : '',
       recommendationUrl: new URL(url).href,
       source: 'parentmap',
       sourceLabel: 'ParentMap',
@@ -270,7 +294,7 @@ export function parseEventRecommendationPage(html, { url = 'https://www.parentma
 }
 
 function parentMapCalendarLinks(html, baseUrl) {
-  const source = String(html || '').replace(/\\\//g, '/');
+  const source = unwrapSavedViewSource(html).replace(/\\\//g, '/');
   const values = [...source.matchAll(/(?:href\s*=\s*["']|["']url["']\s*:\s*["'])([^"']*\/calendar\/[^"'#?]+)/gi)]
     .map((match) => absoluteHttpUrl(match[1], baseUrl))
     .filter(Boolean);
@@ -280,6 +304,16 @@ function parentMapCalendarLinks(html, baseUrl) {
 export async function resolveParentMapEventUrl(url, date, { fetchImpl = fetch } = {}) {
   let current = new URL(url).href;
   if (new URL(current).pathname.includes('/calendar/')) return current;
+  const requestedDates = [...new Set((Array.isArray(date) ? date : [date]).map(clean).filter((value) => /^\d{4}-\d{2}-\d{2}$/.test(value)))]
+    .sort((left, right) => {
+      const weekendRank = (value) => {
+        const weekday = new Date(`${value}T12:00:00Z`).getUTCDay();
+        if (weekday === 6) return 0;
+        if (weekday === 0) return 1;
+        return 2;
+      };
+      return weekendRank(left) - weekendRank(right) || left.localeCompare(right);
+    });
   const visited = new Set();
   for (let depth = 0; depth < 4 && !visited.has(current); depth += 1) {
     visited.add(current);
@@ -291,8 +325,15 @@ export async function resolveParentMapEventUrl(url, date, { fetchImpl = fetch } 
     const responseUrl = response.url || current;
     if (new URL(responseUrl).pathname.includes('/calendar/')) return responseUrl;
     const links = parentMapCalendarLinks(await response.text(), responseUrl);
-    const dated = links.find((link) => new URL(link).pathname.includes(`/${date}/`));
+    const dated = requestedDates
+      .map((requestedDate) => links.find((link) => new URL(link).pathname.includes(`/${requestedDate}/`)))
+      .find(Boolean);
     if (dated) return dated;
+    const undated = links.find((link) => !/\/\d{4}-\d{2}-\d{2}\/?$/.test(new URL(link).pathname));
+    if (undated) return undated;
+    if (links.length && requestedDates.length) {
+      throw new Error(`No ParentMap recurring occurrence matched recommendation date(s): ${requestedDates.join(', ')}.`);
+    }
     if (links[0]) return links[0];
     current = responseUrl;
   }
@@ -311,17 +352,19 @@ export async function fetchEventRecommendationsFromUrl({ url, now = new Date(), 
     .filter((event) => !excludedUrls.has(comparableEventUrl(event.url)));
   return Promise.all(events.map(async (event) => {
     try {
-      const canonicalUrl = await resolveParentMapEventUrl(event.url, event.date, { fetchImpl });
+      const canonicalUrl = await resolveParentMapEventUrl(event.url, event.occurrenceDates?.length ? event.occurrenceDates : event.date, { fetchImpl });
+      const canonicalDate = new URL(canonicalUrl).pathname.match(/\/(\d{4}-\d{2}-\d{2})\/?$/)?.[1] || event.date;
       const detailResponse = await fetchImpl(canonicalUrl, {
         headers: { accept: 'text/html,application/xhtml+xml', 'user-agent': 'SproutCue social recommendation importer' },
         signal: AbortSignal.timeout(12000),
       });
       if (!detailResponse.ok) throw new Error(`Event detail returned ${detailResponse.status}.`);
       const finalUrl = detailResponse.url || canonicalUrl;
-      const detail = parseForcedEventPage(await detailResponse.text(), { url: finalUrl, city: event.city, date: event.date });
+      const detail = parseForcedEventPage(await detailResponse.text(), { url: finalUrl, city: event.city, date: canonicalDate });
       return {
         ...detail,
         ...event,
+        date: canonicalDate,
         city: event.city || detail.city,
         summary: event.summary || detail.summary,
         timeLabel: detail.timeLabel,
@@ -330,6 +373,7 @@ export async function fetchEventRecommendationsFromUrl({ url, now = new Date(), 
         imageUrl: detail.imageUrl,
         url: finalUrl,
         sourceUrl: finalUrl,
+        seriesUrl: event.seriesUrl || '',
         recommendationUrl: sourceUrl,
         source: 'parentmap',
         sourceLabel: 'ParentMap',
@@ -486,8 +530,7 @@ export async function geocodeSocialLocation(query, center = null) {
 }
 
 async function destinationCoordinates(city, geocode) {
-  return SOCIAL_CITY_COORDINATES.get(clean(city).toLowerCase())
-    || validCoordinates(await geocode(`${city}, Washington, USA`));
+  return validCoordinates(await geocode(`${city}, Washington, USA`));
 }
 
 async function cachedParentMapDetails(eventUrl) {
@@ -529,6 +572,7 @@ export async function filterParentMapEventsByDistance(events = [], {
         ...event,
         venue: venue.name || event.venue,
         venueAddress: venue.address,
+        venueCity: venue.locality || cityFromAddress(venue.address),
         latitude: coordinates.latitude,
         longitude: coordinates.longitude,
         distanceMiles: Number(miles.toFixed(2)),
@@ -612,15 +656,28 @@ function slug(value) {
   return clean(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-function eventScore(event, context = {}) {
+export function socialEventScore(event, context = {}) {
   const tags = `${event.theme || ''} ${(event.tags || []).join(' ')}`.toLowerCase();
-  return (event.resultType === 'event' ? 20 : 0)
-    + (event.forcedRecommendation ? 1000 : 0)
-    + (event.free === true ? 6 : 0)
-    + (event.venue ? 3 : 0)
-    + (/festival|community|arts|play|family|seasonal/.test(tags) ? 4 : 0)
-    + (event.imageUrl ? 2 : 0)
-    + recommendWeekendEvent(event, context).score;
+  const recommendation = recommendWeekendEvent(event, context);
+  const components = {
+    validEvent: event.resultType === 'event' ? 20 : 0,
+    partnership: event.forcedRecommendation ? 1000 : 0,
+    free: event.free === true ? 6 : 0,
+    venue: event.venue ? 3 : 0,
+    familyTheme: /festival|community|arts|play|family|seasonal/.test(tags) ? 4 : 0,
+    image: event.imageUrl ? 2 : 0,
+    recommendation: recommendation.score,
+  };
+  return {
+    total: Object.values(components).reduce((sum, value) => sum + value, 0),
+    components,
+    matchingKeywords: recommendation.matchingKeywords,
+    recommendationReasons: recommendation.reasons,
+  };
+}
+
+function eventScore(event, context = {}) {
+  return socialEventScore(event, context).total;
 }
 
 function bestEvent(events = [], context = {}) {
@@ -765,25 +822,28 @@ async function generateAiHighlights(post) {
   }
 }
 
-export function makeSocialPost({ event, city, regionLabel, dateLabel, sourceUrl, sourceLabel }) {
-  const recommendation = recommendWeekendEvent(event, { city, date: event.date || dateLabel });
+export function makeSocialPost({ event, city, regionLabel, regionSlug = '', dateLabel, sourceUrl, sourceLabel }) {
+  const actualCity = clean(event.city || event.venueCity || cityFromAddress(event.venueAddress) || city);
+  const recommendation = recommendWeekendEvent(event, { city: actualCity, region: regionSlug, date: event.date || dateLabel });
   return {
-    id: `social-${slug(city)}-${event.date || dateLabel}-${slug(event.title)}`.slice(0, 220),
+    id: `social-${slug(regionSlug || regionLabel || actualCity)}-${event.date || dateLabel}-${slug(event.title)}`.slice(0, 220),
     region: regionLabel || city,
-    city,
+    regionSlug: regionSlug || slug(regionLabel || city),
+    city: actualCity,
     title: event.title,
     theme: event.theme || '',
-    headline: `${city} · ${dayLabel(event.date)}亲子精选`,
-    bannerText: bannerContent(city, event.date || dateLabel, event.title),
+    headline: `${dayLabel(event.date)}亲子精选`,
+    bannerText: bannerContent(regionSlug || regionLabel || actualCity, event.date || dateLabel, event.title),
     highlights: eventHighlights(event),
     description: event.summary || '',
-    caption: makeCaption(event, city, dateLabel, sourceLabel || event.sourceLabel),
+    caption: makeCaption(event, actualCity, dateLabel, sourceLabel || event.sourceLabel),
     date: event.date || '',
     dateLabel: event.dateLabel || dateLabel,
+    occurrenceDates: Array.isArray(event.occurrenceDates) ? event.occurrenceDates : [],
     timeLabel: event.timeLabel || '时间请以活动页面为准',
     cost: event.cost || '',
     free: event.free ?? null,
-    venue: event.venue || city,
+    venue: event.venue || actualCity,
     venueAddress: event.venueAddress || '',
     latitude: event.latitude ?? null,
     longitude: event.longitude ?? null,
@@ -791,6 +851,7 @@ export function makeSocialPost({ event, city, regionLabel, dateLabel, sourceUrl,
     parentMapDescription: event.parentMapDescription || '',
     imageUrl: event.imageUrl || '',
     eventUrl: event.url || sourceUrl || '',
+    seriesUrl: event.seriesUrl || '',
     sourceUrl: event.sourceUrl || sourceUrl || '',
     source: event.source || 'parentmap',
     sourceLabel: sourceLabel || event.sourceLabel || 'ParentMap',
@@ -817,12 +878,16 @@ export function makeWeeklyRoundup(posts = [], startDate = '', endDate = '') {
     const address = formatStreetAddress(post.venueAddress);
     const details = [venue, address && address.toLowerCase() !== venue.toLowerCase() ? address : ''].filter(Boolean).join(' · ');
     const highlights = (post.highlights || []).slice(0, 1).map((highlight) => `亮点：${firstSentence(highlight)}`).join('；');
-    return `- ${post.city}：${post.title}\n  地点：${details || post.city}\n  ${highlights}`;
+    const dateLabel = clean(post.dateLabel) || clean(forcedEventDateLabel(post.date));
+    const recurringDetails = post.seriesUrl
+      ? `\n  重复活动：${dateLabel || '日期请以系列页面为准'}；本次采用：${forcedEventDateLabel(post.date)}\n  系列页面：${post.seriesUrl}\n  活动详情：${post.eventUrl}`
+      : `\n  日期：${dateLabel || '请以活动页面为准'}`;
+    return `- ${post.city}：${post.title}${recurringDetails}\n  地点：${details || post.city}\n  ${highlights}`;
   });
   return {
     title: `本周末亲子活动精选｜${cityCount}城${posts.length}场`,
     caption: `这个周末，${cityCount} 个城市都有适合家庭的活动！🌿\n\n${highlights}\n\n我们整理了 ${posts.length} 场地区亮点：\n\n${lines.join('\n\n')}\n\n收藏这份周末清单，带上家人一起出门玩吧！\n\n想让周末更轻松？来 SproutCue 找附近的 playdate、游乐场、故事时间和周末活动吧！🛝📚 创建你的家庭卡片，认识附近愿意一起玩的家庭，一起发现更多亲子时光！💛\n\n资料整理：SproutCue\n活动日期：${startDate}–${endDate}`,
-    posts: posts.map((post) => ({ city: post.city, title: post.title, date: post.date, dateLabel: post.dateLabel, timeLabel: post.timeLabel, venue: post.venue, venueAddress: post.venueAddress, highlights: post.highlights, matchingKeywords: post.matchingKeywords, recommendationReasons: post.recommendationReasons, sourceLabel: post.sourceLabel, eventUrl: post.eventUrl })),
+    posts: posts.map((post) => ({ city: post.city, title: post.title, date: post.date, dateLabel: post.dateLabel, occurrenceDates: post.occurrenceDates, timeLabel: post.timeLabel, venue: post.venue, venueAddress: post.venueAddress, highlights: post.highlights, matchingKeywords: post.matchingKeywords, recommendationReasons: post.recommendationReasons, sourceLabel: post.sourceLabel, eventUrl: post.eventUrl, seriesUrl: post.seriesUrl })),
     startDate,
     endDate,
     author: 'SproutCue',
@@ -836,7 +901,9 @@ export async function generateWeeklySocialPosts({
   excludedEventSlots = new Set(),
   forcedInputEvents = [],
   dates = [],
-  venueDistanceFilter = true,
+  includeCandidateScores = false,
+  parentMapOnly = true,
+  venueDistanceFilter = false,
   maxDistanceMiles = DEFAULT_EVENT_DISTANCE_MILES,
   now = new Date(),
 } = {}) {
@@ -846,8 +913,10 @@ export async function generateWeeklySocialPosts({
   const startDate = days[0];
   const endDate = days[days.length - 1];
   const results = await Promise.all(regions.flatMap((region) => days.map(async (day) => {
-    const city = clean(region.city || region.label);
-    if (!city) return { region, day, fetched: null, event: null, error: 'Region city is required.' };
+    const regionSlug = socialRegionSlug(region);
+    const regionLabel = socialRegionLabel(region);
+    const city = clean(region.city || regionLabel);
+    if (!regionSlug) return { region, day, fetched: null, event: null, error: 'ParentMap region slug is required.' };
     const commandEvents = forcedInputEvents.filter((event) => clean(event.city).toLowerCase() === city.toLowerCase()
       && event.date === day);
     if (commandEvents.length) {
@@ -865,15 +934,17 @@ export async function generateWeeklySocialPosts({
         method: 'Command-line forced URL',
       };
     }
-    const forcedEvents = getForcedPartnershipEvents({ city, date: day });
+    const forcedEvents = getForcedPartnershipEvents({ city, region: regionSlug, date: day });
     try {
       const fetched = await fetchFamilyEvents({
-        locationCity: city,
+        locationCity: regionLabel,
+        locationRegion: regionSlug,
         startDate: day,
         endDate: day,
         childProfile,
         page: 1,
-        includeParentMapCandidates: venueDistanceFilter,
+        includeParentMapCandidates: true,
+        parentMapOnly,
       });
       const distanceResult = venueDistanceFilter
         ? await filterParentMapEventsByDistance(fetched.parentMapCandidates || [], { city, maxDistanceMiles })
@@ -881,7 +952,7 @@ export async function generateWeeklySocialPosts({
       const locationFallbackUsed = Boolean(venueDistanceFilter && !distanceResult.events.length && distanceResult.candidates.length);
       const parentMapEvents = locationFallbackUsed
         ? rankLocationFallbackCandidates(distanceResult.candidates, { city, date: day })
-        : distanceResult?.events || fetched.events || [];
+        : distanceResult?.events || fetched.parentMapCandidates || fetched.events || [];
       const events = [...forcedEvents, ...parentMapEvents];
       const matchedEvent = bestEvent(events, { city, date: day });
       const sourceUrls = [...new Set([...forcedEvents.map((event) => event.sourceUrl), ...(fetched.sourceUrls || [])].filter(Boolean))];
@@ -907,6 +978,16 @@ export async function generateWeeklySocialPosts({
           method: 'ParentMap venue-distance filter',
           distanceSkipped: distanceResult?.skipped || 0,
           distanceError: distanceResult?.reason || '',
+        };
+      }
+      if (parentMapOnly) {
+        return {
+          region,
+          day,
+          fetched: { ...fetched, sourceUrls },
+          events: [],
+          event: null,
+          method: 'ParentMap region search',
         };
       }
       try {
@@ -942,38 +1023,36 @@ export async function generateWeeklySocialPosts({
     }
   })));
   const usedEventKeys = new Set();
-  const selectedResults = results.map((result) => {
-    const candidates = result.events || (result.event ? [result.event] : []);
-    const availableCandidates = candidates
-      .filter((candidate) => {
-        const exactKey = `${clean(result.region.city || result.region.label).toLowerCase()}|${result.day}|${normalizeFeedbackText(candidate.title)}`;
-        const familyKey = eventFamilyKey(candidate.title);
-        return !excludedEventSlots.has(exactKey) && (!familyKey || !excludedEventSlots.has(`family|${familyKey}`));
+  const selectedResults = regions.flatMap((region) => {
+    const regionSlug = socialRegionSlug(region);
+    const regionResults = results.filter((result) => socialRegionSlug(result.region) === regionSlug);
+    const replacedEventKeys = new Set(regionResults
+      .filter((result) => alternateSlots.has(`${regionSlug}|${result.day}`) && result.event)
+      .map((result) => eventKey(result.event)));
+    const seenRegionEventKeys = new Set();
+    const candidates = regionResults.flatMap((result) => (result.events || (result.event ? [result.event] : []))
+      .map((event) => ({ result, event })))
+      .filter(({ event }) => !excludedEventSlots.has(`title|${normalizeFeedbackText(event.title)}`))
+      .filter(({ event }) => !replacedEventKeys.has(eventKey(event)))
+      .sort((a, b) => eventScore(b.event, { region: regionSlug, date: b.result.day })
+        - eventScore(a.event, { region: regionSlug, date: a.result.day }))
+      .filter(({ event }) => {
+        const key = eventKey(event);
+        if (seenRegionEventKeys.has(key) || usedEventKeys.has(key)) return false;
+        seenRegionEventKeys.add(key);
+        return true;
       })
-      .filter((candidate) => !usedEventKeys.has(eventKey(candidate)))
-      .sort((a, b) => {
-        const context = { city: clean(result.region.city || result.region.label), date: result.day };
-        if (a.locationFilterFallback && b.locationFilterFallback) {
-          return compareLocationFallbackCandidates(a, b, context);
-        }
-        return eventScore(b, context) - eventScore(a, context);
-      });
-    const slotKey = `${clean(result.region.city || result.region.label).toLowerCase()}|${result.day}`;
-    const initialEventKey = result.event ? eventKey(result.event) : '';
-    // The shared usedEventKeys set applies the same no-duplicate rule to
-    // replacement events as it does to the normal weekend selections.
-    const event = alternateSlots.has(slotKey)
-      ? availableCandidates.find((candidate) => eventKey(candidate) !== initialEventKey) || null
-      : availableCandidates[0] || null;
-    if (event) usedEventKeys.add(eventKey(event));
-    return { ...result, event, duplicateSkipped: Boolean(result.events?.length) && !event };
+      .slice(0, socialRegionLimit(region));
+    candidates.forEach(({ event }) => usedEventKeys.add(eventKey(event)));
+    return candidates.map(({ result, event }) => ({ ...result, event }));
   });
   const posts = selectedResults
     .filter(({ event }) => event)
     .map(({ region, fetched, event }) => makeSocialPost({
       event,
-      city: clean(region.city || region.label),
-      regionLabel: clean(region.label || region.city),
+      city: clean(event.city || event.venueCity || region.city || socialRegionLabel(region)),
+      regionLabel: socialRegionLabel(region),
+      regionSlug: socialRegionSlug(region),
       dateLabel: fetched.dateRangeLabel,
       sourceUrl: event.sourceUrl || event.url || fetched.sourceUrls?.[0],
       sourceLabel: event.sourceLabel,
@@ -982,12 +1061,14 @@ export async function generateWeeklySocialPosts({
     let description = post.parentMapDescription || post.description;
     let venue = post.venue;
     let venueAddress = post.venueAddress;
+    let city = post.city;
     if (!post.parentMapDescription) {
       try {
         const details = await fetchParentMapEventDetails(post.eventUrl);
         description = details.description || description;
         venue = details.venue?.name || venue;
         venueAddress = details.venue?.address || venueAddress;
+        city = details.venue?.locality || city || cityFromAddress(venueAddress);
       } catch {
         // Keep the calendar summary when an event detail page is unavailable.
       }
@@ -998,36 +1079,82 @@ export async function generateWeeklySocialPosts({
       description,
       venue,
       venueAddress,
+      city,
       highlights: aiHighlights || eventHighlights({ ...post, summary: description, theme: post.theme }),
       highlightSource: aiHighlights ? 'openai' : 'local-fallback',
     };
   }));
+  const selectedOccurrenceKeys = new Set(selectedResults.map(({ event }) => `${eventKey(event)}|${event.date || ''}`));
+  const candidateScores = includeCandidateScores ? regions.flatMap((region) => {
+    const regionSlug = socialRegionSlug(region);
+    const seen = new Set();
+    return results
+      .filter((result) => socialRegionSlug(result.region) === regionSlug)
+      .flatMap((result) => (result.events || (result.event ? [result.event] : [])).map((event) => ({ result, event })))
+      .filter(({ event }) => {
+        const occurrenceKey = `${eventKey(event)}|${event.date || ''}`;
+        if (seen.has(occurrenceKey)) return false;
+        seen.add(occurrenceKey);
+        return true;
+      })
+      .map(({ result, event }) => {
+        const score = socialEventScore(event, { region: regionSlug, city: event.city || event.venueCity || '', date: result.day });
+        const occurrenceKey = `${eventKey(event)}|${event.date || ''}`;
+        return {
+          region: regionSlug,
+          regionLabel: socialRegionLabel(region),
+          title: event.title,
+          date: event.date || result.day,
+          venue: event.venue || '',
+          source: event.source || '',
+          url: event.url || event.sourceUrl || '',
+          selected: selectedOccurrenceKeys.has(occurrenceKey),
+          rejected: excludedEventSlots.has(`title|${normalizeFeedbackText(event.title)}`),
+          ...score,
+        };
+      })
+      .sort((a, b) => b.total - a.total || a.date.localeCompare(b.date) || a.title.localeCompare(b.title));
+  }) : [];
   const roundup = makeWeeklyRoundup(enrichedPosts, startDate, endDate);
   return {
     id: `weekly-${startDate}`,
     weekKey: startDate,
     startDate,
     endDate,
-    regions: regions.map((region) => clean(region.city || region.label)).filter(Boolean),
+    regions: regions.map((region) => ({
+      slug: socialRegionSlug(region),
+      label: socialRegionLabel(region),
+      eventLimit: socialRegionLimit(region),
+    })).filter((region) => region.slug),
     posts: enrichedPosts,
     roundup,
     source: posts.some((post) => post.source !== 'parentmap') ? 'mixed' : 'parentmap',
-    searchMode: forcedInputEvents.length ? 'forced-url' : venueDistanceFilter ? 'parentmap-venue-distance' : 'normal',
+    searchMode: forcedInputEvents.length ? 'forced-url' : venueDistanceFilter ? 'parentmap-venue-distance' : parentMapOnly ? 'parentmap-regions' : 'normal',
     maxDistanceMiles: venueDistanceFilter ? Number(maxDistanceMiles) : null,
-    slotCount: regions.length * days.length,
+    slotCount: regions.reduce((total, region) => total + socialRegionLimit(region), 0),
     generatedAt: new Date().toISOString(),
-    statuses: selectedResults.map(({ region, day, fetched, event, error, method, searchError, duplicateSkipped, distanceSkipped, distanceError }) => ({
-      city: clean(region.city || region.label),
-      day,
-      matched: Boolean(event),
-      fallback: fetched?.fallback ?? false,
-      providerStatus: event
-        ? `${event.locationFilterFallback ? 'ParentMap recommendation fallback' : method || event.sourceLabel || 'Family event source'} result selected.${event.locationFilterFallback ? ` No event was within ${Number(maxDistanceMiles)} miles; selected the highest recommendation score, using nearest distance to break ties.` : ''}${venueDistanceFilter && event.source === 'parentmap' ? ` Venue is ${event.distanceMiles} miles from ${clean(region.city || region.label)}.` : ''}`
-        : venueDistanceFilter
-          ? `${distanceError || `No ParentMap event with a geocodable venue was within ${Number(maxDistanceMiles)} miles.`}${distanceSkipped ? ` Skipped ${distanceSkipped} ParentMap candidate${distanceSkipped === 1 ? '' : 's'}.` : ''}`
-          : `${duplicateSkipped ? 'Duplicate event skipped across the weekend.' : (fetched?.providerStatus || error || 'No matching event found.')}${searchError ? ` Web search: ${searchError}` : ''}`,
-      sourceUrl: event?.sourceUrl || event?.url || fetched?.sourceUrls?.[0] || '',
-    })),
+    ...(includeCandidateScores ? { candidateScores } : {}),
+    statuses: regions.map((region) => {
+      const regionSlug = socialRegionSlug(region);
+      const regionResults = results.filter((result) => socialRegionSlug(result.region) === regionSlug);
+      const selected = selectedResults.filter((result) => socialRegionSlug(result.region) === regionSlug);
+      const selectedPosts = enrichedPosts.filter((post) => post.regionSlug === regionSlug);
+      const errors = regionResults.flatMap((result) => [result.error, result.searchError, result.distanceError]).filter(Boolean);
+      return {
+        region: regionSlug,
+        regionLabel: socialRegionLabel(region),
+        cities: [...new Set(selectedPosts.map((post) => post.city).filter(Boolean))],
+        day: startDate === endDate ? startDate : `${startDate}–${endDate}`,
+        matched: selected.length > 0,
+        selectedCount: selected.length,
+        requestedCount: socialRegionLimit(region),
+        fallback: regionResults.some((result) => result.fetched?.fallback),
+        providerStatus: selected.length
+          ? `Selected ${selected.length} of ${socialRegionLimit(region)} requested ParentMap weekend event${socialRegionLimit(region) === 1 ? '' : 's'}.`
+          : errors[0] || 'No eligible ParentMap weekend event was found for this region.',
+        sourceUrls: [...new Set(regionResults.flatMap((result) => result.fetched?.sourceUrls || []).filter(Boolean))],
+      };
+    }),
   };
 }
 

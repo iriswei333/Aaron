@@ -33,7 +33,7 @@ export default function PictureBookLibrary() {
       ) : data.books.length ? (
         <View style={styles.list}>
           {data.books.map((book) => (
-            <BookCard key={book.id} book={book} onPress={() => router.push({ pathname: '/create/books/[id]', params: { id: book.id } })} />
+            <BookCard key={book.id} book={book} onPress={() => router.push({ pathname: '/create/books/book', params: { bookId: book.id } })} />
           ))}
         </View>
       ) : (

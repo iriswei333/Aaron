@@ -3,6 +3,9 @@ import { FAVORITE_INTEREST_OPTIONS, childDisplayName, getChildProfile } from '@s
 import { createSupabaseBrowserClient } from '../../lib/supabase/client.js';
 import { startAiJobWait } from '../ai-jobs.js';
 import {
+  isRejectedChildPhoto, photoCheckDetails, photoCheckHelp, photoCheckLabel, photoCheckWarning, splitPhotoProblems,
+} from '@sproutcue/shared/photo-check';
+import {
   DEFAULT_PRACTICE_STORY_LENGTH, MAX_PRACTICE_STORY_PARENT_GOALS, PRACTICE_STORY_CHALLENGES, PRACTICE_STORY_LENGTHS,
   PRACTICE_STORY_PARENT_GOALS, PRACTICE_STORY_THEMES, challengeFromPracticingStep,
 } from '@sproutcue/shared/practice-story-options';
@@ -24,12 +27,71 @@ const FALLBACK_PRACTICE_TOPICS = [
   ['feelings', 'Use words for big feelings', 24, 71], ['follow-routine', 'Follow a simple family routine', 24, 71],
 ].map(([id, label, minMonths, maxMonths]) => ({ id, label, minMonths, maxMonths }));
 
+const CHILD_PHOTO_HINT = {
+  en: 'Clear photos of your child: one child per photo, face visible, good light.',
+  'zh-CN': '请使用清晰的孩子照片：每张只有一个孩子，脸部清楚，光线充足。',
+};
+
+function previewUrlFor(file) {
+  return ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ? URL.createObjectURL(file) : '';
+}
+
+function bookLanguage(state) { return String(state.pictureBookTemplateSlug || '').includes('-zh') ? 'zh-CN' : 'en'; }
+
+/** A problem for one photo, from a photo-check error that may not list photos individually. */
+function firstPhotoProblem(details, language) {
+  return details.photoErrors[0] || { code: details.code, severity: details.severity, label: photoCheckLabel(details.code, language), message: details.message };
+}
+
+/** Removes entry `index` from an index-keyed object, shifting later entries down. */
+function withoutIndex(map = {}, index) {
+  const next = {};
+  Object.entries(map).forEach(([key, value]) => {
+    const position = Number(key);
+    if (position < index) next[position] = value;
+    else if (position > index) next[position - 1] = value;
+  });
+  return next;
+}
+
+function photoCheckBadge(problem) {
+  if (!problem) return '';
+  return `<span class="photo-check-badge ${problem.severity === 'warning' ? 'warning' : 'blocked'}">${problem.severity === 'warning' ? '!' : '×'} ${escapeHtml(problem.label)}</span>`;
+}
+
+/** Per-photo rows for new uploads: thumbnail, check result, and a Remove button. */
+function uploadChecklist({ files, previews = [], uploadedIds = [], problems = {}, removeAttribute, disabled, language }) {
+  if (!files.length) return '';
+  const rows = files.map((file, index) => {
+    const problem = problems[index];
+    const tone = problem ? (problem.severity === 'warning' ? 'warning' : 'blocked') : uploadedIds[index] ? 'passed' : '';
+    const title = problem ? problem.label : uploadedIds[index] ? (language === 'zh-CN' ? '已检查 ✓' : 'Checked ✓') : (language === 'zh-CN' ? '提交时检查' : 'Checked when you submit');
+    const thumb = previews[index] ? `<img src="${escapeAttribute(previews[index])}" alt="" />` : '<span class="ai-photo-file" aria-hidden="true">▧</span>';
+    return `<li class="ai-photo-item ${tone}">${thumb}<div><strong>${escapeHtml(title)}</strong><small>${escapeHtml(problem ? problem.message : file.name)}</small></div><button type="button" class="text-button" ${removeAttribute}="${index}" ${disabled ? 'disabled' : ''}>${language === 'zh-CN' ? '移除' : 'Remove'}</button></li>`;
+  }).join('');
+  return `<ul class="ai-photo-checklist" aria-label="Selected photos">${rows}</ul>`;
+}
+
+function blockedCount(problems = {}) { return Object.values(problems).filter((problem) => problem.severity !== 'warning').length; }
+
+/** Copy of `list` without position `index`; gaps (photos not uploaded yet) stay aligned. */
+function removeAt(list, index) { return Array.from(list || [], (value) => value).filter((_, position) => position !== index); }
+
+function blockedStatus(problems, language) {
+  const count = blockedCount(problems);
+  if (!count) return '';
+  if (language === 'zh-CN') return `${count} 张照片无法使用。请移除或更换后再试。${photoCheckHelp(language)}`;
+  return `${count === 1 ? '1 photo can’t' : `${count} photos can’t`} be used. Remove or replace ${count === 1 ? 'it' : 'them'} and try again. ${photoCheckHelp(language)}`;
+}
+
 function resetPracticeStoryDraft(state, { close = false } = {}) {
-  (state.practiceStoryPhotoPreviewUrls || []).forEach((url) => URL.revokeObjectURL(url));
+  (state.practiceStoryPhotoPreviewUrls || []).forEach((url) => url && URL.revokeObjectURL(url));
   state.practiceStoryPhotoFiles = [];
   state.practiceStoryPhotoPreviewUrls = [];
   state.practiceStoryUploadedPhotoIds = [];
   state.practiceStorySelectedPhotoIds = [];
+  state.practiceStoryPhotoProblems = {};
+  state.practiceStorySavedPhotoProblems = {};
   state.practiceStoryGenerating = false;
   state.practiceStoryStatus = '';
   state.practiceStoryResult = null;
@@ -88,33 +150,69 @@ async function generatePracticeStory(ctx, form) {
     if (state.authMode === 'supabase') {
       const files = state.practiceStoryPhotoFiles || [];
       const uploadedIds = state.practiceStoryUploadedPhotoIds || [];
-      for (let index = uploadedIds.length; index < files.length; index += 1) {
+      const problems = { ...(state.practiceStoryPhotoProblems || {}) };
+      for (let index = 0; index < files.length; index += 1) {
+        if (uploadedIds[index]) continue;
         state.practiceStoryStatus = `Uploading story photo ${index + 1} of ${files.length}…`;
         ctx.renderCurrent();
-        const saved = await saveDirectAiPhoto(files[index], {
-          label: 'Practice story photo', sourceKind: 'practice_story', index, total: files.length,
-        });
-        uploadedIds.push(saved.id);
+        try {
+          const saved = await saveDirectAiPhoto(files[index], {
+            label: 'Practice story photo', sourceKind: 'practice_story', index, total: files.length, language,
+            onChecking: () => { state.practiceStoryStatus = `Checking story photo ${index + 1} of ${files.length}…`; ctx.renderCurrent(); },
+          });
+          uploadedIds[index] = saved.id;
+          delete problems[index];
+          const warning = photoCheckWarning(saved, language);
+          if (warning) problems[index] = warning;
+        } catch (error) {
+          const details = photoCheckDetails(error, language);
+          if (!details || details.severity === 'retry') throw error;
+          problems[index] = firstPhotoProblem(details, language);
+        }
         state.practiceStoryUploadedPhotoIds = [...uploadedIds];
+        state.practiceStoryPhotoProblems = { ...problems };
+      }
+      if (blockedCount(problems)) {
+        state.practiceStoryStatus = blockedStatus(problems, language);
+        state.practiceStoryGenerating = false;
+        ctx.renderCurrent();
+        return;
       }
       result = await apiRequest('/family-assets/practice-stories', {
         method: 'POST',
-        body: JSON.stringify({ goal, challenge, interests, parentGoals, storyTheme, adventureLength, language, savedPhotoIds: [...(state.practiceStorySelectedPhotoIds || []), ...uploadedIds] }),
+        body: JSON.stringify({ goal, challenge, interests, parentGoals, storyTheme, adventureLength, language, savedPhotoIds: [...(state.practiceStorySelectedPhotoIds || []), ...uploadedIds.filter(Boolean)] }),
       });
     } else {
       const response = await fetch('/api/family-assets/practice-stories', { method: 'POST', body: data, headers: localHeaders() });
       result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.error || `Request failed with ${response.status}`);
+      if (!response.ok) throw Object.assign(new Error(result.error || `Request failed with ${response.status}`), { data: result });
     }
     state.practiceStoryStatus = 'Story queued. We’ll notify you when it is ready.';
     state.practiceStoryGenerating = false;
     startAiJobWait(ctx, result.job, result.usage);
     return;
   } catch (error) {
-    state.practiceStoryStatus = `Could not create the story: ${error.message}`;
+    const details = photoCheckDetails(error, language);
+    if (details && details.severity !== 'retry') {
+      applyPracticePhotoProblems(state, details);
+      state.practiceStoryStatus = blockedStatus(state.practiceStoryPhotoProblems, language) || `${details.message} ${details.help}`;
+    } else {
+      state.practiceStoryStatus = details ? details.message : `Could not create the story: ${error.message}`;
+    }
   }
   state.practiceStoryGenerating = false;
   ctx.renderCurrent();
+}
+
+/** Marks rejected photos after the story request fails; rejected saved photos are deselected and hidden. */
+function applyPracticePhotoProblems(state, details) {
+  const selectedIds = state.practiceStorySelectedPhotoIds || [];
+  const { saved, uploads } = splitPhotoProblems(details, { savedPhotoIds: selectedIds, uploadedPhotoIds: state.practiceStoryUploadedPhotoIds || [], uploadOffset: selectedIds.length });
+  state.practiceStoryPhotoProblems = { ...(state.practiceStoryPhotoProblems || {}), ...uploads };
+  state.practiceStorySavedPhotoProblems = saved;
+  const rejected = new Set(Object.keys(saved));
+  state.practiceStorySelectedPhotoIds = selectedIds.filter((id) => !rejected.has(id));
+  state.practiceStoryPhotos = (state.practiceStoryPhotos || []).map((photo) => (rejected.has(photo.id) ? { ...photo, childCheck: { status: 'rejected', code: saved[photo.id].code, severity: 'block' } } : photo));
 }
 
 function pictureBookCreateError(response, result, photos) {
@@ -139,7 +237,7 @@ function photoMimeType(photo) {
   return '';
 }
 
-async function saveDirectAiPhoto(photo, { label, sourceKind, index, total }) {
+async function saveDirectAiPhoto(photo, { label, sourceKind, index, total, language = 'en', onChecking }) {
   const supabase = createSupabaseBrowserClient();
   if (!supabase) throw new Error('Private photo storage is unavailable.');
   const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -153,6 +251,7 @@ async function saveDirectAiPhoto(photo, { label, sourceKind, index, total }) {
     upsert: false,
   });
   if (uploadError) throw new Error(`Photo ${index + 1} of ${total} could not upload: ${uploadError.message}`);
+  onChecking?.();
   try {
     const result = await apiRequest('/family-assets/photos/direct-upload', {
       method: 'POST',
@@ -163,6 +262,8 @@ async function saveDirectAiPhoto(photo, { label, sourceKind, index, total }) {
         byteSize: photo.size,
         label: label || photo.name,
         sourceKind,
+        photoIndex: index,
+        language,
       }),
     });
     return result.photo;
@@ -337,44 +438,82 @@ async function createBook(ctx, form) {
   const templateSlug = form.elements.templateSlug.value || DEFAULT_TEMPLATE;
   data.set('childName', childName);
   data.set('templateSlug', templateSlug);
+  const language = bookLanguage(state);
+  data.set('language', language);
   photos.forEach((photo) => data.append('photos', photo));
   state.pictureBookStatus = state.authMode === 'supabase' ? `Uploading photo 1 of ${photos.length}…` : 'Saving the private reference photos…';
   ctx.renderCurrent();
   try {
     let response;
     if (state.authMode === 'supabase') {
-      const savedPhotoIds = [];
+      const uploadedIds = state.pictureBookUploadedPhotoIds || [];
+      const problems = { ...(state.pictureBookPhotoProblems || {}) };
       for (const [index, photo] of photos.entries()) {
+        if (uploadedIds[index]) continue;
         state.pictureBookStatus = `Uploading photo ${index + 1} of ${photos.length}…`;
         ctx.renderCurrent();
-        const saved = await saveDirectAiPhoto(photo, {
-          label: childName ? `${childName} picture-book photo` : photo.name,
-          sourceKind: 'picture_book', index, total: photos.length,
-        });
-        savedPhotoIds.push(saved.id);
+        try {
+          const saved = await saveDirectAiPhoto(photo, {
+            label: childName ? `${childName} picture-book photo` : photo.name,
+            sourceKind: 'picture_book', index, total: photos.length, language,
+            onChecking: () => { state.pictureBookStatus = `Checking photo ${index + 1} of ${photos.length}…`; ctx.renderCurrent(); },
+          });
+          uploadedIds[index] = saved.id;
+          delete problems[index];
+          const warning = photoCheckWarning(saved, language);
+          if (warning) problems[index] = warning;
+        } catch (error) {
+          const details = photoCheckDetails(error, language);
+          if (!details || details.severity === 'retry') throw error;
+          problems[index] = firstPhotoProblem(details, language);
+        }
+        state.pictureBookUploadedPhotoIds = [...uploadedIds];
+        state.pictureBookPhotoProblems = { ...problems };
+      }
+      if (blockedCount(problems)) {
+        state.pictureBookStatus = blockedStatus(problems, language);
+        ctx.renderCurrent();
+        return;
       }
       state.pictureBookStatus = 'Creating the private picture book…';
       ctx.renderCurrent();
       response = await fetch('/api/family-assets/picture-books', {
         method: 'POST',
-        body: JSON.stringify({ childName, templateSlug, savedPhotoIds }),
+        body: JSON.stringify({ childName, templateSlug, language, savedPhotoIds: uploadedIds.filter(Boolean) }),
         headers: { 'content-type': 'application/json', ...localHeaders() },
       });
     } else {
       response = await fetch('/api/family-assets/picture-books', { method: 'POST', body: data, headers: localHeaders() });
     }
     const result = await response.json().catch(() => ({}));
+    const details = response.ok ? null : photoCheckDetails(result, language);
+    if (details && details.severity !== 'retry') {
+      const { uploads } = splitPhotoProblems(details, { uploadedPhotoIds: state.pictureBookUploadedPhotoIds || [] });
+      state.pictureBookPhotoProblems = { ...(state.pictureBookPhotoProblems || {}), ...uploads };
+      state.pictureBookStatus = blockedStatus(state.pictureBookPhotoProblems, language) || `${details.message} ${details.help}`;
+      ctx.renderCurrent();
+      return;
+    }
+    if (details) throw new Error(details.message);
     if (!response.ok) throw new Error(pictureBookCreateError(response, result, photos));
     state.pictureBookStatus = 'Book created. You can make the whole book or work one page at a time.';
     state.pictureBooks = [result.book, ...state.pictureBooks];
     state.pictureBooksLoaded = true;
-    state.pictureBookPhotoFiles = [];
+    resetPictureBookPhotos(state);
     state.studioView = 'library';
     globalThis.history.replaceState({}, '', '/picture-books');
   } catch (error) {
     state.pictureBookStatus = `Could not create the book: ${error.message}`;
   }
   ctx.renderCurrent();
+}
+
+function resetPictureBookPhotos(state) {
+  (state.pictureBookPhotoPreviewUrls || []).forEach((url) => url && URL.revokeObjectURL(url));
+  state.pictureBookPhotoFiles = [];
+  state.pictureBookPhotoPreviewUrls = [];
+  state.pictureBookUploadedPhotoIds = [];
+  state.pictureBookPhotoProblems = {};
 }
 
 async function generatePage(ctx, bookId, pageKey, { quiet = false } = {}) {
@@ -515,16 +654,24 @@ function practiceStoryModal(state, childName, ageMonths, child) {
     ...(child?.favoriteActivities || []).filter((value) => value && !knownInterests.has(value.toLowerCase())).map((value) => [value, value]),
   ];
   const chosenInterests = (state.practiceStoryInterests || '').split(',').map((item) => item.trim().toLowerCase()).filter(Boolean);
-  const photos = state.practiceStoryPhotos || [];
+  const photoLanguage = state.practiceStoryLanguage === 'zh-CN' ? 'zh-CN' : 'en';
+  const photos = (state.practiceStoryPhotos || []).filter((photo) => !isRejectedChildPhoto(photo));
   const result = state.practiceStoryResult;
   const selectedIds = state.practiceStorySelectedPhotoIds || [];
   const uploadPreviews = state.practiceStoryPhotoPreviewUrls || [];
+  const uploadProblems = state.practiceStoryPhotoProblems || {};
   const selectedPhotos = photos.filter((photo) => selectedIds.includes(photo.id));
   const photoCount = selectedIds.length + (state.practiceStoryPhotoFiles?.length || 0);
   const previewItems = [
-    ...uploadPreviews.map((url, index) => `<span class="practice-photo-thumb"><img src="${escapeAttribute(url)}" alt="New child photo ${index + 1}" /></span>`),
+    ...uploadPreviews.map((url, index) => (url ? `<span class="practice-photo-thumb ${uploadProblems[index] && uploadProblems[index].severity !== 'warning' ? 'blocked' : ''}"><img src="${escapeAttribute(url)}" alt="New child photo ${index + 1}" /></span>` : '')),
     ...selectedPhotos.map((photo) => `<span class="practice-photo-thumb"><img src="${escapeAttribute(photo.contentUrl)}" alt="${escapeAttribute(photo.label)}" /></span>`),
   ].join('');
+  const uploadRows = uploadChecklist({
+    files: state.practiceStoryPhotoFiles || [], previews: uploadPreviews, uploadedIds: state.practiceStoryUploadedPhotoIds || [],
+    problems: uploadProblems, removeAttribute: 'data-remove-practice-photo', disabled: state.practiceStoryGenerating, language: photoLanguage,
+  });
+  const savedProblems = Object.values(state.practiceStorySavedPhotoProblems || {});
+  const savedNotice = savedProblems.length ? `<p class="photo-check-note blocked">${escapeHtml(photoLanguage === 'zh-CN' ? `已取消选择 ${savedProblems.length} 张无法使用的已保存照片。` : `We unselected ${savedProblems.length === 1 ? '1 saved photo' : `${savedProblems.length} saved photos`} that can’t be used.`)} ${escapeHtml(savedProblems[0].message)}</p>` : '';
   const photoChoice = photoCount
     ? `<span class="practice-photo-selection">${previewItems || '<span aria-hidden="true">✓</span>'}</span><span>${photoCount} of 5 photos selected</span>`
     : '<span class="practice-photo-placeholder" aria-hidden="true">＋</span><span>Add 1–5 photos for an illustration</span>';
@@ -540,7 +687,7 @@ function practiceStoryModal(state, childName, ageMonths, child) {
   const mandarin = state.practiceStoryLanguage === 'zh-CN';
   const languageChoice = `<fieldset class="practice-story-language"><legend>6 · Story language</legend><label><input type="radio" name="practiceStoryLanguage" value="en" ${mandarin ? '' : 'checked'} ${state.practiceStoryGenerating ? 'disabled' : ''} /><span><strong>English</strong><small>Generate the full story in English</small></span></label><label><input type="radio" name="practiceStoryLanguage" value="zh-CN" ${mandarin ? 'checked' : ''} ${state.practiceStoryGenerating ? 'disabled' : ''} /><span><strong>中文（普通话）</strong><small>生成简体中文故事</small></span></label></fieldset>`;
   const storyMarkup = result ? `<section class="practice-story-preview"><div class="practice-story-preview-heading">${result.coverUrl ? `<img src="${escapeAttribute(result.coverUrl)}" alt="Illustration for ${escapeAttribute(result.title)}" />` : '<span aria-hidden="true">✦</span>'}<div><p class="eyebrow">Saved to Family AI Assets</p><h2>${escapeHtml(result.story?.title || result.title)}</h2><p>${escapeHtml(result.story?.summary || '')}</p>${result.story?.mission ? `<p class="practice-story-mission">${escapeHtml(result.story.mission)}</p>` : ''}</div></div><div class="practice-story-scenes">${(result.story?.scenes || []).map((scene, index) => `<article><span>${index + 1}</span><div><h3>${escapeHtml(scene.heading)}</h3><p>${escapeHtml(scene.storyText)}</p>${scene.sayTogether ? `<p class="practice-say-together">Say it together: “${escapeHtml(scene.sayTogether)}”</p>` : ''}<small>Try together: ${escapeHtml(scene.practiceCue)}</small></div></article>`).join('')}</div><blockquote>${escapeHtml(result.story?.celebration || '')}</blockquote>${result.story?.reflectionQuestions?.length ? `<section class="practice-story-reflection"><h3>Talk about it</h3><ul>${result.story.reflectionQuestions.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>` : ''}<div class="practice-story-actions"><button type="button" class="secondary-button" data-new-practice-story>Make another story</button><button type="button" data-view-family-assets>View Family AI Assets →</button></div></section>` : '';
-  return `<div class="modal-backdrop studio-modal-backdrop practice-story-backdrop" data-close-practice-story tabindex="-1"><section class="modal-dialog practice-story-dialog" role="dialog" aria-modal="true" aria-labelledby="practice-story-title"><button type="button" class="icon-button studio-modal-close" data-close-practice-story aria-label="Close story maker">×</button><header><p class="eyebrow">Little stories, big steps</p><h2 id="practice-story-title">A story made for ${escapeHtml(childName)}</h2><p>Pick the challenge, their favorite things, and how you’d like them to grow — we’ll turn practice into a step-by-step adventure.</p><span>${escapeHtml(String(ageMonths))} months · suggestions matched to age</span></header>${result ? storyMarkup : `<form id="practice-story-form" class="practice-story-form">${storyInputs}${languageChoice}<section class="practice-photo-section"><div><strong>7 · Add an illustration <em>Optional</em></strong><p>Use 1–5 new or saved photos from different angles to keep ${escapeHtml(childName)} recognizable. The story also works without photos.</p></div><label class="practice-photo-upload" for="practice-story-photo">${photoChoice}<input id="practice-story-photo" type="file" accept="image/*,.heic,.heif" multiple ${state.practiceStoryGenerating ? 'disabled' : ''} /></label>${photoCount ? '<button type="button" class="text-button practice-photo-clear" data-clear-practice-photo>Use story without photos</button>' : ''}<small>JPEG, PNG, WebP, or HEIC · up to 5 photos · 20 MB each · uploaded privately one at a time</small>${photos.length ? `<div class="practice-saved-photos"><span>Or choose saved photos (${photoCount}/5 selected)</span><div>${photos.slice(0, 12).map((photo) => `<button type="button" data-practice-photo-id="${escapeAttribute(photo.id)}" class="${selectedIds.includes(photo.id) ? 'selected' : ''}" aria-pressed="${selectedIds.includes(photo.id)}" ${state.practiceStoryGenerating ? 'disabled' : ''}><img src="${escapeAttribute(photo.contentUrl)}" alt="${escapeAttribute(photo.label)}" /><small>${escapeHtml(photo.label)}</small></button>`).join('')}</div></div>` : state.practiceStoryPhotosLoaded ? '<small class="muted">No saved photos yet. You can upload photos above.</small>' : '<small class="muted">Loading saved photos…</small>'}</section><div class="practice-story-submit"><p><span aria-hidden="true">♡</span> Your story is private and will be saved to Family AI Assets.</p><button type="submit" ${state.practiceStoryGenerating ? 'disabled' : ''}>${state.practiceStoryGenerating ? (mandarin ? '正在生成故事…' : 'Creating the story…') : mandarin ? '生成普通话故事' : 'Create my story'} <span aria-hidden="true">→</span></button></div></form>`}${state.practiceStoryStatus ? `<p class="studio-message" role="status">${escapeHtml(state.practiceStoryStatus)}</p>` : ''}</section></div>`;
+  return `<div class="modal-backdrop studio-modal-backdrop practice-story-backdrop" data-close-practice-story tabindex="-1"><section class="modal-dialog practice-story-dialog" role="dialog" aria-modal="true" aria-labelledby="practice-story-title"><button type="button" class="icon-button studio-modal-close" data-close-practice-story aria-label="Close story maker">×</button><header><p class="eyebrow">Little stories, big steps</p><h2 id="practice-story-title">A story made for ${escapeHtml(childName)}</h2><p>Pick the challenge, their favorite things, and how you’d like them to grow — we’ll turn practice into a step-by-step adventure.</p><span>${escapeHtml(String(ageMonths))} months · suggestions matched to age</span></header>${result ? storyMarkup : `<form id="practice-story-form" class="practice-story-form">${storyInputs}${languageChoice}<section class="practice-photo-section"><div><strong>7 · Add an illustration <em>Optional</em></strong><p>Use 1–5 new or saved photos from different angles to keep ${escapeHtml(childName)} recognizable. The story also works without photos.</p></div><label class="practice-photo-upload" for="practice-story-photo">${photoChoice}<input id="practice-story-photo" type="file" accept="image/*,.heic,.heif" multiple ${state.practiceStoryGenerating ? 'disabled' : ''} /></label>${uploadRows}${savedNotice}${photoCount ? '<button type="button" class="text-button practice-photo-clear" data-clear-practice-photo>Use story without photos</button>' : ''}<small>${escapeHtml(CHILD_PHOTO_HINT[photoLanguage])} JPEG, PNG, WebP, or HEIC · up to 5 photos · 20 MB each · uploaded privately one at a time</small>${photos.length ? `<div class="practice-saved-photos"><span>Or choose saved photos (${photoCount}/5 selected)</span><div>${photos.slice(0, 12).map((photo) => `<button type="button" data-practice-photo-id="${escapeAttribute(photo.id)}" class="${selectedIds.includes(photo.id) ? 'selected' : ''}" aria-pressed="${selectedIds.includes(photo.id)}" ${state.practiceStoryGenerating ? 'disabled' : ''}><img src="${escapeAttribute(photo.contentUrl)}" alt="${escapeAttribute(photo.label)}" /><small>${escapeHtml(photo.label)}</small>${photoCheckBadge(photoCheckWarning(photo, photoLanguage))}</button>`).join('')}</div></div>` : state.practiceStoryPhotosLoaded ? '<small class="muted">No saved photos yet. You can upload photos above.</small>' : '<small class="muted">Loading saved photos…</small>'}</section><div class="practice-story-submit"><p><span aria-hidden="true">♡</span> Your story is private and will be saved to Family AI Assets.</p><button type="submit" ${state.practiceStoryGenerating ? 'disabled' : ''}>${state.practiceStoryGenerating ? (mandarin ? '正在生成故事…' : 'Creating the story…') : mandarin ? '生成普通话故事' : 'Create my story'} <span aria-hidden="true">→</span></button></div></form>`}${state.practiceStoryStatus ? `<p class="studio-message" role="status">${escapeHtml(state.practiceStoryStatus)}</p>` : ''}</section></div>`;
 }
 
 function featureNotice(state) {
@@ -587,11 +734,16 @@ function studioCreate(state, childName) {
   const selected = templates.find((template) => template.slug === state.pictureBookTemplateSlug) || templates[0];
   const options = templates.map((template) => `<option value="${escapeAttribute(template.slug)}" ${template.slug === selected?.slug ? 'selected' : ''}>${escapeHtml(template.name)}${template.pageCount ? ` · ${template.pageCount} pages` : ''}</option>`).join('');
   const photoFiles = state.pictureBookPhotoFiles || [];
+  const photoLanguage = bookLanguage(state);
   const photoTotalMb = photoFiles.reduce((total, file) => total + file.size, 0) / (1024 * 1024);
   const photoHelp = photoFiles.length
-    ? `${photoFiles.length} ${photoFiles.length === 1 ? 'photo' : 'photos'} ready · ${photoTotalMb.toFixed(1)} MB total`
-    : 'JPEG, PNG, WebP, or HEIC · 2–5 photos · up to 20 MB each · uploaded privately one at a time';
-  return `<main class="studio-page studio-subpage"><button type="button" class="studio-back" data-studio-view="landing">← Back to Play Studio</button><header class="studio-subpage-heading"><div><p class="eyebrow">A book starring them</p><h1>Start a picture book</h1><p>${escapeHtml(selected?.description || 'Choose a private picture-book template for your family.')}</p></div><button type="button" class="secondary-button" data-studio-view="library">View existing books</button></header><section class="studio-create"><div><span class="studio-create-icon" aria-hidden="true">${selected?.slug?.includes('kindergarten') ? '🎒' : '🌈'}</span><h2>${escapeHtml(selected?.name || 'Loading templates…')}</h2><p>Use 2–5 clear photos from different angles to help keep ${escapeHtml(childName)} recognizable across the story.</p></div><form id="picture-book-form" class="studio-form"><label>Picture-book template<select name="templateSlug" ${state.pictureBookTemplatesLoading ? 'disabled' : ''}>${options || '<option>Loading templates…</option>'}</select></label><label>Child’s name<input name="childName" maxlength="80" value="${escapeAttribute(childName)}" /></label><label>Reference photos<span class="picture-book-photo-picker ${photoFiles.length ? 'selected' : ''}"><span aria-hidden="true">${photoFiles.length ? '✓' : '＋'}</span><strong>${state.pictureBookTemplatesLoading ? 'Preparing private uploads…' : photoFiles.length ? 'Change selected photos' : 'Choose photos from this device'}</strong><input name="photos" type="file" accept="image/*,.heic,.heif" multiple ${state.pictureBookTemplatesLoading ? 'disabled' : ''} /></span><small id="picture-book-photo-help" aria-live="polite">${escapeHtml(photoHelp)}</small></label><button type="submit" ${selected ? '' : 'disabled'}>Create private book <span aria-hidden="true">→</span></button></form></section>${state.pictureBookStatus ? `<p class="studio-message" role="status">${escapeHtml(state.pictureBookStatus)}</p>` : ''}</main>`;
+    ? `${photoFiles.length} of 5 photos · ${photoTotalMb.toFixed(1)} MB total`
+    : `${CHILD_PHOTO_HINT[photoLanguage]} JPEG, PNG, WebP, or HEIC · 2–5 photos · up to 20 MB each · uploaded privately one at a time`;
+  const photoRows = uploadChecklist({
+    files: photoFiles, previews: state.pictureBookPhotoPreviewUrls || [], uploadedIds: state.pictureBookUploadedPhotoIds || [],
+    problems: state.pictureBookPhotoProblems || {}, removeAttribute: 'data-remove-book-photo', disabled: false, language: photoLanguage,
+  });
+  return `<main class="studio-page studio-subpage"><button type="button" class="studio-back" data-studio-view="landing">← Back to Play Studio</button><header class="studio-subpage-heading"><div><p class="eyebrow">A book starring them</p><h1>Start a picture book</h1><p>${escapeHtml(selected?.description || 'Choose a private picture-book template for your family.')}</p></div><button type="button" class="secondary-button" data-studio-view="library">View existing books</button></header><section class="studio-create"><div><span class="studio-create-icon" aria-hidden="true">${selected?.slug?.includes('kindergarten') ? '🎒' : '🌈'}</span><h2>${escapeHtml(selected?.name || 'Loading templates…')}</h2><p>Use 2–5 clear photos from different angles to help keep ${escapeHtml(childName)} recognizable across the story.</p></div><form id="picture-book-form" class="studio-form"><label>Picture-book template<select name="templateSlug" ${state.pictureBookTemplatesLoading ? 'disabled' : ''}>${options || '<option>Loading templates…</option>'}</select></label><label>Child’s name<input name="childName" maxlength="80" value="${escapeAttribute(childName)}" /></label><label>Reference photos<span class="picture-book-photo-picker ${photoFiles.length ? 'selected' : ''}"><span aria-hidden="true">${photoFiles.length ? '✓' : '＋'}</span><strong>${state.pictureBookTemplatesLoading ? 'Preparing private uploads…' : photoFiles.length ? (photoFiles.length < 5 ? 'Add more photos' : 'Photo limit reached') : 'Choose photos from this device'}</strong><input name="photos" type="file" accept="image/*,.heic,.heif" multiple ${state.pictureBookTemplatesLoading || photoFiles.length >= 5 ? 'disabled' : ''} /></span><small id="picture-book-photo-help" aria-live="polite">${escapeHtml(photoHelp)}</small></label>${photoRows}<button type="submit" ${selected ? '' : 'disabled'}>Create private book <span aria-hidden="true">→</span></button></form></section>${state.pictureBookStatus ? `<p class="studio-message" role="status">${escapeHtml(state.pictureBookStatus)}</p>` : ''}</main>`;
 }
 
 function studioLibrary(state) {
@@ -616,7 +768,7 @@ export function resetStudioState(state) {
   state.pictureBookTemplatesLoading = false;
   state.pictureBookTemplateSlug = DEFAULT_TEMPLATE;
   state.pictureBookGeneratingBookId = '';
-  state.pictureBookPhotoFiles = [];
+  resetPictureBookPhotos(state);
   state.toyPlayAssets = [];
   state.toyPlayAssetsLoaded = false;
   state.toyPlayAssetsLoading = false;
@@ -744,23 +896,35 @@ export function renderStudio(ctx) {
     ctx.renderCurrent();
   }));
   document.querySelector('[data-clear-practice-photo]')?.addEventListener('click', () => {
-    (state.practiceStoryPhotoPreviewUrls || []).forEach((url) => URL.revokeObjectURL(url));
+    (state.practiceStoryPhotoPreviewUrls || []).forEach((url) => url && URL.revokeObjectURL(url));
     state.practiceStoryPhotoPreviewUrls = [];
     state.practiceStoryPhotoFiles = [];
     state.practiceStoryUploadedPhotoIds = [];
     state.practiceStorySelectedPhotoIds = [];
+    state.practiceStoryPhotoProblems = {};
+    state.practiceStorySavedPhotoProblems = {};
+    state.practiceStoryStatus = '';
     ctx.renderCurrent();
   });
+  document.querySelectorAll('[data-remove-practice-photo]').forEach((button) => button.addEventListener('click', () => {
+    const index = Number(button.dataset.removePracticePhoto);
+    const url = state.practiceStoryPhotoPreviewUrls?.[index]; if (url) URL.revokeObjectURL(url);
+    state.practiceStoryPhotoFiles = removeAt(state.practiceStoryPhotoFiles, index);
+    state.practiceStoryPhotoPreviewUrls = removeAt(state.practiceStoryPhotoPreviewUrls, index);
+    state.practiceStoryUploadedPhotoIds = removeAt(state.practiceStoryUploadedPhotoIds, index);
+    state.practiceStoryPhotoProblems = withoutIndex(state.practiceStoryPhotoProblems, index);
+    if (!blockedCount(state.practiceStoryPhotoProblems)) state.practiceStoryStatus = '';
+    ctx.renderCurrent();
+  }));
   document.getElementById('practice-story-photo')?.addEventListener('change', (event) => {
     const files = [...(event.target.files || [])]; if (!files.length) return;
-    if (files.length + (state.practiceStorySelectedPhotoIds?.length || 0) > 5) { state.practiceStoryStatus = 'Choose no more than 5 uploaded or saved photos.'; ctx.renderCurrent(); return; }
+    if (files.length + (state.practiceStoryPhotoFiles?.length || 0) + (state.practiceStorySelectedPhotoIds?.length || 0) > 5) { state.practiceStoryStatus = 'Choose no more than 5 uploaded or saved photos.'; ctx.renderCurrent(); return; }
     if (files.some((file) => !AI_IMAGE_TYPES.has(photoMimeType(file)))) { state.practiceStoryStatus = 'Choose JPEG, PNG, WebP, HEIC, or HEIF photos.'; ctx.renderCurrent(); return; }
     if (files.some((file) => file.size > MAX_PHOTO_BYTES)) { state.practiceStoryStatus = 'Each photo must be 20 MB or smaller.'; ctx.renderCurrent(); return; }
     if (files.reduce((total, file) => total + file.size, 0) > MAX_TOTAL_PHOTO_BYTES) { state.practiceStoryStatus = 'The combined photos must be 90 MB or smaller.'; ctx.renderCurrent(); return; }
-    (state.practiceStoryPhotoPreviewUrls || []).forEach((url) => URL.revokeObjectURL(url));
-    state.practiceStoryPhotoFiles = files;
-    state.practiceStoryUploadedPhotoIds = [];
-    state.practiceStoryPhotoPreviewUrls = files.filter((file) => ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)).map((file) => URL.createObjectURL(file));
+    // New photos are added to the ones already chosen, so a rejected photo can be replaced on its own.
+    state.practiceStoryPhotoFiles = [...(state.practiceStoryPhotoFiles || []), ...files];
+    state.practiceStoryPhotoPreviewUrls = [...(state.practiceStoryPhotoPreviewUrls || []), ...files.map(previewUrlFor)];
     state.practiceStoryStatus = '';
     ctx.renderCurrent();
   });
@@ -774,10 +938,24 @@ export function renderStudio(ctx) {
   document.querySelector('#picture-book-form input[name="photos"]')?.addEventListener('change', (event) => {
     const files = Array.from(event.currentTarget.files || []);
     if (!files.length) return;
-    state.pictureBookPhotoFiles = files;
+    const current = state.pictureBookPhotoFiles || [];
+    if (current.length + files.length > 5) { state.pictureBookStatus = 'Choose no more than 5 photos. Remove one to add another.'; ctx.renderCurrent(); return; }
+    // Added to the current selection, so a rejected photo can be replaced without re-uploading the rest.
+    state.pictureBookPhotoFiles = [...current, ...files];
+    state.pictureBookPhotoPreviewUrls = [...(state.pictureBookPhotoPreviewUrls || []), ...files.map(previewUrlFor)];
     state.pictureBookStatus = '';
     ctx.renderCurrent();
   });
+  document.querySelectorAll('[data-remove-book-photo]').forEach((button) => button.addEventListener('click', () => {
+    const index = Number(button.dataset.removeBookPhoto);
+    const url = state.pictureBookPhotoPreviewUrls?.[index]; if (url) URL.revokeObjectURL(url);
+    state.pictureBookPhotoFiles = removeAt(state.pictureBookPhotoFiles, index);
+    state.pictureBookPhotoPreviewUrls = removeAt(state.pictureBookPhotoPreviewUrls, index);
+    state.pictureBookUploadedPhotoIds = removeAt(state.pictureBookUploadedPhotoIds, index);
+    state.pictureBookPhotoProblems = withoutIndex(state.pictureBookPhotoProblems, index);
+    if (!blockedCount(state.pictureBookPhotoProblems)) state.pictureBookStatus = '';
+    ctx.renderCurrent();
+  }));
   document.querySelector('[name="templateSlug"]')?.addEventListener('change', (event) => { state.pictureBookTemplateSlug = event.currentTarget.value; });
   document.getElementById('refresh-picture-books')?.addEventListener('click', () => loadBooks(ctx));
   document.getElementById('close-book-preview')?.addEventListener('click', () => { URL.revokeObjectURL(state.pictureBookPreviewUrl); state.pictureBookPreviewUrl = ''; state.pictureBookPreviewTitle = ''; ctx.renderCurrent(); });

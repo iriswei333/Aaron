@@ -8,6 +8,7 @@ export * from './discover-view.js';
 export * from './family-plans-client.js';
 export * from './family-profile.js';
 export * from './onboarding.js';
+export * from './photo-check.js';
 export * from './playdates.js';
 export * from './practice-story-options.js';
 export * from './profile-defaults.js';

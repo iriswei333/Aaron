@@ -46,8 +46,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "SproutCue uses the photos you choose to make private picture books, stories, and play ideas for your child.",
-          "cameraPermission": "SproutCue uses the camera when you take a photo of your child or a toy for Play Studio.",
+          "photosPermission": "SproutCue uses the photos you choose to make private picture books, stories, and play ideas for your child, or to share in a family chat.",
+          "cameraPermission": "SproutCue uses the camera when you take a photo of your child or a toy for Play Studio, or a photo to share in a family chat.",
           "microphonePermission": false
         }
       ],
@@ -58,7 +58,9 @@
           "color": "#e86f3d",
           "defaultChannel": "ai-creations"
         }
-      ]
+      ],
+      "./plugins/withSceneLifecycle",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

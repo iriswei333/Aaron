@@ -15,9 +15,11 @@ type StoryPage =
 
 // Practice story reader: a cover, one scene per page (swipe or tap ‹ ›), and a celebration page
 // with "Talk about it" questions — the web story preview, paced for reading aloud.
+//
+// Opened as /create/stories/reader?storyId=<practice story id>.
 export default function StoryReader() {
-  const { id = '' } = useLocalSearchParams<{ id: string }>();
-  const { story: asset, status, remove } = usePracticeStory(String(id));
+  const { storyId = '' } = useLocalSearchParams<{ storyId: string }>();
+  const { story: asset, status, remove } = usePracticeStory(String(storyId));
   const { width } = useWindowDimensions();
   const list = useRef<FlatList<StoryPage>>(null);
   const [index, setIndex] = useState(0);

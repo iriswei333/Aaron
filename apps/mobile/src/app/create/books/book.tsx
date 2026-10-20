@@ -12,10 +12,12 @@ import { sharePictureBookPdf, usePictureBooks } from '@/lib/studio-data';
 
 // One picture book (web bookCard): make the whole book or one page at a time, read the finished
 // pages full screen, share the PDF, delete the project.
+//
+// Opened as /create/books/book?bookId=<picture book id>[&page=<page key>][&created=1].
 export default function PictureBookScreen() {
-  const params = useLocalSearchParams<{ id: string; page?: string; created?: string }>();
+  const params = useLocalSearchParams<{ bookId: string; page?: string; created?: string }>();
   const data = usePictureBooks();
-  const book = data.books.find((item) => item.id === params.id) || null;
+  const book = data.books.find((item) => item.id === params.bookId) || null;
   const [viewerKey, setViewerKey] = useState<string | null>(null);
   const [message, setMessage] = useState(params.created ? 'Book created. You can make the whole book or work one page at a time.' : '');
   const [pdfBusy, setPdfBusy] = useState(false);

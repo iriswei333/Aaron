@@ -27,11 +27,12 @@ export function emailSignInErrorMessage(error) {
   if (code === 'over_email_send_rate_limit' || /only request this after|rate limit/i.test(message)) {
     return `Please wait ${emailRetryAfterSeconds(message)} seconds before asking for another email.`;
   }
-  if (code === 'otp_expired' || /expired|invalid/i.test(message)) {
-    return 'That link or code has expired or was already used. Ask for a new one.';
-  }
-  if (code === 'email_address_invalid' || /invalid.*email|email.*invalid/i.test(message)) {
+  // Check for a bad email address first: its message also contains "invalid".
+  if (code === 'email_address_invalid' || code === 'validation_failed' || /invalid.*email|email.*invalid|validate email/i.test(message)) {
     return 'Check the email address and try again.';
+  }
+  if (code === 'otp_expired' || /expired|invalid/i.test(message)) {
+    return 'That code has expired or was already used. Check the newest email, or ask for a new code.';
   }
   if (/fetch|network/i.test(message)) return 'Couldn’t reach the sign-in service. Check your connection and try again.';
   return message || 'Something went wrong. Please try again.';

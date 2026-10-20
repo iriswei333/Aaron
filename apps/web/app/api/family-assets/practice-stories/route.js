@@ -1,7 +1,8 @@
 import { deletePracticeStory, listPracticeStories, PRACTICE_STORY_TOPICS } from '../../../../lib/family-practice-stories.js';
 import { after } from 'next/server';
 import { enqueueAiJob, processAiJob } from '../../../../lib/ai-jobs.js';
-import { createFamilyPhoto, photoInputFromForm } from '../../../../lib/family-photos.js';
+import { photoCheckErrorResponse } from '../../../../lib/child-photo-check.js';
+import { createFamilyPhoto, photoInputFromForm, requireChildPhotos } from '../../../../lib/family-photos.js';
 import { getCurrentProfile, profileErrorResponse } from '../../../../lib/profile-session.js';
 import { practiceStoryChallenge, practiceStoryLength, practiceStoryParentGoals, practiceStoryTheme } from '@sproutcue/shared/practice-story-options';
 
@@ -53,9 +54,13 @@ export async function POST(request) {
       .filter((photo) => photo && typeof photo.arrayBuffer === 'function' && photo.size);
     if (ids.length + uploads.length > MAX_PHOTOS) return Response.json({ error: 'Choose no more than 5 uploaded or saved reference photos.' }, { status: 400 });
     if (uploads.reduce((total, photo) => total + photo.size, 0) > MAX_TOTAL_PHOTO_BYTES) return Response.json({ error: 'The combined uploaded photos must be 90 MB or smaller.' }, { status: 400 });
-    for (const upload of uploads) {
+    // Child-photo check before anything is queued, so a rejected photo never uses a daily AI slot.
+    const language = formData.get('language') === 'zh-CN' ? 'zh-CN' : 'en';
+    const savedCount = ids.length;
+    await requireChildPhotos(current, ids, { language });
+    for (const [index, upload] of uploads.entries()) {
       const single = new FormData(); single.set('photo', upload);
-      const saved = await createFamilyPhoto(current, await photoInputFromForm(single), { label: 'Practice story photo', sourceKind: 'practice_story' });
+      const saved = await createFamilyPhoto(current, await photoInputFromForm(single), { label: 'Practice story photo', sourceKind: 'practice_story', photoIndex: savedCount + index, language });
       ids.push(saved.id);
     }
     const challenge = practiceStoryChallenge(formData.get('challenge'));
@@ -66,14 +71,17 @@ export async function POST(request) {
       parentGoals: practiceStoryParentGoals(formData.get('parentGoals')).map((item) => item.id),
       storyTheme: practiceStoryTheme(formData.get('storyTheme'))?.id || '',
       adventureLength: practiceStoryLength(formData.get('adventureLength')).id,
-      language: formData.get('language') === 'zh-CN' ? 'zh-CN' : 'en',
+      language,
       savedPhotoIds: ids,
     };
     if ((!payload.goal && !payload.challenge) || !payload.interests) return Response.json({ error: 'Choose a current challenge and add at least one favorite thing.' }, { status: 400 });
     const queued = await enqueueAiJob(current, { jobType: 'practice_story', payload, estimatedSeconds: ids.length ? 75 : 30 });
     after(() => processAiJob(current, queued.job.id));
     return Response.json(queued, { status: 202 });
-  } catch (error) { return Response.json({ error: error.message, code: error.code || null }, { status: error.code === 'DAILY_AI_LIMIT_REACHED' ? 429 : 400 }); }
+  } catch (error) {
+    return photoCheckErrorResponse(error)
+      ?? Response.json({ error: error.message, code: error.code || null }, { status: error.code === 'DAILY_AI_LIMIT_REACHED' ? 429 : error.code === 'NOT_FOUND' ? 404 : 400 });
+  }
 }
 
 export async function DELETE(request) {

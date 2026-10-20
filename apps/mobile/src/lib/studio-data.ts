@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
 import { useAiJobs, type AiJob, type AiUsage } from './ai-jobs';
 import { apiRequest, apiUrl } from './api';
 import type { PracticeStoryAsset } from './family-data';
-import { uploadAiPhotos, type PickedPhoto, type SavedPhoto } from './photo-upload';
+import { photoCheckErrorFor, uploadAiPhotos, uploadChildPhotos, type PhotoLanguage, type PickedPhoto, type SavedPhoto } from './photo-upload';
 import { useSession } from './session';
 import { getAccessToken } from './supabase';
 
@@ -41,6 +41,8 @@ export function usePictureBooks() {
   const [loading, setLoading] = useState(!booksCache);
   const [refreshing, setRefreshing] = useState(false);
   const [status, setStatus] = useState('');
+  // Photos that already passed the child-photo check, by uri, so a retry only uploads replacements.
+  const uploadCache = useRef(new Map<string, SavedPhoto>());
 
   const load = useCallback(
     async (mode: 'focus' | 'refresh' = 'focus') => {
@@ -104,14 +106,22 @@ export function usePictureBooks() {
   const makePage = (bookId: string, pageKey: string) => queue({ bookAssetId: bookId, pageKey }, 'Starting this page…');
   const makeWholeBook = (bookId: string) => queue({ bookAssetId: bookId, wholeBook: true }, 'Queueing the remaining pages…');
 
-  const createBook = useCallback(async (form: { childName: string; templateSlug: string; photos: PickedPhoto[] }, onProgress: (text: string) => void) => {
-    const saved = await uploadAiPhotos(form.photos, { label: form.childName ? `${form.childName} picture-book photo` : 'Picture-book photo', sourceKind: 'picture_book' }, onProgress);
+  /** Throws PhotoCheckBlockedError (keyed by photo uri) when the child-photo check rejects photos. */
+  const createBook = useCallback(async (form: { childName: string; templateSlug: string; photos: PickedPhoto[]; language?: PhotoLanguage }, onProgress: (text: string) => void) => {
+    const language = form.language || 'en';
+    const saved = await uploadChildPhotos(form.photos, { label: form.childName ? `${form.childName} picture-book photo` : 'Picture-book photo', sourceKind: 'picture_book', language, cache: uploadCache.current }, onProgress);
     onProgress('Creating the private picture book…');
-    const result = await apiRequest<{ book: PictureBook }>('/family-assets/picture-books', {
-      method: 'POST',
-      body: { childName: form.childName, templateSlug: form.templateSlug, savedPhotoIds: saved.map((photo) => photo.id) },
-      timeoutMs: 60_000,
-    });
+    let result: { book: PictureBook };
+    try {
+      result = await apiRequest<{ book: PictureBook }>('/family-assets/picture-books', {
+        method: 'POST',
+        body: { childName: form.childName, templateSlug: form.templateSlug, language, savedPhotoIds: saved.map((photo) => photo.id) },
+        timeoutMs: 60_000,
+      });
+    } catch (error) {
+      throw photoCheckErrorFor(error, { language, photos: form.photos, uploaded: saved });
+    }
+    uploadCache.current.clear();
     booksCache = [result.book, ...(booksCache || [])];
     setBooks(booksCache);
     return result.book;
@@ -170,18 +180,28 @@ export function useSavedPhotos(enabled: boolean) {
 
 export type StoryForm = { goal: string; challenge: string; interests: string; parentGoals: string[]; storyTheme: string; adventureLength: string; language: 'en' | 'zh-CN'; savedPhotoIds: string[]; newPhotos: PickedPhoto[] };
 
-/** Uploads new photos, queues the story, and shows the AI progress sheet. Throws a friendly message. */
+/**
+ * Uploads new photos, queues the story, and shows the AI progress sheet. Throws a friendly message,
+ * or PhotoCheckBlockedError (new photos by uri, saved photos by id) when photos are rejected.
+ */
 export function useCreatePracticeStory() {
   const ai = useAiJobs();
+  const uploadCache = useRef(new Map<string, SavedPhoto>());
   return useCallback(
     async (form: StoryForm, onProgress: (text: string) => void) => {
       const body = practiceStoryRequest({ ...form, savedPhotoIds: [] }); // validates before any upload
       const uploaded = form.newPhotos.length
-        ? await uploadAiPhotos(form.newPhotos, { label: 'Practice story photo', sourceKind: 'practice_story' }, onProgress)
+        ? await uploadChildPhotos(form.newPhotos, { label: 'Practice story photo', sourceKind: 'practice_story', language: form.language, cache: uploadCache.current }, onProgress)
         : [];
       onProgress(form.newPhotos.length || form.savedPhotoIds.length ? 'Writing the story and illustrating the big step…' : 'Writing a gentle, age-matched story…');
       const request = practiceStoryRequest({ ...body, savedPhotoIds: [...form.savedPhotoIds, ...uploaded.map((photo) => photo.id)] });
-      const result = await apiRequest<Queued>('/family-assets/practice-stories', { method: 'POST', body: request, timeoutMs: 60_000 });
+      let result: Queued;
+      try {
+        result = await apiRequest<Queued>('/family-assets/practice-stories', { method: 'POST', body: request, timeoutMs: 60_000 });
+      } catch (error) {
+        throw photoCheckErrorFor(error, { language: form.language, photos: form.newPhotos, uploaded, savedPhotoIds: form.savedPhotoIds });
+      }
+      uploadCache.current.clear();
       ai.start(result.job, result.usage);
     },
     [ai],

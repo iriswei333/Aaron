@@ -37,7 +37,9 @@ Response:
 }
 ```
 
-Poll `GET /api/ai-jobs?jobId={uuid}`. States are `queued`, `running`, `succeeded`, and `failed`. A successful result includes `assetId`, `assetType`, `title`, and `href`.
+Poll `GET /api/ai-jobs?jobId={uuid}`. States are `queued`, `running`, `succeeded`, and `failed`. A successful result includes `assetId`, `assetType`, `title`, and `href`. A failed job includes `error`, plus `errorCode` when the failure was a photo check (e.g. `PHOTO_UNSAFE`). Clients show the shared message for it from `@sproutcue/shared/photo-check`.
+
+Picture-book and practice-story photos are checked by the [child-photo check](child-photo-check.md) before a job is enqueued, so rejected photos never reserve a daily slot.
 
 The authenticated polling endpoint opportunistically resumes a queued job. For durable unattended processing, call `GET` or `POST /api/ai-jobs/process` with `Authorization: Bearer $AI_JOB_WORKER_SECRET` from a scheduler. The worker uses `SUPABASE_SERVICE_ROLE_KEY`, processes one job per invocation, and requeues jobs left running for more than 15 minutes. Whole-book retries skip already completed pages.
 

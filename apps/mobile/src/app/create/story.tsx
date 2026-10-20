@@ -8,6 +8,7 @@ import {
   challengeFromPracticingStep,
 } from '@sproutcue/shared/practice-story-options';
 import { FAVORITE_INTEREST_OPTIONS, childDisplayName, getChildProfile } from '@sproutcue/shared/profile-defaults';
+import { isRejectedChildPhoto, photoCheckWarning } from '@sproutcue/shared/photo-check';
 import { PRACTICE_STORY_MAX_PHOTOS, toggleInterest, validateAiPhotos } from '@sproutcue/shared/studio';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -18,7 +19,8 @@ import { PhotoPicker } from '@/components/studio/photo-picker';
 import { ChoiceCards, TagChips, TagGroup } from '@/components/studio/tag-group';
 import { Button, Screen, TextField } from '@/components/ui';
 import { Colors, Radius, Type } from '@/constants/theme';
-import type { PickedPhoto } from '@/lib/photo-upload';
+import { haptics } from '@/lib/haptics';
+import { PhotoCheckBlockedError, type PhotoProblem, type PickedPhoto } from '@/lib/photo-upload';
 import { useSession } from '@/lib/session';
 import { useCreatePracticeStory, useSavedPhotos } from '@/lib/studio-data';
 
@@ -44,6 +46,8 @@ export default function StoryMakerScreen() {
   const [language, setLanguage] = useState<'en' | 'zh-CN'>(child?.storyLanguage === 'zh-CN' ? 'zh-CN' : 'en');
   const [newPhotos, setNewPhotos] = useState<PickedPhoto[]>([]);
   const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [problems, setProblems] = useState<Record<string, PhotoProblem>>({});
+  const [rejectedSavedIds, setRejectedSavedIds] = useState<string[]>([]);
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -55,6 +59,15 @@ export default function StoryMakerScreen() {
   const chosen = interests.split(',').map((item) => item.trim().toLowerCase()).filter(Boolean);
   const photoCount = newPhotos.length + savedIds.length;
   const mandarin = language === 'zh-CN';
+  // Saved photos that failed the child-photo check are never offered here.
+  const savedChoices = saved.photos.filter((photo) => !isRejectedChildPhoto(photo) && !rejectedSavedIds.includes(photo.id));
+
+  const changeNewPhotos = (next: PickedPhoto[]) => {
+    setNewPhotos(next);
+    const kept = Object.fromEntries(Object.entries(problems).filter(([uri]) => next.some((photo) => photo.uri === uri)));
+    setProblems(kept);
+    if (Object.keys(problems).length && !Object.keys(kept).length) setStatus('');
+  };
 
   const submit = async () => {
     if (newPhotos.length) {
@@ -65,8 +78,21 @@ export default function StoryMakerScreen() {
     try {
       await create({ goal, challenge, interests, parentGoals, storyTheme: theme, adventureLength: length, language, savedPhotoIds: savedIds, newPhotos }, setStatus);
       setStatus('Story queued. We’ll let you know when it is ready.');
+      setProblems({});
     } catch (error: any) {
-      setStatus(/challenge/.test(error?.message || '') ? error.message : `Could not create the story: ${error?.message || error}`);
+      if (error instanceof PhotoCheckBlockedError) {
+        setProblems(error.uploads);
+        const rejected = Object.keys(error.saved);
+        if (rejected.length) {
+          setSavedIds(savedIds.filter((id) => !rejected.includes(id)));
+          setRejectedSavedIds([...rejectedSavedIds, ...rejected]);
+        }
+        const savedNote = rejected.length ? (mandarin ? ` 已取消选择 ${rejected.length} 张无法使用的已保存照片。` : ` We unselected ${rejected.length === 1 ? '1 saved photo' : `${rejected.length} saved photos`} that can’t be used.`) : '';
+        setStatus(`${error.message}${savedNote}`);
+        haptics.error();
+      } else {
+        setStatus(/challenge/.test(error?.message || '') ? error.message : `Could not create the story: ${error?.message || error}`);
+      }
     } finally {
       setBusy(false);
     }
@@ -129,22 +155,24 @@ export default function StoryMakerScreen() {
         </TagGroup>
 
         <TagGroup legend="7 · Add an illustration" note="Optional">
-          <Text style={styles.help}>Use 1–5 new or saved photos from different angles to keep {childName} recognizable. The story also works without photos.</Text>
+          <Text style={styles.help}>Use 1–5 new or saved photos from different angles to keep {childName} recognizable. One child per photo, face visible. The story also works without photos.</Text>
           <PhotoPicker
             photos={newPhotos}
-            onChange={setNewPhotos}
+            onChange={changeNewPhotos}
+            problems={problems}
             max={PRACTICE_STORY_MAX_PHOTOS}
             reserved={savedIds.length}
             hint="JPEG, PNG, WebP, or HEIC · up to 5 photos · 20 MB each · uploaded privately"
             disabled={busy}
             onError={setStatus}
           />
-          {saved.photos.length ? (
+          {savedChoices.length ? (
             <View style={styles.saved}>
               <Text style={styles.savedLabel}>Or choose saved photos ({photoCount}/{PRACTICE_STORY_MAX_PHOTOS} selected)</Text>
               <View style={styles.savedGrid}>
-                {saved.photos.slice(0, 12).map((photo) => {
+                {savedChoices.slice(0, 12).map((photo) => {
                   const selected = savedIds.includes(photo.id);
+                  const warning = photoCheckWarning(photo, language);
                   const full = !selected && photoCount >= PRACTICE_STORY_MAX_PHOTOS;
                   return (
                     <Pressable
@@ -161,15 +189,20 @@ export default function StoryMakerScreen() {
                           <Text style={styles.checkText}>✓</Text>
                         </View>
                       ) : null}
+                      {warning ? (
+                        <View style={styles.warn} accessibilityLabel={warning.label}>
+                          <Text style={styles.warnText}>!</Text>
+                        </View>
+                      ) : null}
                     </Pressable>
                   );
                 })}
               </View>
             </View>
-          ) : saved.loaded ? null : (
+          ) : saved.loaded || saved.photos.length ? null : (
             <Text style={styles.help}>Loading saved photos…</Text>
           )}
-          {photoCount ? <Button label="Use story without photos" variant="ghost" size="sm" onPress={() => { setNewPhotos([]); setSavedIds([]); }} disabled={busy} /> : null}
+          {photoCount ? <Button label="Use story without photos" variant="ghost" size="sm" onPress={() => { changeNewPhotos([]); setSavedIds([]); }} disabled={busy} /> : null}
         </TagGroup>
         {status ? <Text style={styles.status} accessibilityLiveRegion="polite">{status}</Text> : null}
       </View>
@@ -192,6 +225,8 @@ const styles = StyleSheet.create({
   dim: { opacity: 0.4 },
   check: { position: 'absolute', right: 4, top: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: Colors.storyAccent, alignItems: 'center', justifyContent: 'center' },
   checkText: { color: '#fff', fontSize: 12, fontWeight: '800' },
+  warn: { position: 'absolute', left: 4, bottom: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: '#d9a420', alignItems: 'center', justifyContent: 'center' },
+  warnText: { color: '#fff', fontSize: 12, fontWeight: '900' },
   status: { color: Colors.muted, fontSize: 14, lineHeight: 20, fontWeight: '700' },
   footer: { gap: 8 },
   private: { color: Colors.muted, fontSize: 12, textAlign: 'center' },

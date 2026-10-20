@@ -9,25 +9,25 @@ import { BrandMark } from '@/components/brand/brand-mark';
 import { Button, Card, Screen, TextField } from '@/components/ui';
 import { Colors, Radius, Spacing, Type } from '@/constants/theme';
 import { config } from '@/lib/config';
-import { sendMagicLink, signInWithGoogle, verifyEmailCode } from '@/lib/oauth';
+import { sendEmailCode, signInWithGoogle, verifyEmailCode } from '@/lib/oauth';
 import { useSession } from '@/lib/session';
 
 type Status = { tone: 'error' | 'info'; text: string } | null;
 
 const RESEND_SECONDS = 60;
 
-// Sign in with Google, an emailed magic link (the default email option, like the web app),
+// Sign in with Google, an emailed one-time code (the default email option, like the web app),
 // or an email + password. Facebook and Sign in with Apple arrive in the sign-in phase.
 export default function SignInScreen() {
   const { signInWithPassword, signUpWithPassword } = useSession();
-  const [method, setMethod] = useState<'link' | 'password'>('link');
+  const [method, setMethod] = useState<'code' | 'password'>('code');
   const [passwordMode, setPasswordMode] = useState<'sign-in' | 'sign-up'>('sign-in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [linkSentTo, setLinkSentTo] = useState('');
+  const [codeSentTo, setCodeSentTo] = useState('');
   const [code, setCode] = useState('');
   const [cooldown, setCooldown] = useState(0);
-  const [busy, setBusy] = useState<'' | 'google' | 'link' | 'password' | 'code'>('');
+  const [busy, setBusy] = useState<'' | 'google' | 'send' | 'password' | 'code'>('');
   const [status, setStatus] = useState<Status>(null);
   const passwordRef = useRef<TextInput>(null);
 
@@ -38,19 +38,20 @@ export default function SignInScreen() {
     return () => clearTimeout(timer);
   }, [cooldown]);
 
-  async function emailLink(target = email) {
+  async function emailCode(target = email, resending = false) {
     if (!isLikelyEmail(target)) {
       setStatus({ tone: 'error', text: 'Enter the email address you use for SproutCue.' });
       return;
     }
-    setBusy('link');
+    setBusy('send');
     setStatus(null);
-    const result = await sendMagicLink(target);
+    const result = await sendEmailCode(target);
     setBusy('');
     if (result.status === 'sent') {
-      setLinkSentTo(target.trim());
+      setCodeSentTo(target.trim());
       setCode('');
       setCooldown(RESEND_SECONDS);
+      if (resending) setStatus({ tone: 'info', text: 'New code sent. Use the code from the newest email.' });
     } else if (result.status === 'error') {
       setStatus({ tone: 'error', text: result.message });
       if (result.retryAfter) setCooldown(result.retryAfter);
@@ -58,12 +59,16 @@ export default function SignInScreen() {
   }
 
   async function submitCode() {
+    if (!isEmailCodeComplete(code) || busy) return;
     setBusy('code');
     setStatus(null);
-    const result = await verifyEmailCode(linkSentTo, code);
+    const result = await verifyEmailCode(codeSentTo, code);
     setBusy('');
     // On success the session listener moves the app on by itself.
-    if (result.status === 'error') setStatus({ tone: 'error', text: result.message });
+    if (result.status === 'error') {
+      setCode('');
+      setStatus({ tone: 'error', text: result.message });
+    }
   }
 
   async function submitPassword() {
@@ -99,7 +104,7 @@ export default function SignInScreen() {
   }
 
   function useDifferentEmail() {
-    setLinkSentTo('');
+    setCodeSentTo('');
     setCode('');
     setStatus(null);
   }
@@ -119,32 +124,36 @@ export default function SignInScreen() {
       </View>
 
       <Card>
-        {linkSentTo ? (
+        {codeSentTo ? (
           <>
             <Text style={styles.mail} accessibilityElementsHidden>✉️</Text>
             <Text accessibilityRole="header" style={Type.heading}>Check your email</Text>
             <Text style={Type.bodyMuted}>
-              We sent a sign-in link to <Text style={styles.strong}>{linkSentTo}</Text>. Open it on this device to finish signing in.
+              We sent a sign-in code to <Text style={styles.strong}>{codeSentTo}</Text>. Enter it below to finish signing in.
             </Text>
             <TextField
-              label="Or enter the code from the email"
+              label="Sign-in code"
               value={code}
               onChangeText={(value) => setCode(normalizeEmailCode(value))}
               placeholder="123456"
               keyboardType="number-pad"
               textContentType="oneTimeCode"
               autoComplete="one-time-code"
-              hint="Handy if you opened the email on another device."
+              autoFocus
+              maxLength={10}
+              editable={busy !== 'code'}
+              style={styles.codeInput}
+              hint="Can’t find it? Check spam, and use the code from the newest email."
               returnKeyType="go"
-              onSubmitEditing={() => isEmailCodeComplete(code) && submitCode()}
+              onSubmitEditing={submitCode}
             />
             {status ? <StatusText status={status} /> : null}
-            <Button label="Sign in with code" onPress={submitCode} loading={busy === 'code'} disabled={!isEmailCodeComplete(code) || working} fullWidth />
+            <Button label="Verify and sign in" onPress={submitCode} loading={busy === 'code'} disabled={!isEmailCodeComplete(code) || working} fullWidth />
             <Button
-              label={cooldown > 0 ? `Resend link in ${cooldown}s` : 'Resend link'}
+              label={cooldown > 0 ? `Send a new code in ${cooldown}s` : 'Send a new code'}
               variant="secondary"
-              onPress={() => emailLink(linkSentTo)}
-              loading={busy === 'link'}
+              onPress={() => emailCode(codeSentTo, true)}
+              loading={busy === 'send'}
               disabled={cooldown > 0 || working}
               fullWidth
             />
@@ -166,8 +175,8 @@ export default function SignInScreen() {
               autoComplete="email"
               keyboardType="email-address"
               textContentType="emailAddress"
-              returnKeyType={method === 'link' ? 'send' : 'next'}
-              onSubmitEditing={() => (method === 'link' ? emailLink() : passwordRef.current?.focus())}
+              returnKeyType={method === 'code' ? 'send' : 'next'}
+              onSubmitEditing={() => (method === 'code' ? emailCode() : passwordRef.current?.focus())}
               placeholder="you@example.com"
             />
             {method === 'password' ? (
@@ -184,16 +193,16 @@ export default function SignInScreen() {
               />
             ) : null}
             {status ? <StatusText status={status} /> : null}
-            {method === 'link' ? (
+            {method === 'code' ? (
               <>
                 <Button
-                  label={cooldown > 0 ? `Email me a link in ${cooldown}s` : 'Email me a sign-in link'}
-                  onPress={() => emailLink()}
-                  loading={busy === 'link'}
-                  disabled={cooldown > 0 || (working && busy !== 'link')}
+                  label={cooldown > 0 ? `Email me a code in ${cooldown}s` : 'Email me a sign-in code'}
+                  onPress={() => emailCode()}
+                  loading={busy === 'send'}
+                  disabled={cooldown > 0 || (working && busy !== 'send')}
                   fullWidth
                 />
-                <Text style={[Type.small, styles.center]}>No password needed. New here? The link creates your account.</Text>
+                <Text style={[Type.small, styles.center]}>No password needed. New here? Signing in with a code creates your account.</Text>
                 <Button label="Sign in with a password instead" variant="ghost" size="sm" fullWidth onPress={() => { setMethod('password'); setStatus(null); }} />
               </>
             ) : (
@@ -206,7 +215,7 @@ export default function SignInScreen() {
                   fullWidth
                   onPress={() => { setPasswordMode(passwordMode === 'sign-in' ? 'sign-up' : 'sign-in'); setStatus(null); }}
                 />
-                <Button label="Email me a sign-in link instead" variant="ghost" size="sm" fullWidth onPress={() => { setMethod('link'); setStatus(null); }} />
+                <Button label="Email me a sign-in code instead" variant="ghost" size="sm" fullWidth onPress={() => { setMethod('code'); setStatus(null); }} />
               </>
             )}
           </>
@@ -240,6 +249,7 @@ const styles = StyleSheet.create({
   divider: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, marginVertical: Spacing.one },
   rule: { flex: 1, height: 1, backgroundColor: Colors.line },
   mail: { fontSize: 32 },
+  codeInput: { fontSize: 22, fontWeight: '700', letterSpacing: 6, textAlign: 'center', fontVariant: ['tabular-nums'] },
   strong: { fontWeight: '800', color: Colors.ink },
   center: { textAlign: 'center' },
   status: { fontSize: 14, fontWeight: '700', lineHeight: 20 },
