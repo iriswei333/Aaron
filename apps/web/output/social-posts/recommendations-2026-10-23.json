@@ -1,0 +1,819 @@
+{
+  "id": "recommendations-2026-10-23",
+  "weekKey": "2026-10-23",
+  "startDate": "2026-10-23",
+  "endDate": "2026-10-25",
+  "regions": [
+    "Seattle",
+    "Kent",
+    "Port Orchard",
+    "Issaquah",
+    "Redmond",
+    "Tacoma"
+  ],
+  "posts": [
+    {
+      "id": "social-seattle-2026-10-23-fall-lantern-festival",
+      "region": "Seattle",
+      "regionSlug": "seattle",
+      "city": "Seattle",
+      "title": "Fall Lantern Festival",
+      "theme": "Family event recommendation",
+      "headline": "周末亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "彩灯点亮公园，现场有艺术手作、趣味游戏和现场音乐。免费食物和苹果饮品，另有塔罗占卜与拍照亭，适合全家同乐。"
+      ],
+      "description": "Decorated lanterns light up the park for this creative community celebration. Make art, play games and enjoy live music. There will be free food and cider, tarot card readings, and a photo booth!",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Fall Lantern Festival\n免费入场，Friday, Oct. 23 · 5–7:30 p.m. · Freeway Park\n\nDecorated lanterns light up the park for this creative community celebration. Make art, play games and enjoy live music. There will be free food and cider, tarot card readings, and a photo booth!\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-23",
+      "dateLabel": "Friday, Oct. 23",
+      "occurrenceDates": [
+        "2026-10-23"
+      ],
+      "timeLabel": "5–7:30 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Freeway Park",
+      "venueAddress": "700 Seneca St., Seattle",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/09/FallFest-Photo-compressed-scaled.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/fall-lantern-festival/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/fall-lantern-festival/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-kent-2026-10-23-disney-on-ice-jump-in",
+      "region": "Kent",
+      "regionSlug": "kent",
+      "city": "Kent",
+      "title": "Disney on Ice: ‘Jump In!’",
+      "theme": "Family event recommendation",
+      "headline": "周末亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "迪士尼众多角色滑上冰面：乐佩与弗林空中旋转，莫阿娜与毛伊跨越大海，还有米老鼠和伙伴现场挥手致意。可加购 Magic Pass，享独家角色见面与优选座位。"
+      ],
+      "description": "My daughter’s favorite movies are (big surprise) all Disney, and she is a fan of nearly every character. Many of them will be skating across the rink this weekend during these special performances. Watch Rapunzel and Flynn Rider spin through the air, cheer on Maui and Moana as they cross the ocean, and wave to Mickey and friends! Add on a Magic Pass for an exclusive character greeting and premium seats.",
+      "caption": "这个周末去Kent玩什么？🌿\n\n推荐：Disney on Ice: ‘Jump In!’\nFriday–Sunday, Oct. 23–25 · 11 a.m.–12:30 p.m. · Accesso ShoWare Center\n\nMy daughter’s favorite movies are (big surprise) all Disney, and she is a fan of nearly every character. Many of them will be skating across the rink this weekend during these special performances. Watch Rapunzel and Flynn Rider spin through the air, cheer on Maui and Moana as they cross the ocean, and wave to Mickey and friends! Add on a Magic Pass for an exclusive character greeting and premium seats.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-23",
+      "dateLabel": "Friday–Sunday, Oct. 23–25",
+      "occurrenceDates": [
+        "2026-10-23",
+        "2026-10-24",
+        "2026-10-25"
+      ],
+      "timeLabel": "11 a.m.–12:30 p.m.",
+      "cost": "Starting at $38.42",
+      "free": null,
+      "venue": "Accesso ShoWare Center",
+      "venueAddress": "625 W. James St., Kent",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/08/Jump_In_Official_Poster-e1787171848966.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/disney-on-ice-jump-in/2026-10-24/1/",
+      "seriesUrl": "https://www.parentmap.com/series/disney-on-ice-jump-in/",
+      "sourceUrl": "https://www.parentmap.com/calendar/disney-on-ice-jump-in/2026-10-24/1/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-port-orchard-2026-10-24-kitsap-live-steamers-ghost-train",
+      "region": "Port Orchard",
+      "regionSlug": "port-orchard",
+      "city": "Port Orchard",
+      "title": "Kitsap Live Steamers Ghost Train",
+      "theme": "Family event recommendation",
+      "headline": "星期六亲子精选",
+      "bannerText": "带上家人，一起去玩！",
+      "highlights": [
+        "搭乘 Kitsap Live Steamers 迷你“幽灵列车”，穿行森林来一场惊悚之旅。穿上万圣节装扮，沿途设有讨糖摊位。门票收益支持 Western Washington Center for the Arts。"
+      ],
+      "description": "Ready for a spooky train ride through the forest? Hop aboard the Kitsap Steamers mini train. Wear those costumes, because there will be trick-or-treat booths too! Tickets support the Western Washington Center for the Arts.",
+      "caption": "这个周末去Port Orchard玩什么？🌿\n\n推荐：Kitsap Live Steamers Ghost Train\nSaturday, Oct. 24 · 5–9 p.m. · South Kitsap Regional Park\n\nReady for a spooky train ride through the forest? Hop aboard the Kitsap Steamers mini train. Wear those costumes, because there will be trick-or-treat booths too! Tickets support the Western Washington Center for the Arts.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-24",
+      "dateLabel": "Saturday, Oct. 24",
+      "occurrenceDates": [
+        "2026-10-24"
+      ],
+      "timeLabel": "5–9 p.m.",
+      "cost": "$7",
+      "free": null,
+      "venue": "South Kitsap Regional Park",
+      "venueAddress": "3100 S.E. Marbeth Ln., Port Orchard",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/03/1773118713382-54772-8d330b2468b9.jpeg",
+      "eventUrl": "https://www.parentmap.com/calendar/54772/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/54772/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "Halloween"
+      ],
+      "recommendationReasons": [
+        "seasonal Halloween trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-issaquah-2026-10-24-issaquah-zombie-walk",
+      "region": "Issaquah",
+      "regionSlug": "issaquah",
+      "city": "Issaquah",
+      "title": "Issaquah Zombie Walk",
+      "theme": "Family event recommendation",
+      "headline": "星期六亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "🎟️ 活动免费参加。💛 适合安排周末亲子时光。"
+      ],
+      "description": "My daughter has been practicing her zombie walk ahead of Halloween, and this is the place to show it off! Come early for a zombie makeover and join the undead as they crawl through downtown, or just watch as they take over! Create your own canvas trick-or-treat bag, play carnival games, snap selfies and enter to win a gift basket of goodies.",
+      "caption": "这个周末去Issaquah玩什么？🌿\n\n推荐：Issaquah Zombie Walk\n免费入场，Saturday, Oct. 24 · 1:30–5:30 p.m. · Historic Shell Station and Downtown Issaquah\n\nMy daughter has been practicing her zombie walk ahead of Halloween, and this is the place to show it off! Come early for a zombie makeover and join the undead as they crawl through downtown, or just watch as they take over! Create your own canvas trick-or-treat bag, play carnival games, snap selfies and enter to win a gift basket of goodies.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-24",
+      "dateLabel": "Saturday, Oct. 24",
+      "occurrenceDates": [
+        "2026-10-24"
+      ],
+      "timeLabel": "1:30–5:30 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Historic Shell Station and Downtown Issaquah",
+      "venueAddress": "232 Front St. N., Issaquah",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/03/1773117323492-zombie-c722fbb96e7b.jpeg",
+      "eventUrl": "https://www.parentmap.com/calendar/55206/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/55206/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "Halloween"
+      ],
+      "recommendationReasons": [
+        "seasonal Halloween trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-kent-2026-10-24-pythagorean-palooza",
+      "region": "Kent",
+      "regionSlug": "kent",
+      "city": "Kent",
+      "title": "Pythagorean Palooza",
+      "theme": "Family event recommendation",
+      "headline": "星期六亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "赶上本世纪难得一遇的“毕达哥拉斯三元组”日，一起用有趣方式复习勾股定理。逛三角主题展、挑战益智谜题，在亲子互动中探索数学之美。"
+      ],
+      "description": "If helping your kids with their homework has started to feel a little challenging, this is the spot to make learning about math more fun! First, you’ll need to brush up on the Pythagorean theorem, because Saturday’s date is a Pythagorean triple. That won’t happen again this century, and the Seattle Universal Math Museum is making the most of it. Explore triangle-themed exhibits, solve puzzles and learn more about mathematics.",
+      "caption": "这个周末去Kent玩什么？🌿\n\n推荐：Pythagorean Palooza\n免费入场，Saturday, Oct. 24 · 1–7 p.m. · SUMM at Kent Station\n\nIf helping your kids with their homework has started to feel a little challenging, this is the spot to make learning about math more fun! First, you’ll need to brush up on the Pythagorean theorem, because Saturday’s date is a Pythagorean triple. That won’t happen again this century, and the Seattle Universal Math Museum is making the most of it. Explore triangle-themed exhibits, solve puzzles and learn more about mathematics.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-24",
+      "dateLabel": "Saturday, Oct. 24",
+      "occurrenceDates": [
+        "2026-10-24"
+      ],
+      "timeLabel": "1–7 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "SUMM at Kent Station",
+      "venueAddress": "437 Ramsay Way, Suite 102, Kent",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/09/Pythagorean-Palooza-Square-1.png",
+      "eventUrl": "https://www.parentmap.com/calendar/pythagorean-palooza-2/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/pythagorean-palooza-2/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-redmond-2026-10-24-salmon-discovery-walk-and-scavenger-hunt",
+      "region": "Redmond",
+      "regionSlug": "redmond",
+      "city": "Redmond",
+      "title": "Salmon Discovery Walk and Scavenger Hunt",
+      "theme": "Family event recommendation",
+      "headline": "星期六亲子精选",
+      "bannerText": "把周末过成美好回忆！",
+      "highlights": [
+        "沿着步道观赏回游的鲑鱼，边走边了解鲑鱼的生命历程。路线平坦易行，适合全家同行。参加寻宝游戏，还有小奖品增添乐趣。"
+      ],
+      "description": "It’s not too late to spot salmon ! Walk along the Sammamish River Trail, learn about the salmon life cycle and spot a few triumphant fish. The trail is flat and accessible, and a scavenger hunt (with prizes!) adds to the fun.",
+      "caption": "这个周末去Redmond玩什么？🌿\n\n推荐：Salmon Discovery Walk and Scavenger Hunt\n免费入场，Saturday–Sunday, Oct. 24–25 · 10 a.m.–2 p.m. · Sammamish River Trail\n\nIt’s not too late to spot salmon ! Walk along the Sammamish River Trail, learn about the salmon life cycle and spot a few triumphant fish. The trail is flat and accessible, and a scavenger hunt (with prizes!) adds to the fun.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-24",
+      "dateLabel": "Saturday–Sunday, Oct. 24–25",
+      "occurrenceDates": [
+        "2026-10-24",
+        "2026-10-25"
+      ],
+      "timeLabel": "10 a.m.–2 p.m.",
+      "cost": "Free",
+      "free": true,
+      "venue": "Sammamish River Trail",
+      "venueAddress": "15670 N.E. 85th St., Redmond",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/09/825340194_1087349857361314_9189878393965338045_n.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/salmon-discovery-walk-and-scavenger-hunt-2/2026-10-24/",
+      "seriesUrl": "https://www.parentmap.com/series/salmon-discovery-walk-and-scavenger-hunt/",
+      "sourceUrl": "https://www.parentmap.com/calendar/salmon-discovery-walk-and-scavenger-hunt-2/2026-10-24/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-seattle-2026-10-25-the-museum-of-fright",
+      "region": "Seattle",
+      "regionSlug": "seattle",
+      "city": "Seattle",
+      "title": "The Museum of Fright",
+      "theme": "Family event recommendation",
+      "headline": "星期日亲子精选",
+      "bannerText": "亲子时光，从今天开始！",
+      "highlights": [
+        "博物馆化身惊魂乐园，8-Bit Brass Band 现场演奏助兴。疯科学秀、脸部彩绘、万圣主题游戏和艺术手作齐聚，全家同乐。记得穿上你的万圣节装扮。"
+      ],
+      "description": "Live music from the 8-Bit Brass Band will fill the Museum of Flight this weekend as it transforms into The Museum of Fright ! You can expect a mad science show, face painting, Halloween-themed games, and arts and crafts. Wear your costumes!",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：The Museum of Fright\nSunday, Oct. 25 · 10 a.m.–4 p.m. · The Museum of Flight\n\nLive music from the 8-Bit Brass Band will fill the Museum of Flight this weekend as it transforms into The Museum of Fright ! You can expect a mad science show, face painting, Halloween-themed games, and arts and crafts. Wear your costumes!\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-25",
+      "dateLabel": "Sunday, Oct. 25",
+      "occurrenceDates": [
+        "2026-10-25"
+      ],
+      "timeLabel": "10 a.m.–4 p.m.",
+      "cost": "",
+      "free": null,
+      "venue": "The Museum of Flight",
+      "venueAddress": "9404 East Marginal Way S., Seattle",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775185728383-screenshot-2024-09-07-160109-68f489f9148e.png",
+      "eventUrl": "https://www.parentmap.com/calendar/museum-fright/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/museum-fright/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "Halloween"
+      ],
+      "recommendationReasons": [
+        "seasonal Halloween trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-tacoma-2026-10-25-shorts4shorties-at-the-tacoma-film-festival",
+      "region": "Tacoma",
+      "regionSlug": "tacoma",
+      "city": "Tacoma",
+      "title": "Shorts4Shorties at The Tacoma Film Festival",
+      "theme": "Family event recommendation",
+      "headline": "星期日亲子精选",
+      "bannerText": "一起发现身边的小惊喜！",
+      "highlights": [
+        "亲子友好短片专场，适合大小朋友一起观影。现场提供免费麦片自助吧。穿着睡衣来也没问题。"
+      ],
+      "description": "If the gloomy fall weather really kicks in this weekend, it’s the perfect time to head to the movies. The Tacoma Film Festival features a special screening of family-friendly shorts on Sunday morning, and it all starts with a complimentary breakfast cereal bar in the lounge. And yes — you can wear your pajamas.",
+      "caption": "这个周末去Tacoma玩什么？🌿\n\n推荐：Shorts4Shorties at The Tacoma Film Festival\nSunday, Oct. 25 · 9 a.m.–12 p.m. · The Grand Cinema\n\nIf the gloomy fall weather really kicks in this weekend, it’s the perfect time to head to the movies. The Tacoma Film Festival features a special screening of family-friendly shorts on Sunday morning, and it all starts with a complimentary breakfast cereal bar in the lounge. And yes — you can wear your pajamas.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-25",
+      "dateLabel": "Sunday, Oct. 25",
+      "occurrenceDates": [
+        "2026-10-25"
+      ],
+      "timeLabel": "9 a.m.–12 p.m.",
+      "cost": "$15",
+      "free": null,
+      "venue": "The Grand Cinema",
+      "venueAddress": "606 Fawcett Ave., Tacoma",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/10/FIRST_LIGHT_02.jpeg",
+      "eventUrl": "https://www.parentmap.com/calendar/shorts4shorties-at-the-tacoma-film-festival/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/shorts4shorties-at-the-tacoma-film-festival/",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    }
+  ],
+  "roundup": {
+    "title": "本周末亲子活动精选｜6城8场",
+    "caption": "这个周末，6 个城市都有适合家庭的活动！🌿\n\n本周亮点包括「Kitsap Live Steamers Ghost Train」和「Issaquah Zombie Walk」，适合安排轻松又充实的亲子时光。从户外探索到社区活动，各个城市都有值得带孩子一起体验的选择。\n\n我们整理了 8 场地区亮点：\n\n- Port Orchard：Kitsap Live Steamers Ghost Train\n  日期：Saturday, Oct. 24\n  地点：South Kitsap Regional Park · 3100 S.E. Marbeth Ln., Port Orchard\n  亮点：搭乘 Kitsap Live Steamers 迷你“幽灵列车”，穿行森林来一场惊悚之旅。\n\n- Issaquah：Issaquah Zombie Walk\n  日期：Saturday, Oct. 24\n  地点：Historic Shell Station and Downtown Issaquah · 232 Front St. N., Issaquah\n  亮点：🎟️ 活动免费参加。\n\n- Seattle：The Museum of Fright\n  日期：Sunday, Oct. 25\n  地点：The Museum of Flight · 9404 East Marginal Way S., Seattle\n  亮点：博物馆化身惊魂乐园，8-Bit Brass Band 现场演奏助兴。\n\n- Seattle：Fall Lantern Festival\n  日期：Friday, Oct. 23\n  地点：Freeway Park · 700 Seneca St., Seattle\n  亮点：彩灯点亮公园，现场有艺术手作、趣味游戏和现场音乐。\n\n- Kent：Disney on Ice: ‘Jump In!’\n  重复活动：Friday–Sunday, Oct. 23–25；本次采用：Friday, Oct 23\n  系列页面：https://www.parentmap.com/series/disney-on-ice-jump-in/\n  活动详情：https://www.parentmap.com/calendar/disney-on-ice-jump-in/2026-10-24/1/\n  地点：Accesso ShoWare Center · 625 W. James St., Kent\n  亮点：迪士尼众多角色滑上冰面：乐佩与弗林空中旋转，莫阿娜与毛伊跨越大海，还有米老鼠和伙伴现场挥手致意。\n\n- Kent：Pythagorean Palooza\n  日期：Saturday, Oct. 24\n  地点：SUMM at Kent Station · 437 Ramsay Way, Suite 102, Kent\n  亮点：赶上本世纪难得一遇的“毕达哥拉斯三元组”日，一起用有趣方式复习勾股定理。\n\n- Redmond：Salmon Discovery Walk and Scavenger Hunt\n  重复活动：Saturday–Sunday, Oct. 24–25；本次采用：Saturday, Oct 24\n  系列页面：https://www.parentmap.com/series/salmon-discovery-walk-and-scavenger-hunt/\n  活动详情：https://www.parentmap.com/calendar/salmon-discovery-walk-and-scavenger-hunt-2/2026-10-24/\n  地点：Sammamish River Trail · 15670 N.E. 85th St., Redmond\n  亮点：沿着步道观赏回游的鲑鱼，边走边了解鲑鱼的生命历程。\n\n- Tacoma：Shorts4Shorties at The Tacoma Film Festival\n  日期：Sunday, Oct. 25\n  地点：The Grand Cinema · 606 Fawcett Ave., Tacoma\n  亮点：亲子友好短片专场，适合大小朋友一起观影。\n\n收藏这份周末清单，带上家人一起出门玩吧！\n\n想让周末更轻松？来 SproutCue 找附近的 playdate、游乐场、故事时间和周末活动吧！🛝📚 创建你的家庭卡片，认识附近愿意一起玩的家庭，一起发现更多亲子时光！💛\n\n资料整理：SproutCue\n活动日期：2026-10-23–2026-10-25",
+    "posts": [
+      {
+        "city": "Port Orchard",
+        "title": "Kitsap Live Steamers Ghost Train",
+        "date": "2026-10-24",
+        "dateLabel": "Saturday, Oct. 24",
+        "occurrenceDates": [
+          "2026-10-24"
+        ],
+        "timeLabel": "5–9 p.m.",
+        "venue": "South Kitsap Regional Park",
+        "venueAddress": "3100 S.E. Marbeth Ln., Port Orchard",
+        "highlights": [
+          "搭乘 Kitsap Live Steamers 迷你“幽灵列车”，穿行森林来一场惊悚之旅。穿上万圣节装扮，沿途设有讨糖摊位。门票收益支持 Western Washington Center for the Arts。"
+        ],
+        "matchingKeywords": [
+          "Halloween"
+        ],
+        "recommendationReasons": [
+          "seasonal Halloween trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/54772/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Issaquah",
+        "title": "Issaquah Zombie Walk",
+        "date": "2026-10-24",
+        "dateLabel": "Saturday, Oct. 24",
+        "occurrenceDates": [
+          "2026-10-24"
+        ],
+        "timeLabel": "1:30–5:30 p.m.",
+        "venue": "Historic Shell Station and Downtown Issaquah",
+        "venueAddress": "232 Front St. N., Issaquah",
+        "highlights": [
+          "🎟️ 活动免费参加。💛 适合安排周末亲子时光。"
+        ],
+        "matchingKeywords": [
+          "Halloween"
+        ],
+        "recommendationReasons": [
+          "seasonal Halloween trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/55206/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Seattle",
+        "title": "The Museum of Fright",
+        "date": "2026-10-25",
+        "dateLabel": "Sunday, Oct. 25",
+        "occurrenceDates": [
+          "2026-10-25"
+        ],
+        "timeLabel": "10 a.m.–4 p.m.",
+        "venue": "The Museum of Flight",
+        "venueAddress": "9404 East Marginal Way S., Seattle",
+        "highlights": [
+          "博物馆化身惊魂乐园，8-Bit Brass Band 现场演奏助兴。疯科学秀、脸部彩绘、万圣主题游戏和艺术手作齐聚，全家同乐。记得穿上你的万圣节装扮。"
+        ],
+        "matchingKeywords": [
+          "Halloween"
+        ],
+        "recommendationReasons": [
+          "seasonal Halloween trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/museum-fright/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Seattle",
+        "title": "Fall Lantern Festival",
+        "date": "2026-10-23",
+        "dateLabel": "Friday, Oct. 23",
+        "occurrenceDates": [
+          "2026-10-23"
+        ],
+        "timeLabel": "5–7:30 p.m.",
+        "venue": "Freeway Park",
+        "venueAddress": "700 Seneca St., Seattle",
+        "highlights": [
+          "彩灯点亮公园，现场有艺术手作、趣味游戏和现场音乐。免费食物和苹果饮品，另有塔罗占卜与拍照亭，适合全家同乐。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/fall-lantern-festival/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Kent",
+        "title": "Disney on Ice: ‘Jump In!’",
+        "date": "2026-10-23",
+        "dateLabel": "Friday–Sunday, Oct. 23–25",
+        "occurrenceDates": [
+          "2026-10-23",
+          "2026-10-24",
+          "2026-10-25"
+        ],
+        "timeLabel": "11 a.m.–12:30 p.m.",
+        "venue": "Accesso ShoWare Center",
+        "venueAddress": "625 W. James St., Kent",
+        "highlights": [
+          "迪士尼众多角色滑上冰面：乐佩与弗林空中旋转，莫阿娜与毛伊跨越大海，还有米老鼠和伙伴现场挥手致意。可加购 Magic Pass，享独家角色见面与优选座位。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/disney-on-ice-jump-in/2026-10-24/1/",
+        "seriesUrl": "https://www.parentmap.com/series/disney-on-ice-jump-in/"
+      },
+      {
+        "city": "Kent",
+        "title": "Pythagorean Palooza",
+        "date": "2026-10-24",
+        "dateLabel": "Saturday, Oct. 24",
+        "occurrenceDates": [
+          "2026-10-24"
+        ],
+        "timeLabel": "1–7 p.m.",
+        "venue": "SUMM at Kent Station",
+        "venueAddress": "437 Ramsay Way, Suite 102, Kent",
+        "highlights": [
+          "赶上本世纪难得一遇的“毕达哥拉斯三元组”日，一起用有趣方式复习勾股定理。逛三角主题展、挑战益智谜题，在亲子互动中探索数学之美。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/pythagorean-palooza-2/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Redmond",
+        "title": "Salmon Discovery Walk and Scavenger Hunt",
+        "date": "2026-10-24",
+        "dateLabel": "Saturday–Sunday, Oct. 24–25",
+        "occurrenceDates": [
+          "2026-10-24",
+          "2026-10-25"
+        ],
+        "timeLabel": "10 a.m.–2 p.m.",
+        "venue": "Sammamish River Trail",
+        "venueAddress": "15670 N.E. 85th St., Redmond",
+        "highlights": [
+          "沿着步道观赏回游的鲑鱼，边走边了解鲑鱼的生命历程。路线平坦易行，适合全家同行。参加寻宝游戏，还有小奖品增添乐趣。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/salmon-discovery-walk-and-scavenger-hunt-2/2026-10-24/",
+        "seriesUrl": "https://www.parentmap.com/series/salmon-discovery-walk-and-scavenger-hunt/"
+      },
+      {
+        "city": "Tacoma",
+        "title": "Shorts4Shorties at The Tacoma Film Festival",
+        "date": "2026-10-25",
+        "dateLabel": "Sunday, Oct. 25",
+        "occurrenceDates": [
+          "2026-10-25"
+        ],
+        "timeLabel": "9 a.m.–12 p.m.",
+        "venue": "The Grand Cinema",
+        "venueAddress": "606 Fawcett Ave., Tacoma",
+        "highlights": [
+          "亲子友好短片专场，适合大小朋友一起观影。现场提供免费麦片自助吧。穿着睡衣来也没问题。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/shorts4shorties-at-the-tacoma-film-festival/",
+        "seriesUrl": ""
+      }
+    ],
+    "startDate": "2026-10-23",
+    "endDate": "2026-10-25",
+    "author": "SproutCue"
+  },
+  "source": "parentmap",
+  "sourceUrl": "https://www.parentmap.com/things-to-do/the-weekender/",
+  "excludedEventUrls": [
+    "https://www.parentmap.com/series/sea-giant-skulls-day-dead-art-exhibit-series-412141/",
+    "https://www.parentmap.com/calendar/haunted-harbor/"
+  ],
+  "searchMode": "recommendations-url",
+  "maxDistanceMiles": null,
+  "slotCount": 8,
+  "generatedAt": "2026-10-21T23:17:58.140Z",
+  "statuses": [
+    {
+      "city": "Seattle",
+      "day": "2026-10-23",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/fall-lantern-festival/"
+    },
+    {
+      "city": "Kent",
+      "day": "2026-10-23",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/disney-on-ice-jump-in/2026-10-24/1/"
+    },
+    {
+      "city": "Port Orchard",
+      "day": "2026-10-24",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/54772/"
+    },
+    {
+      "city": "Issaquah",
+      "day": "2026-10-24",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/55206/"
+    },
+    {
+      "city": "Kent",
+      "day": "2026-10-24",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/pythagorean-palooza-2/"
+    },
+    {
+      "city": "Redmond",
+      "day": "2026-10-24",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/salmon-discovery-walk-and-scavenger-hunt-2/2026-10-24/"
+    },
+    {
+      "city": "Seattle",
+      "day": "2026-10-25",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/museum-fright/"
+    },
+    {
+      "city": "Tacoma",
+      "day": "2026-10-25",
+      "matched": true,
+      "fallback": false,
+      "providerStatus": "Recommendation imported from the supplied page and resolved to its event page.",
+      "sourceUrl": "https://www.parentmap.com/calendar/shorts4shorties-at-the-tacoma-film-festival/"
+    }
+  ],
+  "imageDirectory": "/Users/iriswei/Documents/AaronDaily/apps/web/output/social-posts",
+  "imageGenCommand": "/Users/iriswei/.codex/skills/.system/imagegen/scripts/image_gen.py",
+  "posterLimit": 8,
+  "existingPosterCount": 77,
+  "skippedExistingPosterCount": 0,
+  "regenerationRequests": [],
+  "feedback": "",
+  "rejectedEvents": [
+    {
+      "title": "aiweiweicircleofanimalszodiacheads",
+      "normalizedTitle": "aiweiweicircleofanimalszodiacheads",
+      "reason": ""
+    },
+    {
+      "title": "downtownissaquahstorystrollwatercress",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "reason": "duplicated events in history"
+    },
+    {
+      "title": "salmonseeson",
+      "normalizedTitle": "salmonseeson",
+      "reason": "too many relevant events"
+    },
+    {
+      "title": "salmonseesonatnorthcreektrailpark",
+      "normalizedTitle": "salmonseesonatnorthcreektrailpark",
+      "reason": "too many relevant events"
+    },
+    {
+      "title": "Salmon SEEson at Issaquah Creek",
+      "normalizedTitle": "salmonseesonatissaquahcreek",
+      "reason": ""
+    },
+    {
+      "title": "Fall Festival at Bob’s Corn and Pumpkin Farm",
+      "normalizedTitle": "fallfestivalatbobscornandpumpkinfarm",
+      "reason": "too many relevent events"
+    },
+    {
+      "title": "Renton parkrun",
+      "normalizedTitle": "rentonparkrun",
+      "reason": "not attractive"
+    },
+    {
+      "title": "Tumwater Falls Festival",
+      "normalizedTitle": "tumwaterfallsfestival",
+      "reason": "too far"
+    },
+    {
+      "title": "Sky Valley Heritage Hunt",
+      "normalizedTitle": "skyvalleyheritagehunt",
+      "reason": "not attractive"
+    },
+    {
+      "title": "Craven Farm Fall Festival",
+      "normalizedTitle": "cravenfarmfallfestival",
+      "reason": "too many relevent events"
+    },
+    {
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "reason": "too many relevent events"
+    },
+    {
+      "title": "Issaquah Salmon Days",
+      "normalizedTitle": "issaquahsalmondays",
+      "reason": "too many relevent events"
+    },
+    {
+      "title": "Family Game Dayattractive",
+      "normalizedTitle": "familygamedayattractive",
+      "reason": ""
+    },
+    {
+      "title": "Family Game Day",
+      "normalizedTitle": "familygameday",
+      "reason": "not attractive"
+    },
+    {
+      "title": "Spooky Science at the Burke Museum",
+      "normalizedTitle": "spookyscienceattheburkemuseum",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Storywalk at Alderwood Park: César’s Cerulean Surprise",
+      "normalizedTitle": "storywalkatalderwoodparkcsarsceruleansurprise",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "2026-10-10",
+      "normalizedTitle": "20261010",
+      "reason": "|duplicated events"
+    },
+    {
+      "title": "October Weekends at Jubilee Harvest Festival",
+      "normalizedTitle": "octoberweekendsatjubileeharvestfestival",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Picha Farms Fall Festival",
+      "normalizedTitle": "pichafarmsfallfestival",
+      "reason": "duplicated events--reject-event"
+    },
+    {
+      "title": "Stocker Farms Fall Festival",
+      "normalizedTitle": "stockerfarmsfallfestival",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Harvest Festival at Swans Trail Farms",
+      "normalizedTitle": "harvestfestivalatswanstrailfarms",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Thomas Family Farm",
+      "normalizedTitle": "thomasfamilyfarm",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Thomas Family Farm Fall Festival Fun Park",
+      "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Story Time with Seattle Botanic Gardens",
+      "normalizedTitle": "storytimewithseattlebotanicgardens",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "StoryWalk at Lake Wilderness Arboretum",
+      "normalizedTitle": "storywalkatlakewildernessarboretum",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Salmon SEEson at Longfellow Creek",
+      "normalizedTitle": "salmonseesonatlongfellowcreek",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Red Barn Farm Fall Festival",
+      "normalizedTitle": "redbarnfarmfallfestival",
+      "reason": "duplicated events"
+    }
+  ],
+  "unmatchedRegenerationRequests": [],
+  "sampleRun": false,
+  "posterPostIds": [
+    "social-port-orchard-2026-10-24-kitsap-live-steamers-ghost-train",
+    "social-issaquah-2026-10-24-issaquah-zombie-walk",
+    "social-seattle-2026-10-25-the-museum-of-fright",
+    "social-seattle-2026-10-23-fall-lantern-festival",
+    "social-kent-2026-10-23-disney-on-ice-jump-in",
+    "social-kent-2026-10-24-pythagorean-palooza",
+    "social-redmond-2026-10-24-salmon-discovery-walk-and-scavenger-hunt",
+    "social-tacoma-2026-10-25-shorts4shorties-at-the-tacoma-film-festival"
+  ],
+  "posterSetPostIds": [
+    "social-port-orchard-2026-10-24-kitsap-live-steamers-ghost-train",
+    "social-issaquah-2026-10-24-issaquah-zombie-walk",
+    "social-seattle-2026-10-25-the-museum-of-fright",
+    "social-seattle-2026-10-23-fall-lantern-festival",
+    "social-kent-2026-10-23-disney-on-ice-jump-in",
+    "social-kent-2026-10-24-pythagorean-palooza",
+    "social-redmond-2026-10-24-salmon-discovery-walk-and-scavenger-hunt",
+    "social-tacoma-2026-10-25-shorts4shorties-at-the-tacoma-film-festival"
+  ],
+  "summaryPoster": {
+    "filename": "recommendations-2026-10-23-all-events.png",
+    "eventCount": 8,
+    "eventPostIds": [
+      "social-seattle-2026-10-23-fall-lantern-festival",
+      "social-kent-2026-10-23-disney-on-ice-jump-in",
+      "social-port-orchard-2026-10-24-kitsap-live-steamers-ghost-train",
+      "social-issaquah-2026-10-24-issaquah-zombie-walk",
+      "social-kent-2026-10-24-pythagorean-palooza",
+      "social-redmond-2026-10-24-salmon-discovery-walk-and-scavenger-hunt",
+      "social-seattle-2026-10-25-the-museum-of-fright",
+      "social-tacoma-2026-10-25-shorts4shorties-at-the-tacoma-film-festival"
+    ],
+    "generatedThisRun": true
+  },
+  "posterLimitByRegion": {
+    "port-orchard": 1,
+    "issaquah": 1,
+    "seattle": 2,
+    "kent": 1,
+    "redmond": 1,
+    "tacoma": 1
+  },
+  "roundupPostIds": [
+    "social-port-orchard-2026-10-24-kitsap-live-steamers-ghost-train",
+    "social-issaquah-2026-10-24-issaquah-zombie-walk",
+    "social-seattle-2026-10-25-the-museum-of-fright",
+    "social-seattle-2026-10-23-fall-lantern-festival",
+    "social-kent-2026-10-23-disney-on-ice-jump-in",
+    "social-kent-2026-10-24-pythagorean-palooza",
+    "social-redmond-2026-10-24-salmon-discovery-walk-and-scavenger-hunt",
+    "social-tacoma-2026-10-25-shorts4shorties-at-the-tacoma-film-festival"
+  ],
+  "roundupWordLimit": 670
+}

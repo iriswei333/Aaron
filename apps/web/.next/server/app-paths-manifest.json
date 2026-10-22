@@ -1,7 +1,3 @@
 {
-  "/api/notifications/route": "app/api/notifications/route.js",
-  "/api/family-assets/picture-book-templates/route": "app/api/family-assets/picture-book-templates/route.js",
-  "/api/family-assets/photos/direct-upload/route": "app/api/family-assets/photos/direct-upload/route.js",
-  "/[...slug]/page": "app/[...slug]/page.js",
-  "/page": "app/page.js"
+  "/api/notifications/route": "app/api/notifications/route.js"
 }
