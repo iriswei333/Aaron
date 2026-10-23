@@ -12,8 +12,12 @@
       "bundleIdentifier": "com.sproutcue.app",
       "supportsTablet": true,
       "associatedDomains": [
+        "applinks:app.sproutcue.com",
         "applinks:app.sproutcue.com"
-      ]
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
