@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Colors, Radius, Spacing, Type } from '@/constants/theme';
+import { Colors, Radius, Type } from '@/constants/theme';
 
 type GreetingProps = {
   locationLabel: string;

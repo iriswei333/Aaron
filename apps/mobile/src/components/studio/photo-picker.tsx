@@ -2,7 +2,7 @@ import { photoSelectionSummary } from '@sproutcue/shared/studio';
 import { Image } from 'expo-image';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Colors, Radius } from '@/constants/theme';
+import { Colors } from '@/constants/theme';
 import { PhotoPermissionError, pickPhotos, takePhoto, type PhotoProblem, type PickedPhoto } from '@/lib/photo-upload';
 
 type Props = {

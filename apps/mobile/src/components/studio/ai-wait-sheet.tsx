@@ -1,7 +1,7 @@
 import { photoCheckJobMessage } from '@sproutcue/shared/photo-check';
 import { aiJobIsDone, aiJobProgressPercent, aiJobRemainingSeconds, aiJobTimeLabel, aiUsageLabel } from '@sproutcue/shared/studio';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -16,8 +16,8 @@ export function AiWaitSheet({ visible, job, usage, error, onLeave, onOpen }: Pro
   const insets = useSafeAreaInsets();
   const done = job?.status === 'succeeded';
   const failed = job?.status === 'failed';
-  const [now, setNow] = useState(Date.now());
-  const pulse = useRef(new Animated.Value(1)).current;
+  const [now, setNow] = useState(() => Date.now());
+  const [pulse] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
     if (!visible || aiJobIsDone(job?.status)) return;

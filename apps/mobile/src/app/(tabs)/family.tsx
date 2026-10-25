@@ -19,6 +19,12 @@ import { useSession } from '@/lib/session';
 
 // The web Family tab (apps/web/src/tabs/profile.js), arranged for a phone:
 // heading (+ account sheet) → family card (with Edit) → coming-up playdates → chats → AI creations.
+/** True once a playdate's end (or start, if it has no end) has passed. Undated ones never end. */
+function hasEnded(playDate: { endsAt?: string | null; startsAt?: string | null }) {
+  const end = new Date(playDate.endsAt || playDate.startsAt || '').getTime();
+  return Number.isFinite(end) && end < Date.now();
+}
+
 export default function FamilyScreen() {
   const { user, session, signOut, deleteAccount, previewMode } = useSession();
   const family = useFamilyData();
@@ -49,15 +55,9 @@ export default function FamilyScreen() {
   }, [params.toyPlay, params.practiceStory, family.toyPlayAssets]);
 
   const child = getChildProfile(user);
-  const childName = childDisplayName(child, 'your child');
   const storyLanguage = STORY_LANGUAGE_OPTIONS.find(([value]) => value === child.storyLanguage)?.[1] || 'English';
   const playDates = familyPlayDates(family.playDates);
   // Coming up = hasn't ended yet (undated ones stay here too); past ones sit behind a toggle, newest first.
-  const now = Date.now();
-  const hasEnded = (playDate: (typeof playDates)[number]) => {
-    const end = new Date(playDate.endsAt || playDate.startsAt || '').getTime();
-    return Number.isFinite(end) && end < now;
-  };
   const upcoming = playDates.filter((playDate) => !hasEnded(playDate));
   const past = playDates.filter(hasEnded).reverse();
   const openPlaydate = (playDate: (typeof playDates)[number]) => {

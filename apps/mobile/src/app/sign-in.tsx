@@ -4,6 +4,7 @@ import { Link } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { AppleButton, signInWithApple } from '@/components/auth/apple-button';
 import { GoogleButton } from '@/components/auth/google-button';
 import { BrandMark } from '@/components/brand/brand-mark';
 import { Button, Card, Screen, TextField } from '@/components/ui';
@@ -16,8 +17,8 @@ type Status = { tone: 'error' | 'info'; text: string } | null;
 
 const RESEND_SECONDS = 60;
 
-// Sign in with Google, an emailed one-time code (the default email option, like the web app),
-// or an email + password. Facebook and Sign in with Apple arrive in the sign-in phase.
+// Sign in with Apple (iOS only), Google, an emailed one-time code (the default email option,
+// like the web app), or an email + password.
 export default function SignInScreen() {
   const { signInWithPassword, signUpWithPassword } = useSession();
   const [method, setMethod] = useState<'code' | 'password'>('code');
@@ -27,7 +28,7 @@ export default function SignInScreen() {
   const [codeSentTo, setCodeSentTo] = useState('');
   const [code, setCode] = useState('');
   const [cooldown, setCooldown] = useState(0);
-  const [busy, setBusy] = useState<'' | 'google' | 'send' | 'password' | 'code'>('');
+  const [busy, setBusy] = useState<'' | 'apple' | 'google' | 'send' | 'password' | 'code'>('');
   const [status, setStatus] = useState<Status>(null);
   const passwordRef = useRef<TextInput>(null);
 
@@ -103,6 +104,18 @@ export default function SignInScreen() {
     }
   }
 
+  async function continueWithApple() {
+    setBusy('apple');
+    setStatus(null);
+    try {
+      // On success the session listener moves the app on by itself.
+      const result = await signInWithApple();
+      if (result.status === 'error') setStatus({ tone: 'error', text: result.message });
+    } finally {
+      setBusy('');
+    }
+  }
+
   function useDifferentEmail() {
     setCodeSentTo('');
     setCode('');
@@ -161,6 +174,7 @@ export default function SignInScreen() {
           </>
         ) : (
           <>
+            <AppleButton onPress={continueWithApple} loading={busy === 'apple'} disabled={working && busy !== 'apple'} />
             <GoogleButton onPress={continueWithGoogle} loading={busy === 'google'} disabled={working && busy !== 'google'} />
             <View style={styles.divider} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
               <View style={styles.rule} />

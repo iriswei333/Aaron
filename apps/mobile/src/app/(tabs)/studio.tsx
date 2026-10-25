@@ -20,10 +20,11 @@ export default function StudioScreen() {
   const [voiceOpen, setVoiceOpen] = useState(false);
   const running = ai.job && !aiJobIsDone(ai.job.status) ? ai.job : null;
 
+  const refreshNotifications = ai.refreshNotifications;
   useFocusEffect(
     useCallback(() => {
-      ai.refreshNotifications();
-    }, [ai.refreshNotifications]),
+      refreshNotifications();
+    }, [refreshNotifications]),
   );
 
   const open = (id: string) => {

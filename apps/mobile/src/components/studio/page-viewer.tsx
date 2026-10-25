@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View, type ViewToken } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors, Layout, Radius } from '@/constants/theme';
+import { Layout, Radius } from '@/constants/theme';
 
 import { AuthorizedImage } from './authorized-image';
 
@@ -24,9 +24,10 @@ export function PageViewer({ pages, startKey, title, onClose }: Props) {
     if (visible) setIndex(startIndex);
   }, [visible, startIndex]);
 
-  const onViewable = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+  // FlatList needs this callback to never change, so it's created once.
+  const [onViewable] = useState(() => ({ viewableItems }: { viewableItems: ViewToken[] }) => {
     if (viewableItems[0]?.index != null) setIndex(viewableItems[0].index);
-  }).current;
+  });
 
   const go = (next: number) => {
     const target = Math.max(0, Math.min(pages.length - 1, next));

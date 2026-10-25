@@ -6,6 +6,7 @@ data/*.json
 data/family-assets/
 apps/web/data/*.json
 apps/web/data/family-assets/
+apps/mobile/google-services.json 
 .env.local
 .env*.local
 .DS_Store

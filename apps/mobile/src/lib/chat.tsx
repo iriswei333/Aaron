@@ -205,6 +205,7 @@ export function useChatThread(threadId: string) {
     }
   }, [threadId, markThreadRead]);
 
+  const userId = user?.id;
   const load = useCallback(
     async (mode: 'initial' | 'poll' = 'initial') => {
       if (!threadId) return;
@@ -219,7 +220,7 @@ export function useChatThread(threadId: string) {
         if (newest && newest.id !== lastSeenId.current) {
           lastSeenId.current = newest.id;
           noteMessage(threadId, newest);
-          if (newest.senderId !== user?.id || mode === 'initial') markRead();
+          if (newest.senderId !== userId || mode === 'initial') markRead();
         } else if (mode === 'initial') {
           markRead();
         }
@@ -230,7 +231,7 @@ export function useChatThread(threadId: string) {
         }
       }
     },
-    [threadId, user?.id, mergeThreads, noteMessage, markRead],
+    [threadId, userId, mergeThreads, noteMessage, markRead],
   );
 
   // Load when the conversation opens; poll every few seconds while it stays on screen.

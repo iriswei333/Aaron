@@ -29,9 +29,10 @@ export default function StoryReader() {
     ? [{ kind: 'cover' }, ...(story.scenes || []).map((scene, i) => ({ kind: 'scene' as const, index: i, ...scene })), { kind: 'end' }]
     : [];
 
-  const onViewable = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+  // FlatList needs this callback to never change, so it's created once.
+  const [onViewable] = useState(() => ({ viewableItems }: { viewableItems: ViewToken[] }) => {
     if (viewableItems[0]?.index != null) setIndex(viewableItems[0].index);
-  }).current;
+  });
   const go = (next: number) => {
     const target = Math.max(0, Math.min(pages.length - 1, next));
     list.current?.scrollToIndex({ index: target, animated: true });

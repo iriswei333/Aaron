@@ -1341,7 +1341,19 @@ export async function ensureSupabaseProfile(supabase, authUser, options = {}) {
     .select(PROFILE_COLUMNS)
     .single();
 
-  if (insertError) throw supabaseError(insertError, 'Could not create the signed-in profile.');
+  if (insertError) {
+    // A new family's first requests (profile, push token, …) arrive together, and each may try
+    // to create the row. If another request won the race, use the profile it just created.
+    if (insertError.code === '23505') {
+      const { data: existing, error: reloadError } = await supabase
+        .from('profiles')
+        .select(PROFILE_COLUMNS)
+        .eq('id', authUser.id)
+        .maybeSingle();
+      if (!reloadError && existing) return profileRowToUser(existing);
+    }
+    throw supabaseError(insertError, 'Could not create the signed-in profile.');
+  }
   return profileRowToUser(inserted);
 }
 
