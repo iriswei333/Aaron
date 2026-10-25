@@ -4,7 +4,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, t
 import { Colors, Layout, Radius, Shadow, Spacing } from '@/constants/theme';
 import { haptics } from '@/lib/haptics';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'dangerGhost';
 
 type ButtonProps = {
   label: string;
@@ -25,7 +25,8 @@ type ButtonProps = {
 };
 
 // Primary = orange filled (web .rail-create / .welcome-primary), secondary = white with warm border,
-// ghost = text button, danger = destructive actions such as sign out.
+// ghost = text button, danger = destructive actions such as sign out,
+// dangerGhost = quieter destructive text button (delete account).
 export function Button({
   label,
   onPress,
@@ -42,7 +43,7 @@ export function Button({
   haptic = true,
 }: ButtonProps) {
   const inactive = disabled || loading;
-  const tint = variant === 'primary' ? '#fff' : variant === 'danger' ? Colors.dangerWeb : Colors.brandStrong;
+  const tint = variant === 'primary' ? '#fff' : variant === 'danger' || variant === 'dangerGhost' ? Colors.dangerWeb : Colors.brandStrong;
   return (
     <Pressable
       accessibilityRole="button"
@@ -53,7 +54,7 @@ export function Button({
       onPress={
         onPress &&
         (() => {
-          if (haptic) (variant === 'primary' || variant === 'danger' ? haptics.tap : haptics.select)();
+          if (haptic) (variant === 'primary' || variant === 'danger' || variant === 'dangerGhost' ? haptics.tap : haptics.select)();
           onPress();
         })
       }
@@ -63,7 +64,7 @@ export function Button({
         shape === 'pill' && styles.pill,
         styles[variant],
         fullWidth && styles.fullWidth,
-        pressed && !inactive && (variant === 'primary' ? styles.primaryPressed : styles.pressed),
+        pressed && !inactive && (variant === 'primary' ? styles.primaryPressed : variant === 'dangerGhost' ? styles.dangerPressed : styles.pressed),
         inactive && styles.inactive,
         style,
       ]}>
@@ -100,6 +101,8 @@ const styles = StyleSheet.create({
   secondary: { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.brandBorder },
   ghost: { backgroundColor: 'transparent', paddingHorizontal: Spacing.three },
   danger: { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.dangerBorder },
+  dangerGhost: { backgroundColor: 'transparent', paddingHorizontal: Spacing.three },
+  dangerPressed: { backgroundColor: Colors.dangerSoft },
   pressed: { backgroundColor: Colors.brandSoft },
   inactive: { opacity: 0.5 },
   label: { fontSize: 16, fontWeight: '800' },

@@ -166,8 +166,8 @@ The app stores a few browser-local values such as the login email and selected H
 
 1. Create a Supabase project and enable email magic-link auth.
 2. Apply `supabase/migrations/202607150001_initial_profiles.sql`.
-3. Apply every remaining migration in filename order through `supabase/migrations/202608050003_parenting_resource_cache.sql`.
-4. Copy `.env.example` to `.env.local` and set the Supabase URL and publishable key.
+3. Apply every remaining migration in filename order, including `supabase/migrations/202610240001_account_deletion_cascade.sql`. The account-deletion migration verifies that user-owned records are removed when an auth user is deleted.
+4. Copy `.env.example` to `.env.local` and set the Supabase URL and publishable key. Production account deletion also requires the server-only `SUPABASE_SERVICE_ROLE_KEY`; never expose this key to browser code.
 5. Add your deployed `/auth/confirm` URL and local `http://localhost:3000/auth/confirm` or `http://127.0.0.1:3000/auth/confirm` URL to the Supabase auth redirect allow list.
 6. Start the app and sign in with the email magic-link flow. The callback route exchanges Supabase `code` links for a server session, and also accepts `token_hash` links if you later use a custom email template.
 7. Move existing local profile data from `data/app-state.json` into `public.profiles` if needed.
@@ -189,7 +189,7 @@ The app stores a few browser-local values such as the login email and selected H
 - `PATCH /api/playdates` edits a hosted public play date or records an attendee response (`joined` or `declined`).
 - `DELETE /api/playdates` cancels a hosted public play date without removing it from attendee history.
 - `GET /api/parenting-resources` returns age-matched articles from the daily database cache; `refresh=1` forces a refresh.
-- `DELETE /api/account/delete` deletes the signed-in parent’s SproutCue profile data and associated app records.
+- `DELETE /api/account/delete` permanently deletes the signed-in parent’s Supabase auth account, cascades deletion through associated app records, and removes files stored under that user’s `family-assets` prefix. It requires `SUPABASE_SERVICE_ROLE_KEY` in Supabase mode. The local-development fallback deletes the corresponding local profile data.
 - `POST /api/auth/login` keeps the local JSON fallback working when Supabase is not configured.
 - `POST /api/auth/logout` clears the local fallback profile cookie.
 - `GET /api/family-assets/picture-book-templates` lists active reusable picture-book templates. Add `?slug=career-recognition-v1` or `?slug=kindergarten-transition-zh-v1` to retrieve one template and its ordered pages.

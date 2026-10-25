@@ -75,6 +75,26 @@ function toyPlayDialog(asset, state) {
   return `<div class="modal-backdrop family-toy-play-backdrop" data-close-toy-play-dialog><section class="modal-dialog family-toy-play-dialog" role="dialog" aria-modal="true" aria-labelledby="family-toy-play-title" lang="${mandarin ? 'zh-CN' : 'en'}"><button type="button" class="icon-button family-toy-play-close" data-close-toy-play-dialog aria-label="${copy.close}">×</button><header><p class="eyebrow">${copy.label}</p><h2 id="family-toy-play-title">${escapeHtml(play.title || asset.title || 'A new way to play')}</h2><p>${escapeHtml(play.summary || '')}</p><div class="family-toy-play-meta"><span>${escapeHtml(play.durationMinutes || 5)} ${copy.duration}</span><span>${copy.age} ${escapeHtml(play.ageRange || `${asset.childAgeMonths || ''} months`)}</span></div></header><section class="family-toy-play-toy"><span aria-hidden="true">▧</span><div><small>${copy.identified} · ${escapeHtml(copy.confidence[toy.confidence] || toy.confidence || '')}</small><strong>${escapeHtml(toy.name || 'Toy')}</strong><p>${escapeHtml(toy.description || '')}</p></div></section>${play.developmentalGoals?.length ? `<section><h3>${copy.goals}</h3><div class="family-toy-play-goals">${play.developmentalGoals.map((goal) => `<span>${escapeHtml(goal)}</span>`).join('')}</div></section>` : ''}<div class="family-toy-play-columns"><section><h3>${copy.materials}</h3><ul>${(play.materials || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul><h3>${copy.prompts}</h3><ul>${(play.parentPrompts || []).map((item) => `<li>“${escapeHtml(item)}”</li>`).join('')}</ul></section><section><h3>${copy.steps}</h3><ol>${(play.steps || []).map((step) => `<li>${escapeHtml(step)}</li>`).join('')}</ol></section></div><details class="family-toy-play-variations"><summary>${copy.variations}</summary><p><strong>${copy.easier}：</strong> ${escapeHtml(play.easierVariation || '')}</p><p><strong>${copy.harder}：</strong> ${escapeHtml(play.harderVariation || '')}</p></details><section class="family-toy-play-safety"><strong>${copy.safety}</strong><p>${escapeHtml(play.supervision || '')}</p>${play.safetyNotes?.length ? `<ul>${play.safetyNotes.map((note) => `<li>${escapeHtml(note)}</li>`).join('')}</ul>` : ''}</section>${state.familyAssetsStatus && (deleting || state.familyAssetsStatus.startsWith('Could not delete')) ? `<p class="profile-setting-status" role="status">${escapeHtml(state.familyAssetsStatus)}</p>` : ''}<div class="family-asset-dialog-actions"><button type="button" class="secondary-button" data-close-toy-play-dialog ${deleting ? 'disabled' : ''}>${copy.close}</button><button type="button" class="danger-button" data-delete-toy-play="${escapeAttribute(asset.id)}" ${deleting ? 'disabled' : ''}>${deleting ? (mandarin ? '正在删除…' : 'Deleting…') : (mandarin ? '删除玩法' : 'Delete play idea')}</button></div></section></div>`;
 }
 
+function accountDeletionDialog(state) {
+  if (!state.showDeleteAccountDialog) return '';
+  const busy = state.deletingAccount;
+  return `<div class="modal-backdrop account-deletion-backdrop" data-close-account-deletion>
+    <section class="modal-dialog account-deletion-dialog" role="dialog" aria-modal="true" aria-labelledby="account-deletion-title" aria-describedby="account-deletion-description">
+      <button type="button" class="icon-button account-deletion-close" data-close-account-deletion aria-label="Close account deletion confirmation" ${busy ? 'disabled' : ''}>×</button>
+      <div class="account-deletion-icon" aria-hidden="true">!</div>
+      <p class="eyebrow">Permanent account deletion</p>
+      <h2 id="account-deletion-title">Delete your SproutCue account?</h2>
+      <p id="account-deletion-description">This permanently deletes your parent profile, child profiles, plans, playdates, conversations, AI creations, uploaded media, and account access. This cannot be undone.</p>
+      <p class="account-deletion-privacy">Learn more about how SproutCue handles family information in our <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.</p>
+      <form id="account-deletion-form">
+        <label for="account-deletion-confirmation"><span>Type <strong>DELETE</strong> to confirm</span><input id="account-deletion-confirmation" name="confirmation" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="DELETE" ${busy ? 'disabled' : ''} required /></label>
+        ${state.accountDeletionStatus ? `<p class="account-deletion-status" role="status">${escapeHtml(state.accountDeletionStatus)}</p>` : ''}
+        <div class="account-deletion-actions"><button type="button" class="secondary-button" data-close-account-deletion ${busy ? 'disabled' : ''}>Keep my account</button><button type="submit" class="danger-button" ${busy ? 'disabled' : ''}>${busy ? 'Deleting account…' : 'Permanently delete account'}</button></div>
+      </form>
+    </section>
+  </div>`;
+}
+
 export function renderFamilyProfile(ctx) {
   const { state } = ctx;
   const active = getChildProfile(state.user);
@@ -110,14 +130,14 @@ export function renderFamilyProfile(ctx) {
     ? `<div class="family-chip-list">${items.map((item) => `<span>${escapeHtml(item)}</span>`).join('')}</div>`
     : `<p class="muted">${empty}</p>`;
   ctx.layout(`<main class="stack profile-screen family-screen">
-    <header class="family-heading"><div><p class="eyebrow">Your family, your pace</p><h1>${escapeHtml(state.user?.displayName || 'Your family')}</h1><p>One private home for ${escapeHtml(childDisplayName(active, 'your child'))}’s profile, play plans, and family conversations.</p></div><button id="profile-edit-action" type="button" class="secondary-button">Edit family details</button></header>
+    <header class="family-heading"><div><p class="eyebrow">Your family, your pace</p><h1>${escapeHtml(state.user?.displayName || 'Your family')}</h1><p>One private home for ${escapeHtml(childDisplayName(active, 'your child'))}’s profile, play plans, and family conversations.</p></div><div class="family-heading-actions"><button id="profile-edit-action" type="button" class="secondary-button">Edit family details</button><button id="account-delete-action" type="button" class="danger-button">Delete account</button></div></header>
     <section class="family-child-card panel"><div class="family-child-avatar">${escapeHtml((active.name || 'K').slice(0, 1).toUpperCase())}</div><div class="family-child-intro"><p class="eyebrow">Your little explorer</p><h2>${escapeHtml(childDisplayName(active, 'Add your kid'))}</h2><p>${escapeHtml(childAgeLabel(active) || 'Age not set')} · Stories in ${escapeHtml(storyLanguage)}</p></div><div class="family-child-grid"><div><small>Favorites</small>${profileChips(favorites, 'Add a few favorite things to personalize play and stories.')}</div><div><small>Practicing now</small>${profileChips(practicingSteps, 'Add a little step such as brushing teeth or meeting new friends.')}</div></div></section>
     <section class="panel family-chat-panel"><div class="section-heading"><div><p class="eyebrow">Family conversations</p><h2>Chats and playdate details</h2><p class="muted">Keep hellos, timing, and meetup notes beside the rest of your family plans.</p></div><span class="privacy-pill">${(state.chatContacts || []).length}</span></div>${renderChat(ctx)}${state.chatStatus ? `<p class="muted">${escapeHtml(state.chatStatus)}</p>` : ''}</section>
     <section class="grid two-cols family-assets-grid">
       <div class="panel"><div class="section-heading"><div><p class="eyebrow">Your playdates</p><h2>${profilePlayDates.length} ${profilePlayDates.length === 1 ? 'playdate' : 'playdates'}</h2></div></div><div class="profile-playdate-list">${playdateListMarkup}</div></div>
       <div class="panel family-assets-card"><div class="section-heading"><div><p class="eyebrow">Family AI assets</p><h2>AI creations</h2><p class="muted">Private picture books, practice stories, and saved ways to play.</p></div><span class="family-assets-count">${pictureBooks.length + toyPlayAssets.length + practiceStoryAssets.length}</span></div>${state.familyAssetsLoading ? '<p class="muted">Loading family assets…</p>' : familyAssetMarkup}${state.familyAssetsStatus ? `<p class="profile-setting-status" role="status">${escapeHtml(state.familyAssetsStatus)}</p>` : ''}<button type="button" class="secondary-button family-assets-action" data-open-family-assets>Open Play Studio <span aria-hidden="true">→</span></button></div>
     </section>
-  </main>${toyPlayDialog(selectedToyPlay, state)}${practiceStoryDialog(selectedPracticeStory, state)}`);
+  </main>${toyPlayDialog(selectedToyPlay, state)}${practiceStoryDialog(selectedPracticeStory, state)}${accountDeletionDialog(state)}`);
   document.getElementById('profile-edit-action')?.addEventListener('click', () => {
     state.showProfileSetup = true;
     state.profileDraft = null;
@@ -125,6 +145,29 @@ export function renderFamilyProfile(ctx) {
     state.onboardingStep = 1;
     ctx.renderCurrent();
   });
+  document.getElementById('account-delete-action')?.addEventListener('click', () => {
+    state.showDeleteAccountDialog = true;
+    state.accountDeletionStatus = '';
+    ctx.renderCurrent();
+  });
+  document.getElementById('account-deletion-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const input = event.currentTarget.elements.confirmation;
+    if (input.value.trim() !== 'DELETE') {
+      input.setCustomValidity('Type DELETE exactly to confirm permanent account deletion.');
+      input.reportValidity();
+      input.addEventListener('input', () => input.setCustomValidity(''), { once: true });
+      return;
+    }
+    ctx.deleteAccount();
+  });
+  document.querySelectorAll('[data-close-account-deletion]').forEach((element) => element.addEventListener('click', (event) => {
+    if (state.deletingAccount) return;
+    if (event.currentTarget.classList.contains('account-deletion-backdrop') && event.target !== event.currentTarget) return;
+    state.showDeleteAccountDialog = false;
+    state.accountDeletionStatus = '';
+    ctx.renderCurrent();
+  }));
   document.querySelectorAll('[data-open-family-assets]').forEach((button) => button.addEventListener('click', () => {
     state.tab = 'studio';
     state.studioView = 'landing';
@@ -174,6 +217,16 @@ export function renderFamilyProfile(ctx) {
       ctx.renderCurrent();
     });
     storyBackdrop.querySelector('.family-toy-play-close')?.focus();
+  }
+  const accountDeletionBackdrop = document.querySelector('.account-deletion-backdrop');
+  if (accountDeletionBackdrop) {
+    accountDeletionBackdrop.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || state.deletingAccount) return;
+      state.showDeleteAccountDialog = false;
+      state.accountDeletionStatus = '';
+      ctx.renderCurrent();
+    });
+    accountDeletionBackdrop.querySelector('#account-deletion-confirmation')?.focus();
   }
   bindChatInteractions(ctx);
   ensureFamilyAssetsLoaded(ctx);

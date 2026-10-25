@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 
 import { apiRequest } from './api';
 import { isSupabaseConfigured } from './config';
-import { unregisterPushNotifications } from './push-notifications';
+import { forgetPushRegistration, unregisterPushNotifications } from './push-notifications';
 import { supabase } from './supabase';
 
 export type SproutCueUser = {
@@ -33,6 +33,8 @@ type SessionState = {
   signInWithPassword: (email: string, password: string) => Promise<void>;
   signUpWithPassword: (email: string, password: string) => Promise<{ needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
+  /** Permanently deletes the account on the server, then clears the session on this device. */
+  deleteAccount: () => Promise<void>;
 };
 
 const SessionContext = createContext<SessionState | null>(null);
@@ -102,6 +104,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const deleteAccount = useCallback(async () => {
+    // Removes files, then the auth user; every row (push tokens included) cascades on the server.
+    await apiRequest('/account/delete', { method: 'DELETE', timeoutMs: 60000 });
+    forgetPushRegistration();
+    // The account no longer exists on the server, so only clear the stored session here.
+    if (supabase) await supabase.auth.signOut({ scope: 'local' });
+    setUser(null);
+  }, []);
+
   const value = useMemo<SessionState>(() => {
     const onboarded = previewMode || Boolean(user && getChildProfileState(user).onboardingComplete);
     return {
@@ -118,8 +129,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       signInWithPassword,
       signUpWithPassword,
       signOut,
+      deleteAccount,
     };
-  }, [previewMode, sessionLoaded, userId, user, session, profileError, refreshProfile, signInWithPassword, signUpWithPassword, signOut]);
+  }, [previewMode, sessionLoaded, userId, user, session, profileError, refreshProfile, signInWithPassword, signUpWithPassword, signOut, deleteAccount]);
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }

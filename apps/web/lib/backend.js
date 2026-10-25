@@ -1433,12 +1433,3 @@ export async function deleteSupabaseHomeBackground(supabase, authUser) {
   if (error) throw supabaseError(error, 'Could not remove the home background.');
   return true;
 }
-
-export async function deleteSupabaseUserData(supabase, authUser) {
-  const { error } = await supabase
-    .from('profiles')
-    .delete()
-    .eq('id', authUser.id);
-  if (error) throw supabaseError(error, 'Could not delete the parent data.');
-  return true;
-}

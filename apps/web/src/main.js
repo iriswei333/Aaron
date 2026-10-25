@@ -87,6 +87,9 @@ const state = {
   authStatus: '',
   onboardingStatus: '',
   showProfileSetup: false,
+  showDeleteAccountDialog: false,
+  deletingAccount: false,
+  accountDeletionStatus: '',
   profileDraft: null,
   onboardingStep: 1,
   onboardingMeta: null,
@@ -232,6 +235,7 @@ const appContext = {
   state,
   layout,
   saveUserSection,
+  deleteAccount: deleteParentData,
   renderCurrent: render,
   navigateToTab,
 };
@@ -381,17 +385,22 @@ function layout(content) {
 }
 
 async function deleteParentData() {
-  const confirmation = globalThis.prompt('This permanently deletes your SproutCue profile, child profiles, plans, play dates, chat messages, and local account data. Type DELETE to continue.');
-  if (confirmation !== 'DELETE') return;
+  if (state.deletingAccount) return;
+  state.deletingAccount = true;
+  state.accountDeletionStatus = 'Deleting your SproutCue account and family data…';
   state.apiMessage = 'Deleting parent data…';
   render();
   try {
     await apiRequest('/account/delete', { method: 'DELETE' });
-    if (usesSupabaseAuth()) await getSupabaseClient().auth.signOut();
+    // The account is gone server-side, so only clear the local session.
+    if (usesSupabaseAuth()) await getSupabaseClient().auth.signOut({ scope: 'local' });
     state.user = null;
     state.authStatus = 'Your SproutCue parent data was deleted.';
     state.apiMessage = 'Parent data deleted.';
     state.showProfileSetup = false;
+    state.showDeleteAccountDialog = false;
+    state.deletingAccount = false;
+    state.accountDeletionStatus = '';
     state.profileDraft = null;
     state.savedFamilyPlans = [];
     resetHomeState(state);
@@ -401,7 +410,9 @@ async function deleteParentData() {
     resetAiUi(state);
     render();
   } catch (error) {
-    state.apiMessage = `Deletion failed: ${error.message}`;
+    state.deletingAccount = false;
+    state.accountDeletionStatus = `Deletion failed: ${error.message}`;
+    state.apiMessage = 'Account deletion could not be completed.';
     render();
   }
 }

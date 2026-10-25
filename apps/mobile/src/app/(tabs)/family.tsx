@@ -20,12 +20,14 @@ import { useSession } from '@/lib/session';
 // The web Family tab (apps/web/src/tabs/profile.js), arranged for a phone:
 // heading (+ account sheet) → family card (with Edit) → coming-up playdates → chats → AI creations.
 export default function FamilyScreen() {
-  const { user, session, signOut, previewMode } = useSession();
+  const { user, session, signOut, deleteAccount, previewMode } = useSession();
   const family = useFamilyData();
   const chat = useChat();
   const [selectedToyId, setSelectedToyId] = useState('');
   const [showPast, setShowPast] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteAccountError, setDeleteAccountError] = useState('');
   const refreshChats = chat.refresh;
   // Fresh unread counts whenever the Family tab comes into view.
   useFocusEffect(
@@ -89,6 +91,34 @@ export default function FamilyScreen() {
     Alert.alert('Sign out?', 'You can sign back in anytime.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign out', style: 'destructive', onPress: () => void signOut() },
+    ]);
+  }
+
+  async function runDeleteAccount() {
+    setDeleteAccountError('');
+    setDeletingAccount(true);
+    try {
+      await deleteAccount();
+      // The session is gone now, so the app returns to the welcome screen.
+      setAccountOpen(false);
+      if (Platform.OS !== 'web') Alert.alert('Account deleted', 'Your SproutCue account and family data were permanently deleted.');
+    } catch (error) {
+      setDeleteAccountError(error instanceof Error ? error.message : 'Could not delete your account. Please try again.');
+    } finally {
+      setDeletingAccount(false);
+    }
+  }
+
+  function confirmDeleteAccount() {
+    const title = 'Delete your account?';
+    const message = "This permanently deletes your family profile, child details, playdates you host, chat messages, and AI creations. This can't be undone.";
+    if (Platform.OS === 'web') {
+      if (globalThis.confirm?.(`${title} ${message}`)) void runDeleteAccount();
+      return;
+    }
+    Alert.alert(title, message, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete account', style: 'destructive', onPress: () => void runDeleteAccount() },
     ]);
   }
 
@@ -218,7 +248,27 @@ export default function FamilyScreen() {
             router.push('/welcome');
           }}
         />
-        {!previewMode ? <Button label="Sign out" variant="danger" fullWidth onPress={confirmSignOut} /> : null}
+        {!previewMode ? (
+          <>
+            <Button label="Sign out" variant="danger" fullWidth disabled={deletingAccount} onPress={confirmSignOut} />
+            <View style={styles.deleteAccount}>
+              <Button
+                label="Delete account"
+                variant="dangerGhost"
+                size="sm"
+                loading={deletingAccount}
+                haptic={false}
+                accessibilityHint="Permanently deletes your account and family data"
+                onPress={confirmDeleteAccount}
+              />
+              {deleteAccountError ? (
+                <Text accessibilityLiveRegion="polite" style={styles.deleteAccountError}>{deleteAccountError}</Text>
+              ) : (
+                <Text style={styles.deleteAccountNote}>Permanently removes your family profile, chats, and AI creations.</Text>
+              )}
+            </View>
+          </>
+        ) : null}
       </Sheet>
     </Screen>
   );
@@ -233,4 +283,7 @@ const styles = StyleSheet.create({
   emptyPlaydates: { gap: Spacing.three, marginTop: Spacing.one },
   pastToggle: { alignSelf: 'center' },
   accountHead: { alignItems: 'center', gap: Spacing.two, marginBottom: Spacing.four },
+  deleteAccount: { alignItems: 'center', gap: Spacing.one, marginTop: Spacing.three, paddingTop: Spacing.four, borderTopWidth: 1, borderTopColor: Colors.line },
+  deleteAccountNote: { ...Type.small, textAlign: 'center' },
+  deleteAccountError: { ...Type.small, color: Colors.danger, fontWeight: '700', textAlign: 'center' },
 });

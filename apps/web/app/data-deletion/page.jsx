@@ -17,13 +17,12 @@ export default function DataDeletionPage() {
         <ol className="data-deletion-steps">
           <li><Link href="/">Sign in to SproutCue</Link> using your account.</li>
           <li>Open the <strong>Family</strong> tab.</li>
-          <li>Select <strong>Edit profile</strong>.</li>
-          <li>Choose <strong>Delete parent data</strong>.</li>
+          <li>Choose <strong>Delete account</strong> beside <strong>Edit family details</strong>.</li>
           <li>Type <strong>DELETE</strong> to confirm.</li>
         </ol>
 
         <h2>What will be deleted</h2>
-        <p>Deletion permanently removes your parent profile, child profiles, saved locations, family plans, playdates, chat messages and media, saved events, and associated local account data.</p>
+        <p>Deletion permanently removes your parent profile, child profiles, saved locations, family plans, playdates, chat messages and media, saved events, AI creations, uploaded family media, and account access.</p>
 
         <h2>Important</h2>
         <p>This action cannot be undone. Public links or cached third-party content may remain temporarily outside SproutCue’s systems, but your SproutCue account records are deleted through the account deletion process.</p>

@@ -1,4 +1,5 @@
-import { deleteLocalUserData, deleteSupabaseUserData } from '../../../../lib/backend.js';
+import { deleteSupabaseAccount } from '../../../../lib/account-deletion.js';
+import { deleteLocalUserData } from '../../../../lib/backend.js';
 import { getCurrentProfile, profileErrorResponse } from '../../../../lib/profile-session.js';
 import { NextResponse } from 'next/server';
 
@@ -10,7 +11,7 @@ export async function DELETE(request) {
     if (!current.user) return profileErrorResponse(current);
 
     if (current.mode === 'supabase') {
-      await deleteSupabaseUserData(current.supabase, current.authUser);
+      await deleteSupabaseAccount(current.authUser);
     } else {
       await deleteLocalUserData(current.localUserId);
     }
@@ -20,6 +21,6 @@ export async function DELETE(request) {
     response.cookies.set('aaronLocalUserId', '', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0 });
     return response;
   } catch (error) {
-    return Response.json({ error: error.message || 'Could not delete the parent data.' }, { status: 500 });
+    return Response.json({ error: error.message || 'Could not delete the parent data.' }, { status: error.status || 500 });
   }
 }

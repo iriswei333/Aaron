@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "184757464939",
+    "project_id": "sproutcue-ed134",
+    "storage_bucket": "sproutcue-ed134.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:184757464939:android:66c4cf9fc4018891e8262e",
+        "android_client_info": {
+          "package_name": "com.sproutcue.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6755D5TbPLOfplC1_dYPJCCyxxY5Tsdc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

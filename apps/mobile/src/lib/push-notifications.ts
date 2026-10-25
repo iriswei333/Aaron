@@ -105,6 +105,12 @@ export async function registerForPushNotifications({ prompt, userId }: { prompt:
   }
 }
 
+/** Forget this device's registration locally, e.g. after the account (and its tokens) was deleted on the server. */
+export function forgetPushRegistration(): void {
+  registeredToken = '';
+  registeredFor = '';
+}
+
 /** Stop pushes to this device for the signed-in family. Call before signing out (it needs the session). */
 export async function unregisterPushNotifications(): Promise<void> {
   const token = registeredToken;
