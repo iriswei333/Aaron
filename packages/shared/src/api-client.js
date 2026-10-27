@@ -99,6 +99,14 @@ export function createApiClient({
       if (timer) clearTimeout(timer);
     }
 
+    // The API only answers in JSON. An HTML page with 200 means the address isn't an API route on
+    // this server (e.g. the web app's catch-all page answered because the server hasn't been
+    // updated yet). Fail loudly instead of returning {} and letting the caller treat it as success.
+    const contentType = response.headers?.get?.('content-type') || '';
+    if (response.ok && /text\/html/i.test(contentType)) {
+      throw new ApiError('This feature isn’t available on the server yet. Please try again later.', { status: 404 });
+    }
+
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
       throw new ApiError(data?.error || `Request failed with ${response.status}`, { status: response.status, data });

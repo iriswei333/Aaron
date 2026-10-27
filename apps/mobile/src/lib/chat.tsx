@@ -343,6 +343,7 @@ export async function reportChatMessage(messageId: string, reason: string, detai
     method: 'POST',
     body: JSON.stringify({ messageId, reason, details }),
   });
+  if (!data?.report) throw new Error('The report didn’t reach our server. Please try again.');
   return data.report;
 }
 

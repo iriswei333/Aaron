@@ -76,3 +76,15 @@ test('resolveServerUrl makes server-relative links absolute for mobile', async (
   const client = createApiClient({ baseUrl: 'http://192.168.1.20:3000/api' });
   assert.equal(client.resolveUrl(photo), 'http://192.168.1.20:3000/api/family-assets/photos/content?photoId=p1');
 });
+
+test('an HTML page with 200 is an error, not an empty success', async () => {
+  const fetchImpl = async () => ({ ok: true, status: 200, headers: { get: () => 'text/html; charset=utf-8' }, json: async () => { throw new Error('not json'); } });
+  const client = createApiClient({ baseUrl: 'https://app.example/api', fetchImpl });
+  await assert.rejects(client.request('/chat/report', { method: 'POST', body: '{}' }), (error) => error instanceof ApiError && error.status === 404);
+});
+
+test('JSON responses still pass through when a content-type header is present', async () => {
+  const fetchImpl = async () => ({ ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => ({ report: { id: 'r1' } }) });
+  const client = createApiClient({ baseUrl: 'https://app.example/api', fetchImpl });
+  assert.deepEqual(await client.request('/chat/report'), { report: { id: 'r1' } });
+});
