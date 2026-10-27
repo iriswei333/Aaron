@@ -10,6 +10,7 @@
     "./api-client": "./src/api-client.js",
     "./auth-callback": "./src/auth-callback.js",
     "./auth-email": "./src/auth-email.js",
+    "./chat-report": "./src/chat-report.js",
     "./chunked-storage": "./src/chunked-storage.js",
     "./discover-client": "./src/discover-client.js",
     "./discover-normalizers": "./src/discover-normalizers.js",
@@ -22,7 +23,9 @@
     "./practice-story-options": "./src/practice-story-options.js",
     "./profile-defaults": "./src/profile-defaults.js",
     "./studio": "./src/studio.js",
-    "./today": "./src/today.js"
+    "./terms": "./src/terms.js",
+    "./today": "./src/today.js",
+    "./user-blocks": "./src/user-blocks.js"
   },
   "scripts": {
     "test": "node --test test/*.test.js"

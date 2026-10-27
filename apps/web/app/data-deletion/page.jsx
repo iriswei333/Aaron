@@ -1,3 +1,4 @@
+import { SUPPORT_EMAIL } from '@sproutcue/shared/terms';
 import Link from 'next/link';
 
 export const metadata = {
@@ -20,6 +21,8 @@ export default function DataDeletionPage() {
           <li>Choose <strong>Delete account</strong> beside <strong>Edit family details</strong>.</li>
           <li>Type <strong>DELETE</strong> to confirm.</li>
         </ol>
+
+        <p>Can’t sign in? Email <a href={`mailto:${SUPPORT_EMAIL}?subject=Delete%20my%20SproutCue%20account`}>{SUPPORT_EMAIL}</a> from the email address on your account and we’ll delete it for you.</p>
 
         <h2>What will be deleted</h2>
         <p>Deletion permanently removes your parent profile, child profiles, saved locations, family plans, playdates, chat messages and media, saved events, AI creations, uploaded family media, and account access.</p>

@@ -1,3 +1,4 @@
+import { SUPPORT_EMAIL } from '@sproutcue/shared/terms';
 import Link from 'next/link';
 
 export const metadata = {
@@ -29,10 +30,11 @@ export default function PrivacyPage() {
         <p>Parents may review, correct, delete, or request that we stop using information about their children by using the account deletion control or following the <Link href="/data-deletion">data deletion instructions</Link>. Public play dates, chat, and location features are optional.</p>
 
         <h2>Retention and security</h2>
-        <p>We retain information only as long as reasonably necessary for the purpose collected, legal obligations, security, or dispute resolution. We use reasonable safeguards appropriate to the sensitivity of the information and securely delete data when the retention period ends.</p>
+        <p>We retain information only as long as reasonably necessary for the purpose collected, legal obligations, security, or dispute resolution. We use reasonable safeguards appropriate to the sensitivity of the information and securely delete data when the retention period ends. If a family reports a chat message, we keep the report and a copy of the reported message for safety review, even if the message or an account is later deleted.</p>
 
         <h2>Contact</h2>
-        <p>Privacy questions and requests: [privacy email] · [full mailing address]</p>
+        <p>Privacy questions and requests: <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> · [full mailing address]</p>
+        <p>See also our <Link href="/terms">Terms of Use</Link>.</p>
         <p><Link href="/">Return to SproutCue</Link></p>
       </article>
     </main>

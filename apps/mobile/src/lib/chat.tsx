@@ -1,4 +1,5 @@
 import { chatThreadSchedule } from '@sproutcue/shared/playdates';
+import { BLOCKED_MESSAGE_ERROR } from '@sproutcue/shared/user-blocks';
 import { useFocusEffect } from 'expo-router';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
@@ -12,6 +13,7 @@ import { useSession } from './session';
 //   GET   /chat?threadId=<id>   → { threads, messages }  (last 100 messages, oldest first)
 //   POST  /chat                 → { message }            ({ threadId, recipientId, playDateId, text, mediaType, mediaUrl })
 //   PATCH /chat                 → { ok }                 ({ action: 'markRead', threadId })
+//   POST  /chat/report          → { report }             ({ messageId, reason, details }) — chat safety
 //
 // ChatProvider keeps the thread list (for the Family tab card, the Chats screen and the tab badge);
 // useChatThread() drives one open conversation with light polling while it is on screen.
@@ -45,6 +47,8 @@ export type ChatMessage = {
   createdAt: string;
   /** Only on messages this device is still sending (or failed to send). */
   localState?: 'sending' | 'failed';
+  /** Why a failed send can't be retried (e.g. this direct chat is blocked). */
+  localError?: string;
 };
 
 /** A photo ready to send: a JPEG data URL small enough for the chat API. */
@@ -271,8 +275,10 @@ export function useChatThread(threadId: string) {
         lastSeenId.current = saved.id;
         noteMessage(threadId, saved);
         return true;
-      } catch {
-        setPending((current) => current.map((item) => (item.id === message.id ? { ...item, localState: 'failed' } : item)));
+      } catch (err) {
+        // A block is final: say so instead of offering a retry that can't work.
+        const localError = err instanceof Error && err.message === BLOCKED_MESSAGE_ERROR ? BLOCKED_MESSAGE_ERROR : undefined;
+        setPending((current) => current.map((item) => (item.id === message.id ? { ...item, localState: 'failed', localError } : item)));
         return false;
       }
     },
@@ -325,6 +331,24 @@ export function useChatThread(threadId: string) {
     retry,
     discard,
   };
+}
+
+// ── Chat safety: reporting ──────────────────────────────────────────────────
+
+export type ChatReportResult = { id: string; createdAt: string; alreadyReported: boolean };
+
+/** Files a report about someone else's message. Reasons: @sproutcue/shared/chat-report. */
+export async function reportChatMessage(messageId: string, reason: string, details = ''): Promise<ChatReportResult> {
+  const data = await apiRequest<{ report: ChatReportResult }>('/chat/report', {
+    method: 'POST',
+    body: JSON.stringify({ messageId, reason, details }),
+  });
+  return data.report;
+}
+
+/** Only messages the server saved, from someone else, can be reported. */
+export function canReportMessage(message: ChatMessage, meId?: string) {
+  return Boolean(meId) && message.senderId !== meId && !message.localState && !message.id.startsWith('local-');
 }
 
 // ── Display helpers ──────────────────────────────────────────────────────────

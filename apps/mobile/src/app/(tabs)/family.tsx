@@ -1,9 +1,11 @@
 import { deleteAssetPrompt, familyPlayDates, recentFamilyAssets } from '@sproutcue/shared/family-profile';
 import { STORY_LANGUAGE_OPTIONS, childAgeLabel, childDisplayName, getChildProfile } from '@sproutcue/shared/profile-defaults';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { SAFETY_EMAIL, SUPPORT_EMAIL, privacyUrl, termsUrl } from '@sproutcue/shared/terms';
+import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { BlockedFamilies } from '@/components/chat/blocked-families';
 import { ChatsCard } from '@/components/chat/chats-card';
 import { AssetRow } from '@/components/family/asset-row';
 import { AssetsEmpty } from '@/components/family/assets-empty';
@@ -13,6 +15,7 @@ import { ToyPlaySheet } from '@/components/family/toy-play-sheet';
 import { Avatar, Button, Card, CountBadge, Screen, SectionHeading, Sheet } from '@/components/ui';
 import { Colors, Layout, Spacing, Type } from '@/constants/theme';
 import { useChat } from '@/lib/chat';
+import { config } from '@/lib/config';
 import { useFamilyData, type PracticeStoryAsset, type ToyPlayAsset } from '@/lib/family-data';
 import { rememberPlaydate } from '@/lib/playdates';
 import { useSession } from '@/lib/session';
@@ -23,6 +26,13 @@ import { useSession } from '@/lib/session';
 function hasEnded(playDate: { endsAt?: string | null; startsAt?: string | null }) {
   const end = new Date(playDate.endsAt || playDate.startsAt || '').getTime();
   return Number.isFinite(end) && end < Date.now();
+}
+
+/** Opens a new email; if no mail app is set up, shows the address so it can be copied. */
+function openMail(address: string, subject: string) {
+  Linking.openURL(`mailto:${address}?subject=${encodeURIComponent(subject)}`).catch(() => {
+    Alert.alert('Email us', `Write to ${address} from any email app.`);
+  });
 }
 
 export default function FamilyScreen() {
@@ -250,6 +260,14 @@ export default function FamilyScreen() {
         />
         {!previewMode ? (
           <>
+            <BlockedFamilies />
+            <View style={styles.help}>
+              <Text accessibilityRole="header" style={Type.label}>Help & safety</Text>
+              <Button label="Email support" variant="secondary" fullWidth accessibilityHint={`Writes to ${SUPPORT_EMAIL}`} onPress={() => openMail(SUPPORT_EMAIL, 'SproutCue help')} />
+              <Button label="Report a safety concern" variant="secondary" fullWidth accessibilityHint={`Writes to ${SAFETY_EMAIL}`} onPress={() => openMail(SAFETY_EMAIL, 'Safety concern')} />
+              <Text selectable style={[Type.small, styles.helpText]}>{`${SUPPORT_EMAIL} · ${SAFETY_EMAIL}`}</Text>
+              <Text style={[Type.small, styles.helpText]}>To report a chat message, long-press it. If anyone is in immediate danger, call 911.</Text>
+            </View>
             <Button label="Sign out" variant="danger" fullWidth disabled={deletingAccount} onPress={confirmSignOut} />
             <View style={styles.deleteAccount}>
               <Button
@@ -267,6 +285,13 @@ export default function FamilyScreen() {
                 <Text style={styles.deleteAccountNote}>Permanently removes your family profile, chats, and AI creations.</Text>
               )}
             </View>
+            {termsUrl(config.apiBaseUrl) ? (
+              <View style={styles.legalLinks}>
+                <Link href={termsUrl(config.apiBaseUrl) as any} style={styles.legalLink}>Terms of Use</Link>
+                <Text style={Type.small}>·</Text>
+                <Link href={privacyUrl(config.apiBaseUrl) as any} style={styles.legalLink}>Privacy Policy</Link>
+              </View>
+            ) : null}
           </>
         ) : null}
       </Sheet>
@@ -286,4 +311,8 @@ const styles = StyleSheet.create({
   deleteAccount: { alignItems: 'center', gap: Spacing.one, marginTop: Spacing.three, paddingTop: Spacing.four, borderTopWidth: 1, borderTopColor: Colors.line },
   deleteAccountNote: { ...Type.small, textAlign: 'center' },
   deleteAccountError: { ...Type.small, color: Colors.danger, fontWeight: '700', textAlign: 'center' },
+  help: { gap: Spacing.two, marginTop: Spacing.two, paddingTop: Spacing.three, borderTopWidth: 1, borderTopColor: Colors.line },
+  helpText: { textAlign: 'center' },
+  legalLinks: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: Spacing.two, marginTop: Spacing.two },
+  legalLink: { color: Colors.brandStrong, fontSize: 14, fontWeight: '800', paddingVertical: Spacing.two },
 });

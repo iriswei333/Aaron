@@ -30,7 +30,11 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="family">
         <NativeTabs.Trigger.Label>Family</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'person.2', selected: 'person.2.fill' }} md="groups" />
-        <NativeTabs.Trigger.Badge hidden={unreadTotal === 0}>{unreadTotal > 99 ? '99+' : String(unreadTotal)}</NativeTabs.Trigger.Badge>
+        {/* Only render the badge when there is something unread. expo-router ignores
+            `hidden` whenever the badge has text, so passing "0" would show a red 0. */}
+        {unreadTotal > 0 ? (
+          <NativeTabs.Trigger.Badge>{unreadTotal > 99 ? '99+' : String(unreadTotal)}</NativeTabs.Trigger.Badge>
+        ) : null}
       </NativeTabs.Trigger>
     </NativeTabs>
   );

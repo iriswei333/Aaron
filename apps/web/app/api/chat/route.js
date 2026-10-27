@@ -21,7 +21,7 @@ export async function POST(request) {
     const body = await request.json();
     const message = current.mode === 'supabase' ? await createSupabaseChatMessage(current.supabase, current.authUser, body) : await createLocalChatMessage(current.localUserId, body);
     return Response.json({ message, authMode: current.mode });
-  } catch (error) { return Response.json({ error: error.message }, { status: 500 }); }
+  } catch (error) { return Response.json({ error: error.message }, { status: error.status || 500 }); }
 }
 
 export async function PATCH(request) {

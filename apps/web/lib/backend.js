@@ -6,6 +6,8 @@ import {
   normalizePlayPreferences,
   normalizeChildProfile,
 } from '@sproutcue/shared/profile-defaults';
+import { normalizeChatReport } from '@sproutcue/shared/chat-report';
+import { BLOCKED_MESSAGE_ERROR } from '@sproutcue/shared/user-blocks';
 
 const DATA_DIR = resolve('data');
 const DATA_FILE = join(DATA_DIR, 'app-state.json');
@@ -82,7 +84,7 @@ export const LOCAL_USER_COOKIE = 'sproutCueLocalUserId';
 export const LEGACY_LOCAL_USER_COOKIE = 'aaronLocalUserId';
 
 export function defaultStore() {
-  return { users: {}, posts: [], playDates: [], familyEventCache: {}, playgroundCache: {}, parentingResourceCache: {}, storyTimeCache: {}, familyEvents: [], chatMessages: [], chatReads: {} };
+  return { users: {}, posts: [], playDates: [], familyEventCache: {}, playgroundCache: {}, parentingResourceCache: {}, storyTimeCache: {}, familyEvents: [], chatMessages: [], chatReads: {}, chatReports: [], userBlocks: [] };
 }
 
 function normalizeStore(store) {
@@ -114,6 +116,8 @@ function normalizeStore(store) {
       : [],
     chatMessages: Array.isArray(store?.chatMessages) ? store.chatMessages : [],
     chatReads: store?.chatReads && typeof store.chatReads === 'object' ? store.chatReads : {},
+    chatReports: Array.isArray(store?.chatReports) ? store.chatReports : [],
+    userBlocks: Array.isArray(store?.userBlocks) ? store.userBlocks : [],
   };
 }
 
@@ -156,6 +160,9 @@ export async function deleteLocalUserData(userId) {
       message.senderId !== userId && message.recipientId !== userId
     ));
     delete store.chatReads[userId];
+    // Reports the user filed go with their account; reports about them stay for review.
+    store.chatReports = store.chatReports.filter((report) => report.reporterId !== userId);
+    store.userBlocks = store.userBlocks.filter((block) => block.blockerId !== userId && block.blockedId !== userId);
     store.familyEvents = store.familyEvents.filter((event) => event.profile_id !== userId);
     return true;
   });
@@ -931,6 +938,8 @@ function chatLastMessagePreview(messages, { createdAt = 'createdAt', senderId = 
 
 export async function listLocalChatThreads(userId) {
   const store = await readStore();
+  const blocked = localBlockedIds(store, userId);
+  const visibleMessages = store.chatMessages.filter((message) => !blocked.has(message.senderId));
   const threads = [];
   const related = new Set();
   store.playDates.forEach((playDate) => {
@@ -941,7 +950,7 @@ export async function listLocalChatThreads(userId) {
     if (joined.length > 1) {
       const id = localPlaydateThreadId(playDate.id);
       const readAt = store.chatReads[userId]?.[id] || '';
-      const threadMessages = store.chatMessages.filter((message) => message.threadId === id);
+      const threadMessages = visibleMessages.filter((message) => message.threadId === id);
       const lastMessageAt = threadMessages.reduce((latest, message) => message.createdAt > latest ? message.createdAt : latest, playDate.createdAt || '');
       const unreadCount = threadMessages.filter((message) => message.senderId !== userId && (!readAt || new Date(message.createdAt) > new Date(readAt))).length;
       const others = joined.filter((joinedId) => joinedId !== userId).map((joinedId) => ({ id: joinedId, displayName: store.users[joinedId]?.displayName || 'Parent' }));
@@ -954,10 +963,10 @@ export async function listLocalChatThreads(userId) {
   });
   [...related].forEach((id) => {
     const user = store.users[id];
-    if (!user) return;
+    if (!user || blocked.has(id)) return;
     const threadId = localDirectThreadId(userId, id);
     const readAt = store.chatReads[userId]?.[threadId] || '';
-    const threadMessages = store.chatMessages.filter((message) => (message.senderId === userId && message.recipientId === id) || (message.senderId === id && message.recipientId === userId));
+    const threadMessages = visibleMessages.filter((message) => (message.senderId === userId && message.recipientId === id) || (message.senderId === id && message.recipientId === userId));
     const lastMessageAt = threadMessages.reduce((latest, message) => message.createdAt > latest ? message.createdAt : latest, '');
     const unreadCount = threadMessages.filter((message) => message.senderId !== userId && (!readAt || new Date(message.createdAt) > new Date(readAt))).length;
     threads.push({ id: threadId, type: 'direct', title: user.displayName || 'Parent', participantIds: [userId, id], contactId: id, participants: [{ id, displayName: user.displayName || 'Parent' }], unreadCount, lastMessageAt, lastMessage: chatLastMessagePreview(threadMessages) });
@@ -975,10 +984,12 @@ export async function markLocalChatThreadRead(userId, threadId) {
 
 export async function listLocalChatMessages(userId, threadId) {
   const store = await readStore();
-  const [kind, targetId] = String(threadId || '').split(':');
-  if (kind === 'playdate') return store.chatMessages.filter((message) => message.threadId === threadId).slice(-100);
+  const blocked = localBlockedIds(store, userId);
+  const visibleMessages = store.chatMessages.filter((message) => !blocked.has(message.senderId));
+  const [kind] = String(threadId || '').split(':');
+  if (kind === 'playdate') return visibleMessages.filter((message) => message.threadId === threadId).slice(-100);
   const contactId = kind === 'direct' ? String(threadId).split(':').slice(1).find((id) => id !== userId) : threadId;
-  return store.chatMessages.filter((message) => (message.senderId === userId && message.recipientId === contactId) || (message.senderId === contactId && message.recipientId === userId)).slice(-100);
+  return visibleMessages.filter((message) => (message.senderId === userId && message.recipientId === contactId) || (message.senderId === contactId && message.recipientId === userId)).slice(-100);
 }
 
 export async function createLocalChatMessage(userId, body) {
@@ -993,6 +1004,8 @@ export async function createLocalChatMessage(userId, body) {
     if (playDateId) {
       const playDate = store.playDates.find((candidate) => candidate.id === playDateId);
       if (!playDate || !(playDate.participants || []).some((item) => item.userId === userId && item.status === 'joined')) throw new Error('Join this playdate before messaging.');
+    } else if (localBlockedBetween(store, userId, recipientId)) {
+      throw statusError(BLOCKED_MESSAGE_ERROR, 403);
     }
     const message = { id: randomUUID(), threadId: playDateId ? localPlaydateThreadId(playDateId) : localDirectThreadId(userId, recipientId), senderId: userId, recipientId: playDateId ? '' : recipientId, text, mediaType, mediaUrl, createdAt: new Date().toISOString() };
     store.chatMessages.unshift(message);
@@ -1002,9 +1015,10 @@ export async function createLocalChatMessage(userId, body) {
 }
 
 export async function listSupabaseChatThreads(supabase, authUser) {
-  const [{ data: memberships, error: membershipError }, { data: playDateMemberships, error: playDateMembershipError }] = await Promise.all([
+  const [{ data: memberships, error: membershipError }, { data: playDateMemberships, error: playDateMembershipError }, blockedIds] = await Promise.all([
     supabase.from('chat_thread_members').select('thread_id').eq('user_id', authUser.id),
     supabase.from('play_date_participants').select('play_date_id').eq('user_id', authUser.id).eq('status', 'joined'),
+    supabaseBlockedIds(supabase, authUser),
   ]);
   if (membershipError) throw supabaseError(membershipError, 'Could not load chat threads.');
   if (playDateMembershipError) throw supabaseError(playDateMembershipError, 'Could not load your playdate chats.');
@@ -1043,7 +1057,10 @@ export async function listSupabaseChatThreads(supabase, authUser) {
     const lastMessageAt = threadMessages.reduce((latest, message) => message.created_at > latest ? message.created_at : latest, row.created_at || '');
     const unreadCount = threadMessages.filter((message) => message.sender_id !== authUser.id && (!readAt || new Date(message.created_at) > new Date(readAt))).length;
     return { id: row.id, type: row.thread_type, playDateId: row.play_date_id, title: playDate?.playground_name || other[0]?.display_name || 'Direct chat', participantIds, participants: other.map((profile) => ({ id: profile.id, displayName: profile.display_name || 'Parent' })), startsAt: playDate?.starts_at || null, endsAt: playDate?.ends_at || null, unreadCount, lastMessageAt, lastMessage: chatLastMessagePreview(threadMessages, { createdAt: 'created_at', senderId: 'sender_id', text: 'text', mediaType: 'media_type' }) };
-  }).filter((thread) => thread.type !== 'playdate' || thread.participantIds.length > 1);
+  })
+    .filter((thread) => thread.type !== 'playdate' || thread.participantIds.length > 1)
+    // A blocked family's direct chat leaves the blocker's list (their group chats stay, filtered).
+    .filter((thread) => thread.type !== 'direct' || !thread.participantIds.some((id) => blockedIds.has(id)));
 }
 
 export async function markSupabaseChatThreadRead(supabase, threadId) {
@@ -1068,12 +1085,153 @@ export async function createSupabaseChatMessage(supabase, authUser, body) {
   let targetThreadId = threadId;
   if (!targetThreadId) {
     const { data: created, error: createError } = await supabase.rpc('create_direct_chat_thread', { target_user_id: recipientId });
-    if (createError) throw supabaseError(createError, 'Could not create direct chat.');
+    if (createError) throw createError.message === BLOCKED_MESSAGE_ERROR ? statusError(BLOCKED_MESSAGE_ERROR, 403) : supabaseError(createError, 'Could not create direct chat.');
     targetThreadId = created;
+  } else {
+    // Friendly answer for a blocked direct chat; the insert policy enforces it regardless.
+    const { data: blockedChat, error: blockedError } = await supabase.rpc('is_direct_chat_blocked', { target_thread_id: targetThreadId });
+    if (!blockedError && blockedChat) throw statusError(BLOCKED_MESSAGE_ERROR, 403);
   }
   const { data, error } = await supabase.from('chat_messages').insert({ thread_id: targetThreadId, sender_id: authUser.id, recipient_id: recipientId || authUser.id, text, media_type: mediaType, media_url: mediaUrl }).select('id, thread_id, sender_id, recipient_id, text, media_type, media_url, created_at').single();
   if (error) throw supabaseError(error, 'Could not send chat message.');
   return { id: data.id, threadId: data.thread_id, senderId: data.sender_id, recipientId: data.recipient_id, text: data.text, mediaType: data.media_type, mediaUrl: data.media_url, createdAt: data.created_at };
+}
+
+// ── Chat safety: blocking a family ───────────────────────────────────────────
+
+function statusError(message, status) {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+}
+
+function localBlockedIds(store, userId) {
+  return new Set(store.userBlocks.filter((block) => block.blockerId === userId).map((block) => block.blockedId));
+}
+
+function localBlockedBetween(store, firstId, secondId) {
+  return store.userBlocks.some((block) => (block.blockerId === firstId && block.blockedId === secondId) || (block.blockerId === secondId && block.blockedId === firstId));
+}
+
+function blockTargetId(body, selfId) {
+  const userId = cleanText(body?.userId, 80);
+  if (!userId) throw statusError('Choose a family to block.', 400);
+  if (userId === selfId) throw statusError('You can’t block yourself.', 400);
+  return userId;
+}
+
+// Missing table (migration not applied yet) reads as "no blocks" so chat keeps working.
+async function supabaseBlockedIds(supabase, authUser) {
+  const { data, error } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', authUser.id);
+  if (error) return new Set();
+  return new Set((data || []).map((row) => row.blocked_id));
+}
+
+export async function listLocalBlocks(userId) {
+  const store = await readStore();
+  return store.userBlocks
+    .filter((block) => block.blockerId === userId)
+    .sort((first, second) => String(second.createdAt).localeCompare(String(first.createdAt)))
+    .map((block) => ({ userId: block.blockedId, displayName: store.users[block.blockedId]?.displayName || 'A family', createdAt: block.createdAt }));
+}
+
+export async function blockLocalUser(userId, body) {
+  const blockedId = blockTargetId(body, userId);
+  return mutateStore((store) => {
+    if (!store.users[blockedId]) throw statusError('That family is no longer on SproutCue.', 404);
+    if (!store.userBlocks.some((block) => block.blockerId === userId && block.blockedId === blockedId)) {
+      store.userBlocks.push({ blockerId: userId, blockedId, createdAt: new Date().toISOString() });
+    }
+    return { userId: blockedId, blocked: true };
+  });
+}
+
+export async function unblockLocalUser(userId, body) {
+  const blockedId = blockTargetId(body, userId);
+  return mutateStore((store) => {
+    store.userBlocks = store.userBlocks.filter((block) => !(block.blockerId === userId && block.blockedId === blockedId));
+    return { userId: blockedId, blocked: false };
+  });
+}
+
+export async function listSupabaseBlocks(supabase) {
+  const { data, error } = await supabase.rpc('list_my_blocks');
+  if (error) throw supabaseError(error, 'Could not load blocked families.');
+  return (data || []).map((row) => ({ userId: row.blocked_id, displayName: row.display_name || 'A family', createdAt: row.created_at }));
+}
+
+export async function blockSupabaseUser(supabase, authUser, body) {
+  const blockedId = blockTargetId(body, authUser.id);
+  const { error } = await supabase.from('user_blocks').upsert({ blocker_id: authUser.id, blocked_id: blockedId }, { onConflict: 'blocker_id,blocked_id', ignoreDuplicates: true });
+  // 23503 = no such profile, 22P02 = not a uuid.
+  if (error) throw ['23503', '22P02'].includes(error.code) ? statusError('That family is no longer on SproutCue.', 404) : supabaseError(error, 'Could not block this family.');
+  return { userId: blockedId, blocked: true };
+}
+
+export async function unblockSupabaseUser(supabase, authUser, body) {
+  const blockedId = blockTargetId(body, authUser.id);
+  const { error } = await supabase.from('user_blocks').delete().eq('blocker_id', authUser.id).eq('blocked_id', blockedId);
+  if (error && error.code !== '22P02') throw supabaseError(error, 'Could not unblock this family.');
+  return { userId: blockedId, blocked: false };
+}
+
+// ── Chat safety: reporting a message ─────────────────────────────────────────
+// Errors with a `status` are the reporter's to fix (bad input, not their thread);
+// the route returns them as-is instead of a 500.
+
+function chatReportError(message, status = 400) {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+}
+
+function validChatReport(body) {
+  const report = normalizeChatReport(body);
+  if (report.error) throw chatReportError(report.error);
+  return report;
+}
+
+export async function createLocalChatReport(userId, body) {
+  const { messageId, reason, details } = validChatReport(body);
+  return mutateStore((store) => {
+    const message = store.chatMessages.find((candidate) => candidate.id === messageId);
+    const threadId = message?.threadId || '';
+    const playDateId = threadId.startsWith('playdate:') ? threadId.slice('playdate:'.length) : '';
+    const member = message && (playDateId
+      ? (store.playDates.find((playDate) => playDate.id === playDateId)?.participants || []).some((item) => item.userId === userId && item.status === 'joined')
+      : message.senderId === userId || message.recipientId === userId);
+    if (!member) throw chatReportError('That message is no longer available.', 404);
+    if (message.senderId === userId) throw chatReportError('You can’t report your own message.');
+    const existing = store.chatReports.find((report) => report.reporterId === userId && report.messageId === messageId);
+    if (existing) return { id: existing.id, createdAt: existing.createdAt, alreadyReported: true };
+    const report = {
+      id: randomUUID(),
+      reporterId: userId,
+      messageId,
+      threadId,
+      reportedUserId: message.senderId,
+      reason,
+      details,
+      messageText: message.text || '',
+      messageMediaType: message.mediaType || '',
+      messageMediaUrl: message.mediaUrl || '',
+      messageCreatedAt: message.createdAt || null,
+      status: 'open',
+      createdAt: new Date().toISOString(),
+    };
+    store.chatReports.unshift(report);
+    return { id: report.id, createdAt: report.createdAt, alreadyReported: false };
+  });
+}
+
+export async function createSupabaseChatReport(supabase, body) {
+  const { messageId, reason, details } = validChatReport(body);
+  const { data, error } = await supabase.rpc('report_chat_message', { target_message_id: messageId, report_reason: reason, report_details: details });
+  // P0001 = a `raise exception` in report_chat_message(): a message meant for the reporter.
+  if (error) throw error.code === 'P0001' ? chatReportError(error.message) : supabaseError(error, 'Could not send the report.');
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row?.report_id) throw new Error('Could not send the report.');
+  return { id: row.report_id, createdAt: row.reported_at, alreadyReported: Boolean(row.already_reported) };
 }
 
 export async function listSupabasePlayDates(supabase, authUser, playgroundKey) {

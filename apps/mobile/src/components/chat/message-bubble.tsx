@@ -15,12 +15,16 @@ type MessageBubbleProps = {
   endsGroup: boolean;
   onRetry?: () => void;
   onDiscard?: () => void;
+  /** Long-press on someone else's message (chat safety: Report). */
+  onLongPress?: () => void;
+  /** This device reported the message this session. */
+  reported?: boolean;
 };
 
 const AVATAR = 30;
 
 // Mine: clay bubble on the right. Theirs: white bubble with the sender's initial on the left.
-export function MessageBubble({ message, mine, senderName, showName, endsGroup, onRetry, onDiscard }: MessageBubbleProps) {
+export function MessageBubble({ message, mine, senderName, showName, endsGroup, onRetry, onDiscard, onLongPress, reported }: MessageBubbleProps) {
   const failed = message.localState === 'failed';
   const sending = message.localState === 'sending';
   const photo = message.mediaType === 'photo' && message.mediaUrl ? message.mediaUrl : '';
@@ -44,9 +48,13 @@ export function MessageBubble({ message, mine, senderName, showName, endsGroup, 
         </View>
         {failed ? (
           <View style={styles.failedRow}>
-            <Pressable accessibilityRole="button" onPress={onRetry} hitSlop={8} style={styles.metaButton}>
-              <Text style={styles.failedText}>Not sent · Tap to retry</Text>
-            </Pressable>
+            {message.localError ? (
+              <Text style={[styles.failedText, styles.metaButtonText]}>{`Not sent · ${message.localError}`}</Text>
+            ) : (
+              <Pressable accessibilityRole="button" onPress={onRetry} hitSlop={8} style={styles.metaButton}>
+                <Text style={styles.failedText}>Not sent · Tap to retry</Text>
+              </Pressable>
+            )}
             <Pressable accessibilityRole="button" onPress={onDiscard} hitSlop={8} style={styles.metaButton}>
               <Text style={styles.discardText}>Delete</Text>
             </Pressable>
@@ -65,11 +73,25 @@ export function MessageBubble({ message, mine, senderName, showName, endsGroup, 
       <View style={styles.avatarSlot}>{endsGroup ? <Avatar name={senderName} size={AVATAR} /> : null}</View>
       <View style={styles.theirsColumn}>
         {showName ? <Text style={styles.name}>{senderName}</Text> : null}
-        <View style={[styles.bubble, styles.bubbleTheirs, endsGroup && styles.tailTheirs]}>
+        <Pressable
+          onLongPress={onLongPress}
+          delayLongPress={350}
+          disabled={!onLongPress}
+          accessibilityHint={onLongPress ? 'Long-press for options, including Report' : undefined}
+          accessibilityActions={onLongPress ? [{ name: 'report', label: 'Report message' }] : undefined}
+          onAccessibilityAction={(event) => {
+            if (event.nativeEvent.actionName === 'report') onLongPress?.();
+          }}
+          style={({ pressed }) => [styles.bubble, styles.bubbleTheirs, endsGroup && styles.tailTheirs, pressed && onLongPress && styles.bubblePressed]}
+        >
           {media}
           {message.text ? <Text style={styles.text}>{message.text}</Text> : null}
-        </View>
-        {endsGroup && time ? <Text style={[styles.meta, styles.metaTheirs]}>{time}</Text> : null}
+        </Pressable>
+        {reported ? (
+          <Text style={[styles.meta, styles.metaTheirs]}>{time ? `${time} · Reported` : 'Reported'}</Text>
+        ) : endsGroup && time ? (
+          <Text style={[styles.meta, styles.metaTheirs]}>{time}</Text>
+        ) : null}
       </View>
     </View>
   );
@@ -86,6 +108,7 @@ const styles = StyleSheet.create({
   bubble: { borderRadius: 18, overflow: 'hidden', maxWidth: '80%' },
   bubbleMine: { backgroundColor: Colors.brandStrong },
   bubbleTheirs: { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.line, maxWidth: '100%' },
+  bubblePressed: { backgroundColor: Colors.surfaceSoft },
   bubbleFailed: { backgroundColor: Colors.surface, borderWidth: 1.5, borderStyle: 'dashed', borderColor: Colors.dangerWeb },
   sending: { opacity: 0.6 },
   tailMine: { borderBottomRightRadius: 6 },
@@ -101,6 +124,7 @@ const styles = StyleSheet.create({
   metaTheirs: { paddingLeft: Spacing.three },
   failedRow: { flexDirection: 'row', gap: Spacing.three },
   metaButton: { minHeight: 32, justifyContent: 'center' },
+  metaButtonText: { minHeight: 32, lineHeight: 32, flexShrink: 1 },
   failedText: { color: Colors.danger, fontSize: 13, fontWeight: '800' },
   discardText: { color: Colors.muted, fontSize: 13, fontWeight: '700' },
 });

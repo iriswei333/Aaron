@@ -1,18 +1,14 @@
 {
   "app/[...slug]/page.jsx -> ../../src/main.js": {
-    "id": 8924,
+    "id": "app/[...slug]/page.jsx -> ../../src/main.js",
     "files": [
-      "static/chunks/75504863.b169d6fe7988ceeb.js",
-      "static/chunks/2015.9bc3bb78e7849088.js",
-      "static/chunks/8924.cfff5d685b664df5.js"
+      "static/chunks/_app-pages-browser_src_main_js.js"
     ]
   },
   "app/page.jsx -> ../src/main.js": {
-    "id": 8924,
+    "id": "app/page.jsx -> ../src/main.js",
     "files": [
-      "static/chunks/75504863.b169d6fe7988ceeb.js",
-      "static/chunks/2015.9bc3bb78e7849088.js",
-      "static/chunks/8924.cfff5d685b664df5.js"
+      "static/chunks/_app-pages-browser_src_main_js.js"
     ]
   }
 }

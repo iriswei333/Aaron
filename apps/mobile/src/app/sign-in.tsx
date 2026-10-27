@@ -1,4 +1,5 @@
 import { isEmailCodeComplete, isLikelyEmail, normalizeEmailCode } from '@sproutcue/shared/auth-email';
+import { privacyUrl, termsUrl } from '@sproutcue/shared/terms';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
@@ -122,7 +123,8 @@ export default function SignInScreen() {
     setStatus(null);
   }
 
-  const privacyUrl = config.apiBaseUrl ? config.apiBaseUrl.replace(/\/api\/?$/, '/privacy') : '';
+  const privacyLink = privacyUrl(config.apiBaseUrl);
+  const termsLink = termsUrl(config.apiBaseUrl);
   const working = busy !== '';
   const creating = method === 'password' && passwordMode === 'sign-up';
 
@@ -240,10 +242,15 @@ export default function SignInScreen() {
         <Text style={styles.heart}>♡</Text>
         <Text style={[Type.small, styles.noteText]}>A grown-up account. Your child never needs an email or login.</Text>
       </View>
-      {privacyUrl ? (
-        <Link href={privacyUrl as any} style={styles.link}>
-          Read the Privacy Policy
-        </Link>
+      {termsLink ? (
+        // Apple 1.2: agreeing to the terms (zero tolerance for objectionable content) is part of signing up.
+        // The server records the acceptance when the profile is created (profiles.terms_accepted_at).
+        <Text style={[Type.small, styles.consent]}>
+          By continuing, you agree to the{' '}
+          <Link href={termsLink as any} style={styles.link}>Terms of Use</Link>
+          , including zero tolerance for objectionable content and abusive behavior, and acknowledge the{' '}
+          <Link href={privacyLink as any} style={styles.link}>Privacy Policy</Link>.
+        </Text>
       ) : null}
     </Screen>
   );
@@ -272,5 +279,6 @@ const styles = StyleSheet.create({
   note: { flexDirection: 'row', gap: Spacing.two, alignItems: 'flex-start' },
   heart: { color: Colors.brand, fontSize: 16 },
   noteText: { flex: 1 },
-  link: { color: Colors.brandStrong, fontWeight: '800', fontSize: 14 },
+  link: { color: Colors.brandStrong, fontWeight: '800' },
+  consent: { lineHeight: 19 },
 });

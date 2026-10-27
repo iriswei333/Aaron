@@ -1181,6 +1181,45 @@ time { color: #e26f39; font-weight: 900; }
 .chat-message-avatar.default-avatar { display: grid; place-items: center; }
 .chat-message-avatar.default-avatar img { height: 17px; width: 17px; }
 .chat-message small { display: block; font-size: .7rem; margin-top: 4px; }
+.chat-message[data-chat-message-id] { -webkit-touch-callout: none; }
+.chat-report-action { opacity: 0; transition: opacity .15s; }
+.chat-message:hover .chat-report-action, .chat-message:focus-within .chat-report-action { opacity: 1; }
+@media (hover: none) { .chat-report-action { opacity: 1; } }
+.chat-report-button { background: none; border: 0; border-radius: 6px; color: #8a7466; cursor: pointer; font: inherit; font-weight: 700; margin: 0; min-height: 0; padding: 0 2px; text-decoration: underline; text-underline-offset: 2px; }
+.chat-report-button:hover { color: #b94b27; }
+.chat-reported-label { color: #8a7466; font-weight: 700; }
+.chat-report-dialog { max-width: 480px; }
+.chat-report-dialog form { display: grid; gap: 10px; }
+.chat-report-dialog fieldset { border: 0; display: grid; gap: 6px; margin: 0; padding: 0; }
+.chat-report-dialog legend { font-weight: 800; margin-bottom: 6px; }
+.chat-report-reason { align-items: center; background: white; border: 1px solid #f0dfd1; border-radius: 14px; cursor: pointer; display: flex; gap: 10px; min-height: 44px; padding: 8px 12px; }
+.chat-report-reason:has(input:checked) { background: #fff0e5; border-color: #e86f3d; }
+.chat-report-reason input { accent-color: #c84f23; flex: 0 0 auto; height: 18px; margin: 0; padding: 0; width: 18px; }
+.chat-report-reason span { flex: 1; text-align: left; }
+.chat-report-dialog .section-heading { align-items: flex-start; flex-direction: row; }
+.chat-report-quote { background: white; border: 1px solid #f0dfd1; border-left: 4px solid #e8c9b4; border-radius: 12px; margin: 0 0 14px; overflow-wrap: anywhere; padding: 10px 12px; }
+.chat-report-quote small { color: #75685e; display: block; font-weight: 800; margin-bottom: 2px; }
+.chat-report-dialog textarea { min-height: 72px; }
+.chat-report-note { color: #75685e; font-size: .85rem; margin: 0; }
+.chat-report-error { color: #b3261e; font-weight: 700; margin: 0; }
+.chat-report-dialog .form-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.chat-report-dialog .form-actions button { margin-top: 0; }
+.chat-report-done { display: grid; gap: 8px; justify-items: center; text-align: center; }
+.chat-report-done > span { align-items: center; background: #eaf1da; border-radius: 50%; color: #387158; display: flex; font-size: 1.5rem; font-weight: 800; height: 52px; justify-content: center; width: 52px; }
+.chat-report-done h2, .chat-report-done p { margin: 0; }
+.chat-report-done button { margin-top: 8px; min-width: 140px; }
+.chat-report-done-actions { justify-content: center; }
+.chat-thread-title { position: relative; }
+.chat-thread-menu { margin-left: auto; position: relative; }
+.chat-thread-menu-toggle { font-size: 1.2rem; font-weight: 800; line-height: 1; }
+.chat-thread-menu-list { background: #fffaf5; border: 1px solid #f0cfb6; border-radius: 14px; box-shadow: 0 14px 40px rgba(63, 38, 23, .18); display: grid; min-width: 190px; padding: 6px; position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; }
+.chat-thread-menu-list button { background: none; border: 0; border-radius: 10px; color: #34281f; font-weight: 700; justify-content: flex-start; margin: 0; padding: 10px 12px; text-align: left; width: 100%; }
+.chat-thread-menu-list button:hover, .chat-thread-menu-list button:focus-visible { background: #fff0e5; }
+.chat-thread-menu-list .danger-menu-item { color: #b3261e; }
+.chat-block-dialog h2 { margin: 0 0 8px; }
+.chat-block-dialog .form-actions { margin-top: 16px; }
+.danger-solid-button { background: #b3261e; border-color: #b3261e; color: #fff; }
+.danger-solid-button:hover { background: #8f1f18; }
 .chat-message img, .chat-message video { border-radius: 12px; max-height: 180px; max-width: 100%; }
 .chat-quick-replies { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px 8px; }
 .quick-reply { background: #f7fbf8; border: 1px solid #c9dfcc; border-radius: 999px; color: #2f6b4e; font-size: .7rem; margin: 0; padding: 6px 9px; }
@@ -1286,6 +1325,9 @@ time { color: #e26f39; font-weight: 900; }
 
 .privacy-link { margin: 16px 0 0; }
 .privacy-link a { color: #b44f22; font-weight: 800; }
+.terms-consent { color: #75685e; font-size: .85rem; line-height: 1.45; }
+.help-contact { border-top: 1px solid #f0dfd1; color: #75685e; font-size: .85rem; margin: 16px 0 0; overflow-wrap: anywhere; padding-top: 12px; }
+.help-contact a { color: #b44f22; font-weight: 800; }
 .danger-button { border-color: #d88978; color: #a33d2d; }
 .privacy-shell { max-width: 920px; }
 .privacy-panel { padding: clamp(24px, 5vw, 56px); }

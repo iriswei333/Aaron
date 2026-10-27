@@ -1,14 +1,18 @@
+import { blockActionLabel } from '@sproutcue/shared/user-blocks';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo } from 'react';
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { ActionSheetIOS, ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Composer } from '@/components/chat/composer';
 import { MessageBubble } from '@/components/chat/message-bubble';
+import { ReportMessageSheet } from '@/components/chat/report-sheet';
 import { ThreadIcon } from '@/components/chat/thread-row';
 import { Button } from '@/components/ui';
 import { Colors, Layout, Radius, Spacing, Type } from '@/constants/theme';
-import { chatRows, participantName, quickReplies, threadSubtitle, useChatThread, type ChatRow } from '@/lib/chat';
+import { blockFamily, confirmBlock } from '@/lib/blocks';
+import { canReportMessage, chatRows, participantName, quickReplies, threadSubtitle, useChat, useChatThread, type ChatMessage, type ChatRow } from '@/lib/chat';
+import { haptics } from '@/lib/haptics';
 import { useSession } from '@/lib/session';
 
 // One family conversation (web renderChat's thread pane), full screen above the tabs:
@@ -21,12 +25,68 @@ export default function ChatThreadScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useSession();
   const chat = useChatThread(String(threadId));
+  const chatList = useChat();
   const thread = chat.thread;
   const isGroup = thread?.type === 'playdate';
   // Inverted list: newest first in data, drawn at the bottom.
   const rows = useMemo(() => chatRows(chat.messages, user?.id).reverse(), [chat.messages, user?.id]);
-
   const back = () => (router.canGoBack() ? router.back() : router.replace('/family'));
+
+  // Chat safety: long-press someone else's message → Report / Block; ⋯ in a direct chat → Block.
+  const [reportTarget, setReportTarget] = useState<ChatMessage | null>(null);
+  const [reportedIds, setReportedIds] = useState<string[]>([]);
+  const [blockedIds, setBlockedIds] = useState<string[]>([]);
+  const markReported = useCallback((messageId: string) => setReportedIds((ids) => (ids.includes(messageId) ? ids : [...ids, messageId])), []);
+  const isDirect = thread?.type === 'direct';
+  const directContactId = isDirect ? thread?.contactId || thread?.participants?.[0]?.id || thread?.participantIds?.find((id) => id !== user?.id) || '' : '';
+  const nameOf = useCallback((userId: string) => participantName(thread, userId, user?.id), [thread, user?.id]);
+
+  const block = (userId: string) => {
+    if (!userId) return;
+    confirmBlock(nameOf(userId), async () => {
+      try {
+        await blockFamily(userId);
+        haptics.success();
+        setBlockedIds((ids) => [...ids, userId]);
+        setReportTarget(null);
+        await chatList.refresh();
+        // The server drops a blocked family's direct chat and filters their group messages.
+        if (isDirect) back();
+        else chat.reload();
+      } catch (err) {
+        haptics.error();
+        Alert.alert('Couldn’t block', err instanceof Error ? err.message : 'Please try again.');
+      }
+    });
+  };
+
+  /** Native options menu: iOS action sheet, Android dialog. */
+  const showMenu = useCallback((title: string | undefined, actions: { label: string; onPress: () => void }[]) => {
+    haptics.select();
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { title, options: [...actions.map((action) => action.label), 'Cancel'], destructiveButtonIndex: actions.map((_, index) => index), cancelButtonIndex: actions.length },
+        (index) => actions[index]?.onPress(),
+      );
+    } else if (Platform.OS === 'android') {
+      Alert.alert(title || 'Options', undefined, [
+        { text: 'Cancel', style: 'cancel' },
+        ...actions.map((action) => ({ text: action.label, style: 'destructive' as const, onPress: action.onPress })),
+      ], { cancelable: true });
+    } else {
+      actions[0]?.onPress();
+    }
+  }, []);
+
+  const openMessageMenu = (message: ChatMessage) => {
+    const actions = [{ label: 'Report message', onPress: () => setReportTarget(message) }];
+    if (!blockedIds.includes(message.senderId)) actions.push({ label: blockActionLabel(nameOf(message.senderId)), onPress: () => block(message.senderId) });
+    showMenu(undefined, actions);
+  };
+
+  const openHeaderMenu = () =>
+    showMenu(thread?.title || undefined, [{ label: blockActionLabel(nameOf(directContactId)), onPress: () => block(directContactId) }]);
+
   const openPlaydate = () => {
     if (thread?.playDateId) router.push({ pathname: '/playdate/details', params: { playDateId: thread.playDateId } });
   };
@@ -49,6 +109,8 @@ export default function ChatThreadScreen() {
         endsGroup={item.endsGroup}
         onRetry={() => chat.retry(item.message.id)}
         onDiscard={() => chat.discard(item.message.id)}
+        reported={reportedIds.includes(item.message.id)}
+        onLongPress={canReportMessage(item.message, user?.id) && !reportedIds.includes(item.message.id) ? () => openMessageMenu(item.message) : undefined}
       />
     );
   };
@@ -64,6 +126,11 @@ export default function ChatThreadScreen() {
           <Text accessibilityRole="header" style={styles.title} numberOfLines={1}>{thread?.title || 'Chat'}</Text>
           {thread ? <Text style={styles.subtitle} numberOfLines={1}>{threadSubtitle(thread)}</Text> : null}
         </View>
+        {isDirect && directContactId ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Chat options" accessibilityHint="Block this family" onPress={openHeaderMenu} hitSlop={6} style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
+            <Text style={styles.moreText}>{Platform.OS === 'android' ? '⋮' : '⋯'}</Text>
+          </Pressable>
+        ) : null}
         {thread?.playDateId ? (
           <Pressable accessibilityRole="button" accessibilityLabel="Playdate details" onPress={openPlaydate} hitSlop={6} style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
             <Text style={styles.infoText}>ⓘ</Text>
@@ -113,6 +180,15 @@ export default function ChatThreadScreen() {
         </View>
         <Composer quickReplies={quickReplies(thread)} onSend={chat.send} bottomInset={insets.bottom} />
       </KeyboardAvoidingView>
+
+      <ReportMessageSheet
+        key={reportTarget?.id || 'closed'}
+        message={reportTarget}
+        senderName={reportTarget ? participantName(thread, reportTarget.senderId, user?.id) : ''}
+        onClose={() => setReportTarget(null)}
+        onReported={markReported}
+        onBlock={reportTarget && !blockedIds.includes(reportTarget.senderId) ? () => block(reportTarget.senderId) : undefined}
+      />
     </View>
   );
 }
@@ -134,6 +210,7 @@ const styles = StyleSheet.create({
   pressed: { backgroundColor: Colors.brandSoft },
   backText: { color: Colors.brandStrong, fontSize: 34, lineHeight: 36, fontWeight: '500', marginTop: -3 },
   infoText: { color: Colors.muted, fontSize: 22 },
+  moreText: { color: Colors.muted, fontSize: 24, fontWeight: '800', lineHeight: 26 },
   headerText: { flex: 1, minWidth: 0, gap: 1, paddingLeft: Spacing.one },
   title: { color: Colors.rowTitle, fontSize: 17, fontWeight: '800' },
   subtitle: { color: Colors.rowMeta, fontSize: 13, fontWeight: '600' },
