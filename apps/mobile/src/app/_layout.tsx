@@ -7,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui';
 import { Colors, Spacing, Type } from '@/constants/theme';
+import { AiConsentProvider } from '@/lib/ai-consent';
 import { AiJobsProvider } from '@/lib/ai-jobs';
 import { ChatProvider } from '@/lib/chat';
 import { config } from '@/lib/config';
@@ -31,12 +32,14 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider value={sproutCueTheme}>
         <SessionProvider>
-          <AiJobsProvider>
-            <ChatProvider>
-              <StatusBar style="dark" />
-              <RootNavigator />
-            </ChatProvider>
-          </AiJobsProvider>
+          <AiConsentProvider>
+            <AiJobsProvider>
+              <ChatProvider>
+                <StatusBar style="dark" />
+                <RootNavigator />
+              </ChatProvider>
+            </AiJobsProvider>
+          </AiConsentProvider>
         </SessionProvider>
       </ThemeProvider>
     </SafeAreaProvider>

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AI_CONSENT_VERSION } from '@sproutcue/shared/ai-consent';
 import { PhotoCheckError } from '../lib/child-photo-check.js';
 
 const mocks = vi.hoisted(() => ({
@@ -11,7 +12,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('next/server', () => ({ after: vi.fn() }));
 vi.mock('../lib/profile-session.js', () => ({
-  getCurrentProfile: async () => ({ mode: 'supabase', user: { id: 'family-1' }, authUser: { id: 'family-1' } }),
+  getCurrentProfile: async () => ({ mode: 'supabase', user: { id: 'family-1', aiConsent: { grantedAt: '2026-10-28T00:00:00.000Z', version: AI_CONSENT_VERSION } }, authUser: { id: 'family-1' } }),
   profileErrorResponse: () => Response.json({ error: 'signed out' }, { status: 401 }),
 }));
 vi.mock('../lib/family-photos.js', () => ({

@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { createFamilyPhoto, readFamilyPhoto, requireChildPhotos } from './family-photos.js';
+import { requireAiConsent } from './ai-consent.js';
 
 const LOCAL_ROOT = resolve('data/family-assets');
 const LOCAL_STATE = join(LOCAL_ROOT, 'picture-books.json');
@@ -388,6 +389,7 @@ async function getSupabaseBook(current, id) {
 async function getLocalBook(current, id) { const state = await readLocalState(); const book = state.books.find((item) => item.id === id && item.ownerId === ownerId(current)); if (!book) throw missing('Picture book not found.'); return normalizeLocalBook(book); }
 
 export async function createFamilyPictureBook(current, formData) {
+  requireAiConsent(current);
   const childName = String(formData.get('childName') || '').trim();
   const uploads = validatePhotos(formData);
   const reusablePhotoIds = savedPhotoIds(formData);
@@ -459,6 +461,7 @@ async function generateImage(current, book, page) {
 async function saveSupabaseGeneratedPage(current, book, page, png) { const path = `${current.authUser.id}/picture-books/${book.id}/pages/${page.pageKey}.png`; const { error: uploadError } = await current.supabase.storage.from(BUCKET).upload(path, png, { contentType: 'image/png', upsert: true }); if (uploadError) throw new Error(uploadError.message); const now = new Date().toISOString(); const { error: pageError } = await current.supabase.from('family_picture_book_pages').update({ status: 'ready', storage_path: path, generation_error: null, generated_at: now }).eq('book_asset_id', book.id).eq('page_key', page.pageKey); if (pageError) throw new Error(pageError.message); const ready = book.pages.every((item) => item.pageKey === page.pageKey || item.status === 'ready'); const { error: assetError } = await current.supabase.from('family_assets').update({ status: ready ? 'ready' : 'draft' }).eq('id', book.id); if (assetError) throw new Error(assetError.message); }
 
 export async function generateFamilyPictureBookPage(current, bookId, pageKey) {
+  requireAiConsent(current);
   const book = await getFamilyPictureBook(current, bookId); const page = book.pages.find((item) => item.pageKey === pageKey); if (!page) throw new Error('Unknown picture-book page.');
   if (current.mode === 'supabase') { await current.supabase.from('family_picture_book_pages').update({ status: 'generating', generation_error: null }).eq('book_asset_id', book.id).eq('page_key', pageKey); await current.supabase.from('family_assets').update({ status: 'generating' }).eq('id', book.id); }
   else { const state = await readLocalState(); const local = state.books.find((item) => item.id === book.id); local.status = 'generating'; local.pages.find((item) => item.pageKey === pageKey).status = 'generating'; await saveLocalState(state); }

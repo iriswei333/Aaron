@@ -1,3 +1,4 @@
+import { AI_CONSENT_VERSION } from '@sproutcue/shared/ai-consent';
 import sharp from 'sharp';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PhotoCheckError } from '../lib/child-photo-check.js';
@@ -35,7 +36,7 @@ function fakeSupabase({ photos = [], objects = new Map() } = {}) {
   return { tables, objects, from: (table) => query(table), storage: { from: () => storage } };
 }
 
-const family = (supabase) => ({ mode: 'supabase', authUser: { id: 'family-1' }, supabase });
+const family = (supabase) => ({ mode: 'supabase', authUser: { id: 'family-1' }, user: { id: 'family-1', aiConsent: { grantedAt: '2026-10-28T00:00:00.000Z', version: AI_CONSENT_VERSION } }, supabase });
 let jpeg;
 beforeEach(async () => { jpeg = await sharp({ create: { width: 300, height: 300, channels: 3, background: '#e0b080' } }).jpeg().toBuffer(); });
 

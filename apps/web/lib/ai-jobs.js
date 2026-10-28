@@ -6,6 +6,8 @@ import { generateAndSavePracticeStory } from './family-practice-stories.js';
 import { generateToyPlay, saveToyPlay } from './family-toy-plays.js';
 import { photoCheckErrorCode } from './child-photo-check.js';
 import { pushNotificationToDevices } from './push-tokens.js';
+import { aiConsentError, requireAiConsent } from './ai-consent.js';
+import { AI_CONSENT_REQUIRED, hasAiConsent, normalizeAiConsent } from '@sproutcue/shared/ai-consent';
 
 const LOCAL_STATE = resolve('data/ai-jobs.json');
 const DAILY_LIMIT = 10;
@@ -39,9 +41,11 @@ async function writeLocalState(state) { await mkdir(resolve('data'), { recursive
 
 export async function enqueueAiJob(current, { jobType, payload = {}, estimatedSeconds = 60 }) {
   if (!JOB_TYPES.has(jobType)) throw new Error('Unsupported AI job type.');
+  requireAiConsent(current);
   if (current.mode === 'supabase') {
     const { data, error } = await current.supabase.rpc('enqueue_ai_generation_job', { requested_job_type: jobType, requested_payload: payload, requested_estimated_seconds: Math.max(1, Number(estimatedSeconds) || 60) });
     if (error) {
+      if (error.message?.includes(AI_CONSENT_REQUIRED)) throw aiConsentError();
       if (error.message?.includes('DAILY_AI_LIMIT_REACHED')) { const limit = new Error('You have used today’s 10 AI creations. Your limit resets tomorrow.'); limit.code = 'DAILY_AI_LIMIT_REACHED'; throw limit; }
       throw new Error(error.message);
     }
@@ -143,6 +147,11 @@ async function executeJob(current, job) {
 export async function processAiJob(current, jobId) {
   const record = await jobRecord(current, jobId); const job = record.job;
   if (!job || job.status !== 'queued') return job ? serializeJob(job) : null;
+  // Consent may have been withdrawn after the job was queued: never start it then.
+  if (!hasAiConsent(current.user)) {
+    await updateJob(current, jobId, { status: 'failed', progress: 100, errorMessage: CANCELLED_MESSAGE, errorCode: AI_CONSENT_REQUIRED, completedAt: new Date().toISOString() });
+    return getAiJob(current, jobId);
+  }
   const startedAt = new Date().toISOString(); await updateJob(current, jobId, { status: 'running', progress: 5, startedAt }); job.status = 'running';
   try {
     const result = await executeJob(current, job); const completedAt = new Date().toISOString();
@@ -157,6 +166,29 @@ export async function processAiJob(current, jobId) {
   }
 }
 
+const CANCELLED_MESSAGE = 'Cancelled because AI features are turned off.';
+
+/** Marks the family's not-yet-started AI jobs as failed (used when AI consent is withdrawn). */
+export async function cancelQueuedAiJobs(current) {
+  const completedAt = new Date().toISOString();
+  if (current.mode !== 'supabase') {
+    const state = await readLocalState();
+    let changed = 0;
+    for (const job of state.jobs) {
+      if (job.ownerId !== ownerId(current) || job.status !== 'queued') continue;
+      Object.assign(job, { status: 'failed', progress: 100, errorMessage: CANCELLED_MESSAGE, errorCode: AI_CONSENT_REQUIRED, completedAt });
+      changed += 1;
+    }
+    if (changed) await writeLocalState(state);
+    return changed;
+  }
+  const { data, error } = await current.supabase.from('ai_generation_jobs')
+    .update({ status: 'failed', progress: 100, error_message: CANCELLED_MESSAGE, error_code: AI_CONSENT_REQUIRED, completed_at: completedAt })
+    .eq('profile_id', current.authUser.id).eq('status', 'queued').select('id');
+  if (error) throw new Error(error.message);
+  return (data || []).length;
+}
+
 export async function processPendingAiJobs(supabase, { limit = 2 } = {}) {
   const staleBefore = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   await supabase.from('ai_generation_jobs').update({ status: 'queued', progress: 0, started_at: null, error_message: null, error_code: null }).eq('status', 'running').lt('started_at', staleBefore);
@@ -164,9 +196,9 @@ export async function processPendingAiJobs(supabase, { limit = 2 } = {}) {
   if (error) throw new Error(error.message);
   const results = [];
   for (const row of jobs || []) {
-    const { data: profile, error: profileError } = await supabase.from('profiles').select('id, email, display_name, child_profile, location, play_preferences').eq('id', row.profile_id).single();
+    const { data: profile, error: profileError } = await supabase.from('profiles').select('id, email, display_name, child_profile, location, play_preferences, ai_consent_at, ai_consent_version').eq('id', row.profile_id).single();
     if (profileError || !profile) continue;
-    const current = { mode: 'supabase', supabase, authUser: { id: profile.id, email: profile.email || '' }, user: { id: profile.id, email: profile.email || '', displayName: profile.display_name || 'Family Profile', childProfile: profile.child_profile || {}, location: profile.location || null, playPreferences: profile.play_preferences || {} } };
+    const current = { mode: 'supabase', supabase, authUser: { id: profile.id, email: profile.email || '' }, user: { id: profile.id, email: profile.email || '', displayName: profile.display_name || 'Family Profile', childProfile: profile.child_profile || {}, location: profile.location || null, playPreferences: profile.play_preferences || {}, aiConsent: normalizeAiConsent(profile.ai_consent_at, profile.ai_consent_version) } };
     results.push(await processAiJob(current, row.id));
   }
   return results;

@@ -4,6 +4,7 @@ import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { getChildProfile } from '@sproutcue/shared/profile-defaults';
 import { moderatePhoto as screenPhoto } from './child-photo-check.js';
+import { requireAiConsent } from './ai-consent.js';
 import { createFamilyPhoto, readFamilyPhoto } from './family-photos.js';
 import {
   PRACTICE_STORY_CHALLENGES, PRACTICE_STORY_LENGTHS, PRACTICE_STORY_PARENT_GOALS, PRACTICE_STORY_THEMES,
@@ -234,6 +235,7 @@ function playgroundStoryData(current, goalId, story, responseId = null) {
 }
 
 export async function generatePlaygroundPracticeStory(current, goalId) {
+  requireAiConsent(current);
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not configured on the server.');
   const selectedGoal = playgroundGoal(goalId);
   if (!selectedGoal) throw new Error('Choose making friends, washing hands, or leaving the playground.');
@@ -308,6 +310,7 @@ async function saveSupabase(current, data, cover) {
 }
 
 export async function generateAndSavePracticeStory(current, formData) {
+  requireAiConsent(current);
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not configured on the server.');
   const child = getChildProfile(current.user);
   const ageMonths = Math.max(0, Math.min(71, Number(child?.ageMonths) || 0));

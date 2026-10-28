@@ -1,3 +1,4 @@
+export * from './ai-consent.js';
 export * from './api-client.js';
 export * from './auth-callback.js';
 export * from './auth-email.js';

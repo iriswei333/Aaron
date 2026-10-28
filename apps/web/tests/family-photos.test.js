@@ -1,3 +1,4 @@
+import { AI_CONSENT_VERSION } from '@sproutcue/shared/ai-consent';
 import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
 import { createFamilyPhoto, createFamilyPhotoFromDirectUpload } from '../lib/family-photos.js';
@@ -52,7 +53,7 @@ describe('family saved photos', () => {
     };
 
     const photo = await createFamilyPhotoFromDirectUpload(
-      { mode: 'supabase', authUser: { id: 'family-123' }, supabase },
+      { mode: 'supabase', authUser: { id: 'family-123' }, user: { id: 'family-123', aiConsent: { grantedAt: '2026-10-28T00:00:00.000Z', version: AI_CONSENT_VERSION } }, supabase },
       { storagePath: 'family-123/incoming/upload.png', mimeType: 'image/png', originalName: 'Phone photo.png' },
       { sourceKind: 'picture_book', checkPhoto: async () => ({ status: 'passed', code: null, severity: null, reasons: [], classification: null, model: 'test' }) },
     );

@@ -4,6 +4,7 @@ import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { photoCheckSeverity } from '@sproutcue/shared/photo-check';
 import { assertChildPhotos, checkChildPhoto, CHILD_PHOTO_SOURCE_KINDS } from './child-photo-check.js';
+import { AI_PHOTO_SOURCE_KINDS, requireAiConsent } from './ai-consent.js';
 
 const LOCAL_ROOT = resolve('data/family-assets/photos');
 const LOCAL_STATE = resolve('data/family-assets/photos.json');
@@ -133,9 +134,11 @@ async function recordPhotoCheck(current, { photoId = null, sourceKind, result })
  * Options: label, sourceKind, photoIndex (for error details), language, checkPhoto (test hook).
  */
 export async function createFamilyPhoto(current, input, options = {}) {
+  const sourceKind = cleanSourceKind(options.sourceKind);
+  // Photos for an AI creation are checked by OpenAI and then sent to it: consent comes first.
+  if (AI_PHOTO_SOURCE_KINDS.has(sourceKind)) requireAiConsent(current);
   const jpeg = await normalizePhoto(input);
   const label = cleanLabel(options.label || input.originalName);
-  const sourceKind = cleanSourceKind(options.sourceKind);
   const check = CHILD_PHOTO_SOURCE_KINDS.has(sourceKind) ? await (options.checkPhoto || checkChildPhoto)(jpeg) : null;
   if (check && (check.status === 'rejected' || check.status === 'error')) {
     await recordPhotoCheck(current, { sourceKind, result: check });
@@ -171,6 +174,7 @@ export async function createFamilyPhoto(current, input, options = {}) {
 
 export async function createFamilyPhotoFromDirectUpload(current, upload = {}, options = {}) {
   if (current.mode !== 'supabase') throw new Error('Direct photo uploads require a signed-in account.');
+  if (AI_PHOTO_SOURCE_KINDS.has(cleanSourceKind(options.sourceKind))) requireAiConsent(current);
   const storagePath = String(upload.storagePath || '');
   const incomingPrefix = `${current.authUser.id}/incoming/`;
   if (!storagePath.startsWith(incomingPrefix) || storagePath.includes('..')) throw new Error('The uploaded photo path is invalid.');
@@ -226,6 +230,7 @@ async function saveCheckResult(current, photoId, result) {
 export async function requireChildPhotos(current, photoIds = [], options = {}) {
   const ids = [...new Set(photoIds.map((id) => String(id || '').trim()).filter(Boolean))];
   if (!ids.length) return [];
+  requireAiConsent(current);
   const records = await photoCheckRecords(current, ids);
   const missingId = ids.find((id) => !records.has(id));
   if (missingId) throw missing('Photo not found.');

@@ -7,6 +7,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./ai-consent": "./src/ai-consent.js",
     "./api-client": "./src/api-client.js",
     "./auth-callback": "./src/auth-callback.js",
     "./auth-email": "./src/auth-email.js",
@@ -17,6 +18,7 @@
     "./discover-view": "./src/discover-view.js",
     "./family-plans-client": "./src/family-plans-client.js",
     "./family-profile": "./src/family-profile.js",
+    "./legal": "./src/legal.js",
     "./onboarding": "./src/onboarding.js",
     "./photo-check": "./src/photo-check.js",
     "./playdates": "./src/playdates.js",

@@ -1,10 +1,13 @@
 import { createFamilyPictureBook, deleteFamilyPictureBook, getFamilyPictureBook, listFamilyPictureBooks, serializeFamilyPictureBook } from '../../../../lib/family-picture-books.js';
 import { photoCheckErrorResponse } from '../../../../lib/child-photo-check.js';
 import { getCurrentProfile, profileErrorResponse } from '../../../../lib/profile-session.js';
+import { aiConsentErrorResponse, aiConsentResponse } from '../../../../lib/ai-consent.js';
 
 export const runtime = 'nodejs';
 
 function uploadFailure(error) {
+  const consent = aiConsentErrorResponse(error);
+  if (consent) return consent;
   const photoCheck = photoCheckErrorResponse(error);
   if (photoCheck) return photoCheck;
   const message = error instanceof Error ? error.message : 'Picture-book upload failed.';
@@ -38,6 +41,8 @@ export async function POST(request) {
   try {
     const current = await getCurrentProfile(request);
     if (!current.user) return profileErrorResponse(current);
+    const blocked = aiConsentResponse(current);
+    if (blocked) return blocked;
     const contentType = request.headers.get('content-type') || '';
     let formData;
     if (contentType.includes('application/json')) {

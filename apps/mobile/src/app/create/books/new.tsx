@@ -1,3 +1,4 @@
+import { aiConsentCopy } from '@sproutcue/shared/ai-consent';
 import { childDisplayName, getChildProfile } from '@sproutcue/shared/profile-defaults';
 import { PICTURE_BOOK_PHOTOS, pictureBookTemplateIcon, validateAiPhotos } from '@sproutcue/shared/studio';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -9,6 +10,7 @@ import { PhotoPicker } from '@/components/studio/photo-picker';
 import { ChoiceCards, TagGroup } from '@/components/studio/tag-group';
 import { Button, Screen, TextField } from '@/components/ui';
 import { Colors, Type } from '@/constants/theme';
+import { useAiConsent } from '@/lib/ai-consent';
 import { haptics } from '@/lib/haptics';
 import { PhotoCheckBlockedError, type PhotoProblem, type PickedPhoto } from '@/lib/photo-upload';
 import { useSession } from '@/lib/session';
@@ -19,6 +21,7 @@ export default function NewPictureBook() {
   const params = useLocalSearchParams<{ template?: string }>();
   const { user } = useSession();
   const data = usePictureBooks();
+  const consent = useAiConsent();
   const [slug, setSlug] = useState(params.template || '');
   const [childName, setChildName] = useState(childDisplayName(getChildProfile(user)));
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
@@ -44,6 +47,8 @@ export default function NewPictureBook() {
     const problem = validateAiPhotos(photos, PICTURE_BOOK_PHOTOS);
     if (problem) return setStatus(problem);
     if (!selected) return setStatus('Templates are still loading.');
+    // Photos are checked by OpenAI as they upload: ask for AI consent first.
+    if (!(await consent.requestConsent())) return setStatus(aiConsentCopy(language).declined);
     setBusy(true);
     try {
       const book = await data.createBook({ childName: childName.trim(), templateSlug: selected.slug, photos, language }, setStatus);
@@ -51,7 +56,9 @@ export default function NewPictureBook() {
       setProblems({});
       router.replace({ pathname: '/create/books/book', params: { bookId: book.id, created: '1' } });
     } catch (error: any) {
-      if (error instanceof PhotoCheckBlockedError) {
+      if (consent.handleError(error)) {
+        setStatus('');
+      } else if (error instanceof PhotoCheckBlockedError) {
         setProblems(error.uploads);
         setStatus(error.message);
         haptics.error();

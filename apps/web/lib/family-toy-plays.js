@@ -5,6 +5,7 @@ import sharp from 'sharp';
 import { getChildProfile } from '@sproutcue/shared/profile-defaults';
 import { createFamilyPhoto, readFamilyPhoto } from './family-photos.js';
 import { moderatePhoto as screenPhoto } from './child-photo-check.js';
+import { requireAiConsent } from './ai-consent.js';
 
 const LOCAL_ROOT = resolve('data/family-assets');
 const LOCAL_STATE = join(LOCAL_ROOT, 'toy-plays.json');
@@ -111,6 +112,7 @@ function responseText(payload) {
 
 
 export async function generateToyPlay(current, formData) {
+  requireAiConsent(current);
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not configured on the server.');
   const photo = await resolvePhoto(current, formData);
   const jpeg = await normalizedPhoto(photo);

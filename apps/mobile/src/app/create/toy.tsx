@@ -1,3 +1,4 @@
+import { aiConsentCopy } from '@sproutcue/shared/ai-consent';
 import { childDisplayName, getChildProfile } from '@sproutcue/shared/profile-defaults';
 import { validateAiPhotos } from '@sproutcue/shared/studio';
 import { useState } from 'react';
@@ -8,6 +9,7 @@ import { PhotoPicker } from '@/components/studio/photo-picker';
 import { ChoiceCards, TagGroup } from '@/components/studio/tag-group';
 import { Button, Screen } from '@/components/ui';
 import { Colors, Radius, Type } from '@/constants/theme';
+import { useAiConsent } from '@/lib/ai-consent';
 import type { PickedPhoto } from '@/lib/photo-upload';
 import { useSession } from '@/lib/session';
 import { useCreateToyPlay } from '@/lib/studio-data';
@@ -36,6 +38,7 @@ export default function ToyPlayScreen() {
   const childName = childDisplayName(child);
   const months = Number(child?.ageMonths) || 30;
   const create = useCreateToyPlay();
+  const consent = useAiConsent();
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [language, setLanguage] = useState<'en' | 'zh-CN'>('en');
   const [status, setStatus] = useState('');
@@ -45,11 +48,14 @@ export default function ToyPlayScreen() {
   const submit = async () => {
     const problem = validateAiPhotos(photos, { min: 1, max: 1 });
     if (problem) return setStatus(language === 'zh-CN' ? '请先选择一张清晰的玩具照片。' : problem === 'Choose 1 photo.' ? 'Choose a clear photo of one toy first.' : problem);
+    // The photo goes to OpenAI: ask for AI consent before uploading it.
+    if (!(await consent.requestConsent())) return setStatus(aiConsentCopy(language).declined);
     setBusy(true);
     try {
       await create(photos[0], language, setStatus);
       setStatus(language === 'zh-CN' ? '玩法已加入队列，完成后会通知你。' : 'Play idea queued. We’ll let you know when it is ready.');
     } catch (error: any) {
+      if (consent.handleError(error)) return setStatus('');
       setStatus(language === 'zh-CN' ? `暂时无法生成玩法：${error?.message || error}` : `Could not make a play idea: ${error?.message || error}`);
     } finally {
       setBusy(false);

@@ -1,3 +1,4 @@
+import { normalizeAiConsent } from '@sproutcue/shared/ai-consent';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -19,9 +20,12 @@ const PROFILE_COLUMNS = [
   'social_links',
   'location',
   'play_preferences',
+  'ai_consent_at',
+  'ai_consent_version',
   'created_at',
   'updated_at',
 ].join(', ');
+export { PROFILE_COLUMNS };
 const PLAY_DATE_COLUMNS = [
   'id',
   'host_user_id',
@@ -235,6 +239,7 @@ export function createUser({
     socialLinks: { icloudPhotosUrl: '', instagramUrl: '', tiktokUrl: '' },
     location: null,
     playPreferences: normalizePlayPreferences(),
+    aiConsent: null,
   };
 }
 
@@ -255,6 +260,7 @@ export function profileRowToUser(row) {
     socialLinks: row.social_links || { icloudPhotosUrl: '', instagramUrl: '', tiktokUrl: '' },
     location: row.location,
     playPreferences: normalizePlayPreferences(row.play_preferences),
+    aiConsent: normalizeAiConsent(row.ai_consent_at, row.ai_consent_version),
   };
 }
 

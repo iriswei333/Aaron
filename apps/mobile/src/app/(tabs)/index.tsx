@@ -10,6 +10,7 @@ import { IntentTiles } from '@/components/today/intent-tiles';
 import { StoryMakerSheet } from '@/components/today/story-maker-sheet';
 import { LocationSheet } from '@/components/location/location-sheet';
 import { Screen } from '@/components/ui';
+import { useAiConsent } from '@/lib/ai-consent';
 import { useLocationEditor } from '@/lib/location-editor';
 import { useSession } from '@/lib/session';
 import { useTodayData } from '@/lib/today-data';
@@ -20,6 +21,11 @@ export default function TodayScreen() {
   const { user } = useSession();
   const today = useTodayData();
   const [storyOpen, setStoryOpen] = useState(false);
+  const consent = useAiConsent();
+  // The playground story is written by OpenAI: ask for AI consent before opening the story maker.
+  const openStory = async () => {
+    if (await consent.requestConsent()) setStoryOpen(true);
+  };
   const [locationOpen, setLocationOpen] = useState(false);
   const locationEditor = useLocationEditor();
 
@@ -45,9 +51,9 @@ export default function TodayScreen() {
         onLocationPress={() => setLocationOpen(true)}
       />
       {plans.length ? (
-        <FamilyPlansSection plans={plans} childName={childName} onOpenPlans={goDiscover} onOpenStory={() => setStoryOpen(true)} />
+        <FamilyPlansSection plans={plans} childName={childName} onOpenPlans={goDiscover} onOpenStory={openStory} />
       ) : (
-        <AdventureSection recommendation={recommendation} childName={childName} onExplore={goDiscover} onOpenStory={() => setStoryOpen(true)} />
+        <AdventureSection recommendation={recommendation} childName={childName} onExplore={goDiscover} onOpenStory={openStory} />
       )}
       <IntentTiles
         intents={[

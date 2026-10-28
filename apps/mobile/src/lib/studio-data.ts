@@ -1,3 +1,4 @@
+import { aiConsentCopy } from '@sproutcue/shared/ai-consent';
 import { practiceStoryRequest } from '@sproutcue/shared/studio';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -5,6 +6,7 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
+import { useAiConsent } from './ai-consent';
 import { useAiJobs, type AiJob, type AiUsage } from './ai-jobs';
 import { apiRequest, apiUrl } from './api';
 import type { PracticeStoryAsset } from './family-data';
@@ -33,6 +35,7 @@ let booksCache: PictureBook[] | null = null;
 let templatesCache: PictureBookTemplate[] | null = null;
 
 export function usePictureBooks() {
+  const consent = useAiConsent();
   const { session, previewMode } = useSession();
   const signedIn = Boolean(session) && !previewMode;
   const ai = useAiJobs();
@@ -82,6 +85,8 @@ export function usePictureBooks() {
 
   const queue = useCallback(
     async (body: Record<string, unknown>, pending: string) => {
+      // Pages are drawn by OpenAI from the book's photos: ask for AI consent first.
+      if (!(await consent.requestConsent())) return setStatus(aiConsentCopy(consent.language).declined);
       setStatus(pending);
       try {
         const result = await apiRequest<Queued>('/family-assets/picture-book-pages', { method: 'POST', body });
@@ -97,10 +102,11 @@ export function usePictureBooks() {
         }));
         ai.start(result.job, result.usage);
       } catch (error: any) {
+        if (consent.handleError(error)) return setStatus('');
         setStatus(error?.message || 'Could not start this page.');
       }
     },
-    [ai],
+    [ai, consent],
   );
 
   const makePage = (bookId: string, pageKey: string) => queue({ bookAssetId: bookId, pageKey }, 'Starting this page…');

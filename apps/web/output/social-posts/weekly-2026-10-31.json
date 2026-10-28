@@ -1,0 +1,921 @@
+{
+  "id": "weekly-2026-10-31",
+  "weekKey": "2026-10-31",
+  "startDate": "2026-10-31",
+  "endDate": "2026-11-01",
+  "regions": [
+    {
+      "slug": "seattle",
+      "label": "Seattle",
+      "eventLimit": 2
+    },
+    {
+      "slug": "eastside",
+      "label": "Eastside",
+      "eventLimit": 2
+    },
+    {
+      "slug": "north-sound",
+      "label": "North Sound",
+      "eventLimit": 1
+    },
+    {
+      "slug": "south-sound",
+      "label": "South Sound",
+      "eventLimit": 1
+    },
+    {
+      "slug": "greater-puget-sound",
+      "label": "Greater Puget Sound",
+      "eventLimit": 1
+    },
+    {
+      "slug": "pacific-northwest",
+      "label": "Pacific Northwest",
+      "eventLimit": 1
+    }
+  ],
+  "posts": [
+    {
+      "id": "social-seattle-2026-10-31-giant-skulls-day-of-the-dead-art-exhibit",
+      "region": "Seattle",
+      "regionSlug": "seattle",
+      "city": "Seattle",
+      "title": "Giant Skulls Day of the Dead Art Exhibit",
+      "theme": "Arts + Culture",
+      "headline": "星期六亲子精选",
+      "bannerText": "带上家人，一起去玩！",
+      "highlights": [
+        "🎟️ 活动免费参加。🎨 可以体验艺术与文化主题活动。"
+      ],
+      "description": "A burst of color has taken over Westlake Park! Stop by to see the larger-than-life, beautiful Seattle Catrinas Festival skulls celebrating Día de los Muertos. The new exhibition is titled, “Giant Skulls: The Art of Remembering,” and will be up all month. Come check it out!",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Giant Skulls Day of the Dead Art Exhibit\n免费入场，Oct 31 · 9 a.m.–5 p.m. · Westlake Park\n\nAt Westlake Park. Arts + Culture, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-31",
+      "dateLabel": "Saturday, Oct. 31",
+      "occurrenceDates": [],
+      "timeLabel": "9 a.m.–5 p.m.",
+      "cost": "",
+      "free": true,
+      "venue": "Westlake Park",
+      "venueAddress": "401 Pine St., Seattle, WA, 98101, United States",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775192306624-sea-giant-skulls-westlake-oct-2023-640x480-c-default-92bc83824738.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/sea-giant-skulls-day-dead-art-exhibit/2026-10-31/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-31&page=1&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "Halloween"
+      ],
+      "recommendationReasons": [
+        "seasonal Halloween trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-seattle-2026-10-31-kid-s-story-time-at-the-couth-buzzard",
+      "region": "Seattle",
+      "regionSlug": "seattle",
+      "city": "Seattle",
+      "title": "Kid’s Story Time at The Couth Buzzard",
+      "theme": "Education + Learning",
+      "headline": "星期六亲子精选",
+      "bannerText": "把周末过成美好回忆！",
+      "highlights": [
+        "听故事、唱歌、玩游戏，还能一起做合作美术。顺便逛逛书店，寻找儿童区里“睡觉的熊”。店内咖啡馆可来一份小食或咖啡。"
+      ],
+      "description": "Join us for Kid’s Story Time at The Couth Buzzard. We’ll read a story, sing songs, play games, and do collaborative art! While you’re here, enjoy exploring the bookstore (including a sleeping bear in the kid’s section!) and grab a bite to eat or a coffee at our cafe. Image sourced from event website.",
+      "caption": "这个周末去Seattle玩什么？🌿\n\n推荐：Kid’s Story Time at The Couth Buzzard\n免费入场，Oct 31 · 10 a.m.–10:45 a.m. · Couth Buzzard, 8310 Greenwood Ave. N.\n\nAt Couth Buzzard, 8310 Greenwood Ave. N.. Education + Learning, Arts + Culture, Play + Recreation.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-31",
+      "dateLabel": "Saturday, Oct. 31",
+      "occurrenceDates": [],
+      "timeLabel": "10 a.m.–10:45 a.m.",
+      "cost": "",
+      "free": true,
+      "venue": "Couth Buzzard, 8310 Greenwood Ave. N.",
+      "venueAddress": "Couth Buzzard, 8310 Greenwood Ave. N., Seattle, 98103, United States",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775188482063-cbstorefront-66c69ad74fab-1024x768.jpeg",
+      "eventUrl": "https://www.parentmap.com/calendar/kids-story-time-couth-buzzard/2026-10-31/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-31&page=2&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "story time"
+      ],
+      "recommendationReasons": [
+        "welcoming early-learning topic for young children",
+        "age fit for toddlers and preschoolers"
+      ],
+      "recommendationScore": 18,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-eastside-2026-11-01-kenmore-dia-de-los-muertos-celebration",
+      "region": "Eastside",
+      "regionSlug": "eastside",
+      "city": "Kenmore",
+      "title": "Kenmore Dia de los Muertos Celebration",
+      "theme": "Festivals + Community",
+      "headline": "星期日亲子精选",
+      "bannerText": "带上家人，一起去玩！",
+      "highlights": [
+        "第三届 Kenmore 亡灵节庆典，有互动祭坛、表演、趣味活动与手工，带来丰富的文化体验。提供教育资料和礼品派发，活动免费向所有人开放。"
+      ],
+      "description": "You’re invited to the third annual Kenmore Dia de los Muertos Celebration on Sunday, November 1, 2026 from 11am – 2pm at the Hangar in Kenmore Town Square. This community event includes an interactive ofrenda, performances, activities, crafts, educational materials, giveaways, and more! This event is free and open to all. We hope to see you there to celebrate this important and significant event. Image sourced from event website.",
+      "caption": "这个周末去Eastside玩什么？🌿\n\n推荐：Kenmore Dia de los Muertos Celebration\n免费入场，Nov 1 · 11 a.m.–2 p.m. · Kenmore Hangar\n\nAt Kenmore Hangar. Festivals + Community, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-11-01",
+      "dateLabel": "Sunday, Nov. 1",
+      "occurrenceDates": [],
+      "timeLabel": "11 a.m.–2 p.m.",
+      "cost": "",
+      "free": true,
+      "venue": "Kenmore Hangar",
+      "venueAddress": "6728 NE 181st St, Kenmore, WA, 98028, United States",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/10/638944005525370000-1024x769.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/kenmore-dia-de-los-muertos-celebration/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-11-01&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "Halloween"
+      ],
+      "recommendationReasons": [
+        "seasonal Halloween trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-eastside-2026-10-31-remlinger-farms-fall-harvest-festival",
+      "region": "Eastside",
+      "regionSlug": "eastside",
+      "city": "Carnation",
+      "title": "Remlinger Farms Fall Harvest Festival",
+      "theme": "Play + Recreation",
+      "headline": "星期六亲子精选",
+      "bannerText": "把周末过成美好回忆！",
+      "highlights": [
+        "南瓜村与自采南瓜田随园区开放同步开放，30+游乐项目一票畅玩，想刷几遍都行。打开 RideFinder 查看身高要求和本周末运营清单。"
+      ],
+      "description": "Opening weekend is Saturday, September 26. From October on we add Fridays — three full days a week of harvest, right through Sunday, November 1. Pumpkin Village and the U-Pick fields are open every day we are. Every open day runs 10 a.m. – 6 p.m. — gates close at six, every date on the list. Thirty-plus rides and attractions, all covered by one wristband — ride them once or ride them eleven times. Open the RideFinder for height requirements and this weekend’s operating list.",
+      "caption": "这个周末去Eastside玩什么？🌿\n\n推荐：Remlinger Farms Fall Harvest Festival\nOct 31 · 10 a.m.–6 p.m. · Remlinger Farms\n\nAt Remlinger Farms. Play + Recreation, Festivals + Community, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-31",
+      "dateLabel": "Saturday, Oct. 31",
+      "occurrenceDates": [],
+      "timeLabel": "10 a.m.–6 p.m.",
+      "cost": "",
+      "free": false,
+      "venue": "Remlinger Farms",
+      "venueAddress": "32610 NE 32nd St, Carnation, WA, 98014-6104, United States",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775187473799-rides4-74f3aa8a2eb0.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/remlinger-farms-fall-harvest-festival-0/2026-10-31/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-31&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "harvest"
+      ],
+      "recommendationReasons": [
+        "seasonal fall trend"
+      ],
+      "recommendationScore": 18,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-north-sound-2026-10-31-a-very-farmy-halloween-edition",
+      "region": "North Sound",
+      "regionSlug": "north-sound",
+      "city": "Lake Stevens",
+      "title": "A Very Farmy Halloween Edition",
+      "theme": "Play + Recreation",
+      "headline": "星期六亲子精选",
+      "bannerText": "把周末过成美好回忆！",
+      "highlights": [
+        "近距离喂食高地牛、驯鹿、牦牛、羊驼、马和迷你驴，还能穿万圣节装扮拍照。🌿 可以体验户外与运动主题活动。"
+      ],
+      "description": "October only- Halloween costumes (especially farm themed) encouraged! Lots of fall photo opportunities await! This is the only place in the Pacific Northwest where you can pet, feed, and connect with Scottish Highland cows, yaks, reindeer, alpacas, mini donkeys, and horses—all in one unforgettable visit. And yes, our adorable baby calves can’t wait to meet you! More than just a tour, this is your chance to slow down in nature, savor the moment, and create heartwarming memories with majestic animals. Perfect for all ages! Image sourced from event website.",
+      "caption": "这个周末去North Sound玩什么？🌿\n\n推荐：A Very Farmy Halloween Edition\nOct 31 · 10 a.m.–6 p.m. · Luckie Farms\n\nAt Luckie Farms. Play + Recreation, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-31",
+      "dateLabel": "Saturday, Oct. 31",
+      "occurrenceDates": [],
+      "timeLabel": "10 a.m.–6 p.m.",
+      "cost": "",
+      "free": false,
+      "venue": "Luckie Farms",
+      "venueAddress": "930 Sunnyside Blvd, Lake Stevens, WA, 98258, United States",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/10/e5510e7c-1331-4d23-9c89-9b585d13af06.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/a-very-farmy-halloween-edition/2026-10-31/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-31&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "Halloween"
+      ],
+      "recommendationReasons": [
+        "seasonal Halloween trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    },
+    {
+      "id": "social-south-sound-2026-10-31-d-a-de-los-muertos-festival-at-the-outlet-collection",
+      "region": "South Sound",
+      "regionSlug": "south-sound",
+      "city": "Auburn",
+      "title": "Día de los Muertos Festival at the Outlet Collection",
+      "theme": "Festivals + Community",
+      "headline": "星期六亲子精选",
+      "bannerText": "把周末过成美好回忆！",
+      "highlights": [
+        "体验墨西哥亡灵节的多彩传统与社区纪念。欣赏现场音乐与民俗舞蹈，Catrina 时装秀亮相。玩 Lotería、参加抽奖赢礼品，还能逛特色市集。"
+      ],
+      "description": "Día de los Muertos: “Remember Me” October 30–November 1 | 10 a.m.–7 p.m. The Outlet Collection Seattle Experience the vibrant traditions of Día de los Muertos during a three-day celebration of culture, community and remembrance presented by Rose Azul Vintage. Event activities include: Live music Folklórico dancers Catrina fashion show Lotería game Raffles and prizes Vendor market And much more! For more information, contact Diana Anica at roseazulvintage@gmail.com.",
+      "caption": "这个周末去South Sound玩什么？🌿\n\n推荐：Día de los Muertos Festival at the Outlet Collection\n免费入场，Oct 31 · 10 a.m.–7 p.m. · The Outlet Collection | Seattle\n\nAt The Outlet Collection | Seattle. Festivals + Community, Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-31",
+      "dateLabel": "Saturday, Oct. 31",
+      "occurrenceDates": [],
+      "timeLabel": "10 a.m.–7 p.m.",
+      "cost": "",
+      "free": true,
+      "venue": "The Outlet Collection | Seattle",
+      "venueAddress": "1101 Outlet Collection Way, Auburn, WA, 98001, United States",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/04/1775186053279-screenshot-2025-10-15-115333-cb81e2473bda.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/dia-de-los-muertos-festival-outlet-collection/2026-10-31/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-31&page=1&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "Halloween"
+      ],
+      "recommendationReasons": [
+        "seasonal Halloween trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-greater-puget-sound-2026-11-01-spooky-walk-at-snoqualmie-valley-art-center",
+      "region": "Greater Puget Sound",
+      "regionSlug": "greater-puget-sound",
+      "city": "Duvall",
+      "title": "Spooky Walk at Snoqualmie Valley Art Center",
+      "theme": "Seasonal + Holiday",
+      "headline": "星期日亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "带上你的南瓜灯，让它在惊悚步行中最后亮一次。结束后南瓜将统一送往农场堆肥。还有免费苹果饮品。"
+      ],
+      "description": "Do you ever feel a little bit sad that jack-o-lanterns enjoy such fleeting glory? All of these gourds, grown with care and carved into beautiful folk art, rotting on porches across the land. Hey, guess what? We invite you to bring them out for one final showing. The March of the Vegetables invites you to bring your pumpkin to the Duvall Foundation for the Arts property for one last spooky walk, after which they will be taken to Hearth Farm for composting. November 1. Drop off, anytime after 1:00 PM. Spooky walk from 5-7:30. Free Cider!",
+      "caption": "这个周末去Greater Puget Sound玩什么？🌿\n\n推荐：Spooky Walk at Snoqualmie Valley Art Center\n免费入场，Nov 1 · 5 p.m.–7:30 p.m. · Snoqualmie Valley Art Center\n\nAt Snoqualmie Valley Art Center. Seasonal + Holiday.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-11-01",
+      "dateLabel": "Sunday, Nov. 1",
+      "occurrenceDates": [],
+      "timeLabel": "5 p.m.–7:30 p.m.",
+      "cost": "",
+      "free": true,
+      "venue": "Snoqualmie Valley Art Center",
+      "venueAddress": "14301 Railroad Way NE, Duvall, 98019, United States",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/10/gadgemayur-pumpkin-6720424_640.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/spooky-walk-at-snoqualmie-valley-art-center/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-11-01&page=1&region=greater-puget-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [
+        "Halloween"
+      ],
+      "recommendationReasons": [
+        "seasonal Halloween trend"
+      ],
+      "recommendationScore": 20,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "openai"
+    },
+    {
+      "id": "social-pacific-northwest-2026-10-31-nominations-open-for-monopoly-seattle-edition",
+      "region": "Pacific Northwest",
+      "regionSlug": "pacific-northwest",
+      "city": "Pacific Northwest",
+      "title": "Nominations Open for MONOPOLY: Seattle Edition",
+      "theme": "Arts + Culture",
+      "headline": "星期六亲子精选",
+      "bannerText": "周末快乐，亲子同行！",
+      "highlights": [
+        "🎟️ 活动免费参加。🎨 可以体验艺术与文化主题活动。"
+      ],
+      "description": "Top Trumps USA is creating a new, refreshed MONOPOLY: Seattle Edition, debuting in October 2027, and today announced it’s inviting Seattleites to nominate the local places, businesses, and organizations they think best represent the city on the board. Selected spots, businesses, and nonprofits will have the opportunity to become permanent squares on the board, replacing the classic Atlantic City properties with Seattle staples. Public nominations are now open, making this a unique opportunity for local organizations — and a fun question for Seattleites: Which Seattle staples belong on the board? All nominations can be submitted HERE through October 31st.",
+      "caption": "这个周末去Pacific Northwest玩什么？🌿\n\n推荐：Nominations Open for MONOPOLY: Seattle Edition\n免费入场，Oct 31 · 8 a.m.–7 p.m.\n\nArts + Culture.\n\n带上家人，轻松安排一个有趣的周末！\n\n资料整理：SproutCue\n活动来源：ParentMap",
+      "date": "2026-10-31",
+      "dateLabel": "Saturday, Oct. 31",
+      "occurrenceDates": [],
+      "timeLabel": "8 a.m.–7 p.m.",
+      "cost": "",
+      "free": true,
+      "venue": "Pacific Northwest",
+      "venueAddress": "",
+      "latitude": null,
+      "longitude": null,
+      "distanceMiles": null,
+      "parentMapDescription": "",
+      "imageUrl": "https://www.parentmap.com/wp-content/uploads/2026/09/IMG_1430.jpg",
+      "eventUrl": "https://www.parentmap.com/calendar/nominations-open-for-monopoly-seattle-edition/2026-10-31/",
+      "seriesUrl": "",
+      "sourceUrl": "https://www.parentmap.com/calendar/?date=2026-10-31&page=1&region=pacific-northwest&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+      "source": "parentmap",
+      "sourceLabel": "ParentMap",
+      "matchingKeywords": [],
+      "recommendationReasons": [],
+      "recommendationScore": 0,
+      "author": "SproutCue",
+      "status": "draft",
+      "highlightSource": "local-fallback"
+    }
+  ],
+  "roundup": {
+    "title": "本周末亲子活动精选｜7城8场",
+    "caption": "这个周末，7 个城市都有适合家庭的活动！🌿\n\n本周亮点包括「Giant Skulls Day of the Dead Art Exhibit」和「Kid’s Story Time at The Couth Buzzard」，适合安排轻松又充实的亲子时光。从户外探索到社区活动，各个城市都有值得带孩子一起体验的选择。\n\n我们整理了 8 场地区亮点：\n\n- Seattle：Giant Skulls Day of the Dead Art Exhibit\n  日期：Saturday, Oct. 31\n  地点：Westlake Park · 401 Pine St., Seattle, WA 98101\n  亮点：🎟️ 活动免费参加。\n\n- Seattle：Kid’s Story Time at The Couth Buzzard\n  日期：Saturday, Oct. 31\n  地点：Couth Buzzard, 8310 Greenwood Ave. N. · Couth Buzzard, 8310 Greenwood Ave. N., Seattle, 98103\n  亮点：听故事、唱歌、玩游戏，还能一起做合作美术。\n\n- Kenmore：Kenmore Dia de los Muertos Celebration\n  日期：Sunday, Nov. 1\n  地点：Kenmore Hangar · 6728 NE 181st St, Kenmore, WA 98028\n  亮点：第三届 Kenmore 亡灵节庆典，有互动祭坛、表演、趣味活动与手工，带来丰富的文化体验。\n\n- Carnation：Remlinger Farms Fall Harvest Festival\n  日期：Saturday, Oct. 31\n  地点：Remlinger Farms · 32610 NE 32nd St, Carnation, WA 98014-6104\n  亮点：南瓜村与自采南瓜田随园区开放同步开放，30+游乐项目一票畅玩，想刷几遍都行。\n\n- Lake Stevens：A Very Farmy Halloween Edition\n  日期：Saturday, Oct. 31\n  地点：Luckie Farms · 930 Sunnyside Blvd, Lake Stevens, WA 98258\n  亮点：近距离喂食高地牛、驯鹿、牦牛、羊驼、马和迷你驴，还能穿万圣节装扮拍照。\n\n- Auburn：Día de los Muertos Festival at the Outlet Collection\n  日期：Saturday, Oct. 31\n  地点：The Outlet Collection | Seattle · 1101 Outlet Collection Way, Auburn, WA 98001\n  亮点：体验墨西哥亡灵节的多彩传统与社区纪念。\n\n- Duvall：Spooky Walk at Snoqualmie Valley Art Center\n  日期：Sunday, Nov. 1\n  地点：Snoqualmie Valley Art Center · 14301 Railroad Way NE, Duvall, 98019\n  亮点：带上你的南瓜灯，让它在惊悚步行中最后亮一次。\n\n- Pacific Northwest：Nominations Open for MONOPOLY: Seattle Edition\n  日期：Saturday, Oct. 31\n  地点：Pacific Northwest\n  亮点：🎟️ 活动免费参加。\n\n收藏这份周末清单，带上家人一起出门玩吧！\n\n想让周末更轻松？来 SproutCue 找附近的 playdate、游乐场、故事时间和周末活动吧！🛝📚 创建你的家庭卡片，认识附近愿意一起玩的家庭，一起发现更多亲子时光！💛\n\n资料整理：SproutCue\n活动日期：2026-10-31–2026-11-01",
+    "posts": [
+      {
+        "city": "Seattle",
+        "title": "Giant Skulls Day of the Dead Art Exhibit",
+        "date": "2026-10-31",
+        "dateLabel": "Saturday, Oct. 31",
+        "occurrenceDates": [],
+        "timeLabel": "9 a.m.–5 p.m.",
+        "venue": "Westlake Park",
+        "venueAddress": "401 Pine St., Seattle, WA, 98101, United States",
+        "highlights": [
+          "🎟️ 活动免费参加。🎨 可以体验艺术与文化主题活动。"
+        ],
+        "matchingKeywords": [
+          "Halloween"
+        ],
+        "recommendationReasons": [
+          "seasonal Halloween trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/sea-giant-skulls-day-dead-art-exhibit/2026-10-31/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Seattle",
+        "title": "Kid’s Story Time at The Couth Buzzard",
+        "date": "2026-10-31",
+        "dateLabel": "Saturday, Oct. 31",
+        "occurrenceDates": [],
+        "timeLabel": "10 a.m.–10:45 a.m.",
+        "venue": "Couth Buzzard, 8310 Greenwood Ave. N.",
+        "venueAddress": "Couth Buzzard, 8310 Greenwood Ave. N., Seattle, 98103, United States",
+        "highlights": [
+          "听故事、唱歌、玩游戏，还能一起做合作美术。顺便逛逛书店，寻找儿童区里“睡觉的熊”。店内咖啡馆可来一份小食或咖啡。"
+        ],
+        "matchingKeywords": [
+          "story time"
+        ],
+        "recommendationReasons": [
+          "welcoming early-learning topic for young children",
+          "age fit for toddlers and preschoolers"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/kids-story-time-couth-buzzard/2026-10-31/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Kenmore",
+        "title": "Kenmore Dia de los Muertos Celebration",
+        "date": "2026-11-01",
+        "dateLabel": "Sunday, Nov. 1",
+        "occurrenceDates": [],
+        "timeLabel": "11 a.m.–2 p.m.",
+        "venue": "Kenmore Hangar",
+        "venueAddress": "6728 NE 181st St, Kenmore, WA, 98028, United States",
+        "highlights": [
+          "第三届 Kenmore 亡灵节庆典，有互动祭坛、表演、趣味活动与手工，带来丰富的文化体验。提供教育资料和礼品派发，活动免费向所有人开放。"
+        ],
+        "matchingKeywords": [
+          "Halloween"
+        ],
+        "recommendationReasons": [
+          "seasonal Halloween trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/kenmore-dia-de-los-muertos-celebration/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Carnation",
+        "title": "Remlinger Farms Fall Harvest Festival",
+        "date": "2026-10-31",
+        "dateLabel": "Saturday, Oct. 31",
+        "occurrenceDates": [],
+        "timeLabel": "10 a.m.–6 p.m.",
+        "venue": "Remlinger Farms",
+        "venueAddress": "32610 NE 32nd St, Carnation, WA, 98014-6104, United States",
+        "highlights": [
+          "南瓜村与自采南瓜田随园区开放同步开放，30+游乐项目一票畅玩，想刷几遍都行。打开 RideFinder 查看身高要求和本周末运营清单。"
+        ],
+        "matchingKeywords": [
+          "harvest"
+        ],
+        "recommendationReasons": [
+          "seasonal fall trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/remlinger-farms-fall-harvest-festival-0/2026-10-31/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Lake Stevens",
+        "title": "A Very Farmy Halloween Edition",
+        "date": "2026-10-31",
+        "dateLabel": "Saturday, Oct. 31",
+        "occurrenceDates": [],
+        "timeLabel": "10 a.m.–6 p.m.",
+        "venue": "Luckie Farms",
+        "venueAddress": "930 Sunnyside Blvd, Lake Stevens, WA, 98258, United States",
+        "highlights": [
+          "近距离喂食高地牛、驯鹿、牦牛、羊驼、马和迷你驴，还能穿万圣节装扮拍照。🌿 可以体验户外与运动主题活动。"
+        ],
+        "matchingKeywords": [
+          "Halloween"
+        ],
+        "recommendationReasons": [
+          "seasonal Halloween trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/a-very-farmy-halloween-edition/2026-10-31/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Auburn",
+        "title": "Día de los Muertos Festival at the Outlet Collection",
+        "date": "2026-10-31",
+        "dateLabel": "Saturday, Oct. 31",
+        "occurrenceDates": [],
+        "timeLabel": "10 a.m.–7 p.m.",
+        "venue": "The Outlet Collection | Seattle",
+        "venueAddress": "1101 Outlet Collection Way, Auburn, WA, 98001, United States",
+        "highlights": [
+          "体验墨西哥亡灵节的多彩传统与社区纪念。欣赏现场音乐与民俗舞蹈，Catrina 时装秀亮相。玩 Lotería、参加抽奖赢礼品，还能逛特色市集。"
+        ],
+        "matchingKeywords": [
+          "Halloween"
+        ],
+        "recommendationReasons": [
+          "seasonal Halloween trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/dia-de-los-muertos-festival-outlet-collection/2026-10-31/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Duvall",
+        "title": "Spooky Walk at Snoqualmie Valley Art Center",
+        "date": "2026-11-01",
+        "dateLabel": "Sunday, Nov. 1",
+        "occurrenceDates": [],
+        "timeLabel": "5 p.m.–7:30 p.m.",
+        "venue": "Snoqualmie Valley Art Center",
+        "venueAddress": "14301 Railroad Way NE, Duvall, 98019, United States",
+        "highlights": [
+          "带上你的南瓜灯，让它在惊悚步行中最后亮一次。结束后南瓜将统一送往农场堆肥。还有免费苹果饮品。"
+        ],
+        "matchingKeywords": [
+          "Halloween"
+        ],
+        "recommendationReasons": [
+          "seasonal Halloween trend"
+        ],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/spooky-walk-at-snoqualmie-valley-art-center/",
+        "seriesUrl": ""
+      },
+      {
+        "city": "Pacific Northwest",
+        "title": "Nominations Open for MONOPOLY: Seattle Edition",
+        "date": "2026-10-31",
+        "dateLabel": "Saturday, Oct. 31",
+        "occurrenceDates": [],
+        "timeLabel": "8 a.m.–7 p.m.",
+        "venue": "Pacific Northwest",
+        "venueAddress": "",
+        "highlights": [
+          "🎟️ 活动免费参加。🎨 可以体验艺术与文化主题活动。"
+        ],
+        "matchingKeywords": [],
+        "recommendationReasons": [],
+        "sourceLabel": "ParentMap",
+        "eventUrl": "https://www.parentmap.com/calendar/nominations-open-for-monopoly-seattle-edition/2026-10-31/",
+        "seriesUrl": ""
+      }
+    ],
+    "startDate": "2026-10-31",
+    "endDate": "2026-11-01",
+    "author": "SproutCue"
+  },
+  "source": "parentmap",
+  "searchMode": "parentmap-regions",
+  "maxDistanceMiles": null,
+  "slotCount": 8,
+  "generatedAt": "2026-10-26T17:31:21.931Z",
+  "statuses": [
+    {
+      "region": "seattle",
+      "regionLabel": "Seattle",
+      "cities": [
+        "Seattle"
+      ],
+      "day": "2026-10-31–2026-11-01",
+      "matched": true,
+      "selectedCount": 2,
+      "requestedCount": 2,
+      "fallback": false,
+      "providerStatus": "Selected 2 of 2 requested ParentMap weekend events.",
+      "sourceUrls": [
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=1&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=2&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=3&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=4&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=5&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=1&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=2&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=3&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=4&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=5&region=seattle&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+      ]
+    },
+    {
+      "region": "eastside",
+      "regionLabel": "Eastside",
+      "cities": [
+        "Kenmore",
+        "Carnation"
+      ],
+      "day": "2026-10-31–2026-11-01",
+      "matched": true,
+      "selectedCount": 2,
+      "requestedCount": 2,
+      "fallback": false,
+      "providerStatus": "Selected 2 of 2 requested ParentMap weekend events.",
+      "sourceUrls": [
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=2&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=3&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=4&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=5&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=1&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=2&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=3&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=4&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=5&region=eastside&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+      ]
+    },
+    {
+      "region": "north-sound",
+      "regionLabel": "North Sound",
+      "cities": [
+        "Lake Stevens"
+      ],
+      "day": "2026-10-31–2026-11-01",
+      "matched": true,
+      "selectedCount": 1,
+      "requestedCount": 1,
+      "fallback": false,
+      "providerStatus": "Selected 1 of 1 requested ParentMap weekend event.",
+      "sourceUrls": [
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=2&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=3&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=4&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=5&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=1&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=2&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=3&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=4&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=5&region=north-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+      ]
+    },
+    {
+      "region": "south-sound",
+      "regionLabel": "South Sound",
+      "cities": [
+        "Auburn"
+      ],
+      "day": "2026-10-31–2026-11-01",
+      "matched": true,
+      "selectedCount": 1,
+      "requestedCount": 1,
+      "fallback": false,
+      "providerStatus": "Selected 1 of 1 requested ParentMap weekend event.",
+      "sourceUrls": [
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=1&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=2&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=3&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=4&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=5&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=1&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=2&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=3&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=4&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=5&region=south-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+      ]
+    },
+    {
+      "region": "greater-puget-sound",
+      "regionLabel": "Greater Puget Sound",
+      "cities": [
+        "Duvall"
+      ],
+      "day": "2026-10-31–2026-11-01",
+      "matched": true,
+      "selectedCount": 1,
+      "requestedCount": 1,
+      "fallback": false,
+      "providerStatus": "Selected 1 of 1 requested ParentMap weekend event.",
+      "sourceUrls": [
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=1&region=greater-puget-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=2&region=greater-puget-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=3&region=greater-puget-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=4&region=greater-puget-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=5&region=greater-puget-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=1&region=greater-puget-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=2&region=greater-puget-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=3&region=greater-puget-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=4&region=greater-puget-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=5&region=greater-puget-sound&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+      ]
+    },
+    {
+      "region": "pacific-northwest",
+      "regionLabel": "Pacific Northwest",
+      "cities": [
+        "Pacific Northwest"
+      ],
+      "day": "2026-10-31–2026-11-01",
+      "matched": true,
+      "selectedCount": 1,
+      "requestedCount": 1,
+      "fallback": true,
+      "providerStatus": "Selected 1 of 1 requested ParentMap weekend event.",
+      "sourceUrls": [
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=1&region=pacific-northwest&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=2&region=pacific-northwest&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=3&region=pacific-northwest&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=4&region=pacific-northwest&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-10-31&page=5&region=pacific-northwest&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=1&region=pacific-northwest&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=2&region=pacific-northwest&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=3&region=pacific-northwest&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=4&region=pacific-northwest&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning",
+        "https://www.parentmap.com/calendar/?date=2026-11-01&page=5&region=pacific-northwest&age=toddlers-preschoolers%2Celementary%2Call-ages&category=play-recreation%2Cfestivals-community%2Cseasonal-holiday%2Carts-culture%2Ceducation-learning"
+      ]
+    }
+  ],
+  "imageDirectory": "/Users/iriswei/Documents/AaronDaily/apps/web/output/social-posts",
+  "imageGenCommand": "/Users/iriswei/.codex/skills/.system/imagegen/scripts/image_gen.py",
+  "posterLimit": 8,
+  "existingPosterCount": 86,
+  "skippedExistingPosterCount": 0,
+  "regenerationRequests": [],
+  "feedback": "",
+  "rejectedEvents": [
+    {
+      "title": "aiweiweicircleofanimalszodiacheads",
+      "normalizedTitle": "aiweiweicircleofanimalszodiacheads",
+      "reason": ""
+    },
+    {
+      "title": "downtownissaquahstorystrollwatercress",
+      "normalizedTitle": "downtownissaquahstorystrollwatercress",
+      "reason": "duplicated events in history"
+    },
+    {
+      "title": "salmonseeson",
+      "normalizedTitle": "salmonseeson",
+      "reason": "too many relevant events"
+    },
+    {
+      "title": "salmonseesonatnorthcreektrailpark",
+      "normalizedTitle": "salmonseesonatnorthcreektrailpark",
+      "reason": "too many relevant events"
+    },
+    {
+      "title": "Salmon SEEson at Issaquah Creek",
+      "normalizedTitle": "salmonseesonatissaquahcreek",
+      "reason": ""
+    },
+    {
+      "title": "Fall Festival at Bob’s Corn and Pumpkin Farm",
+      "normalizedTitle": "fallfestivalatbobscornandpumpkinfarm",
+      "reason": "too many relevent events"
+    },
+    {
+      "title": "Renton parkrun",
+      "normalizedTitle": "rentonparkrun",
+      "reason": "not attractive"
+    },
+    {
+      "title": "Tumwater Falls Festival",
+      "normalizedTitle": "tumwaterfallsfestival",
+      "reason": "too far"
+    },
+    {
+      "title": "Sky Valley Heritage Hunt",
+      "normalizedTitle": "skyvalleyheritagehunt",
+      "reason": "not attractive"
+    },
+    {
+      "title": "Craven Farm Fall Festival",
+      "normalizedTitle": "cravenfarmfallfestival",
+      "reason": "too many relevent events"
+    },
+    {
+      "title": "Pumpkin Farm and Puzzle Patch",
+      "normalizedTitle": "pumpkinfarmandpuzzlepatch",
+      "reason": "too many relevent events"
+    },
+    {
+      "title": "Issaquah Salmon Days",
+      "normalizedTitle": "issaquahsalmondays",
+      "reason": "too many relevent events"
+    },
+    {
+      "title": "Family Game Dayattractive",
+      "normalizedTitle": "familygamedayattractive",
+      "reason": ""
+    },
+    {
+      "title": "Family Game Day",
+      "normalizedTitle": "familygameday",
+      "reason": "not attractive"
+    },
+    {
+      "title": "Spooky Science at the Burke Museum",
+      "normalizedTitle": "spookyscienceattheburkemuseum",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Storywalk at Alderwood Park: César’s Cerulean Surprise",
+      "normalizedTitle": "storywalkatalderwoodparkcsarsceruleansurprise",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "2026-10-10",
+      "normalizedTitle": "20261010",
+      "reason": "|duplicated events"
+    },
+    {
+      "title": "October Weekends at Jubilee Harvest Festival",
+      "normalizedTitle": "octoberweekendsatjubileeharvestfestival",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Picha Farms Fall Festival",
+      "normalizedTitle": "pichafarmsfallfestival",
+      "reason": "duplicated events--reject-event"
+    },
+    {
+      "title": "Stocker Farms Fall Festival",
+      "normalizedTitle": "stockerfarmsfallfestival",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Harvest Festival at Swans Trail Farms",
+      "normalizedTitle": "harvestfestivalatswanstrailfarms",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Thomas Family Farm",
+      "normalizedTitle": "thomasfamilyfarm",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Thomas Family Farm Fall Festival Fun Park",
+      "normalizedTitle": "thomasfamilyfarmfallfestivalfunpark",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Story Time with Seattle Botanic Gardens",
+      "normalizedTitle": "storytimewithseattlebotanicgardens",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "StoryWalk at Lake Wilderness Arboretum",
+      "normalizedTitle": "storywalkatlakewildernessarboretum",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Salmon SEEson at Longfellow Creek",
+      "normalizedTitle": "salmonseesonatlongfellowcreek",
+      "reason": "duplicated events"
+    },
+    {
+      "title": "Red Barn Farm Fall Festival",
+      "normalizedTitle": "redbarnfarmfallfestival",
+      "reason": "duplicated events"
+    }
+  ],
+  "unmatchedRegenerationRequests": [],
+  "sampleRun": false,
+  "posterPostIds": [
+    "social-seattle-2026-10-31-giant-skulls-day-of-the-dead-art-exhibit",
+    "social-seattle-2026-10-31-kid-s-story-time-at-the-couth-buzzard",
+    "social-eastside-2026-11-01-kenmore-dia-de-los-muertos-celebration",
+    "social-eastside-2026-10-31-remlinger-farms-fall-harvest-festival",
+    "social-north-sound-2026-10-31-a-very-farmy-halloween-edition",
+    "social-south-sound-2026-10-31-d-a-de-los-muertos-festival-at-the-outlet-collection",
+    "social-greater-puget-sound-2026-11-01-spooky-walk-at-snoqualmie-valley-art-center",
+    "social-pacific-northwest-2026-10-31-nominations-open-for-monopoly-seattle-edition"
+  ],
+  "posterSetPostIds": [
+    "social-seattle-2026-10-31-giant-skulls-day-of-the-dead-art-exhibit",
+    "social-seattle-2026-10-31-kid-s-story-time-at-the-couth-buzzard",
+    "social-eastside-2026-11-01-kenmore-dia-de-los-muertos-celebration",
+    "social-eastside-2026-10-31-remlinger-farms-fall-harvest-festival",
+    "social-north-sound-2026-10-31-a-very-farmy-halloween-edition",
+    "social-south-sound-2026-10-31-d-a-de-los-muertos-festival-at-the-outlet-collection",
+    "social-greater-puget-sound-2026-11-01-spooky-walk-at-snoqualmie-valley-art-center",
+    "social-pacific-northwest-2026-10-31-nominations-open-for-monopoly-seattle-edition"
+  ],
+  "summaryPoster": {
+    "filename": "weekly-2026-10-31-all-events.png",
+    "eventCount": 8,
+    "eventPostIds": [
+      "social-seattle-2026-10-31-giant-skulls-day-of-the-dead-art-exhibit",
+      "social-seattle-2026-10-31-kid-s-story-time-at-the-couth-buzzard",
+      "social-eastside-2026-11-01-kenmore-dia-de-los-muertos-celebration",
+      "social-eastside-2026-10-31-remlinger-farms-fall-harvest-festival",
+      "social-north-sound-2026-10-31-a-very-farmy-halloween-edition",
+      "social-south-sound-2026-10-31-d-a-de-los-muertos-festival-at-the-outlet-collection",
+      "social-greater-puget-sound-2026-11-01-spooky-walk-at-snoqualmie-valley-art-center",
+      "social-pacific-northwest-2026-10-31-nominations-open-for-monopoly-seattle-edition"
+    ],
+    "generatedThisRun": true
+  },
+  "posterLimitByRegion": {
+    "seattle": 2,
+    "eastside": 2,
+    "north-sound": 1,
+    "south-sound": 1,
+    "greater-puget-sound": 1,
+    "pacific-northwest": 1
+  },
+  "roundupPostIds": [
+    "social-seattle-2026-10-31-giant-skulls-day-of-the-dead-art-exhibit",
+    "social-seattle-2026-10-31-kid-s-story-time-at-the-couth-buzzard",
+    "social-eastside-2026-11-01-kenmore-dia-de-los-muertos-celebration",
+    "social-eastside-2026-10-31-remlinger-farms-fall-harvest-festival",
+    "social-north-sound-2026-10-31-a-very-farmy-halloween-edition",
+    "social-south-sound-2026-10-31-d-a-de-los-muertos-festival-at-the-outlet-collection",
+    "social-greater-puget-sound-2026-11-01-spooky-walk-at-snoqualmie-valley-art-center",
+    "social-pacific-northwest-2026-10-31-nominations-open-for-monopoly-seattle-edition"
+  ],
+  "roundupWordLimit": 670
+}

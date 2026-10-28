@@ -1,4 +1,6 @@
-import { SAFETY_EMAIL, SUPPORT_EMAIL, TERMS_VERSION } from '@sproutcue/shared/terms';
+import { AI_PROVIDER_NAME } from '@sproutcue/shared/ai-consent';
+import { CHAT_RETENTION_LABEL, LEGAL_ADDRESS, LEGAL_ENTITY } from '@sproutcue/shared/legal';
+import { SAFETY_EMAIL, SUPPORT_EMAIL, TERMS_EFFECTIVE_DATE, TERMS_VERSION } from '@sproutcue/shared/terms';
 import Link from 'next/link';
 
 export const metadata = {
@@ -6,7 +8,6 @@ export const metadata = {
   description: 'SproutCue Terms of Use, including community rules for chat and playdates.',
 };
 
-// Draft for review — have a lawyer check it before launch. Placeholders are in [brackets].
 // When this text changes in a way families must re-accept, bump TERMS_VERSION
 // (packages/shared/src/terms.js) and the profiles.terms_version default.
 export default function TermsPage() {
@@ -15,9 +16,9 @@ export default function TermsPage() {
       <article className="panel privacy-panel">
         <p className="eyebrow">SproutCue terms</p>
         <h1>Terms of Use</h1>
-        <p className="muted">Draft for review. Version {TERMS_VERSION}. Effective date: [Month Day, Year].</p>
+        <p className="muted">Effective {TERMS_EFFECTIVE_DATE} · Version {TERMS_VERSION}</p>
 
-        <p>These Terms of Use are an agreement between you and [SproutCue legal entity name] (“SproutCue”, “we”) for the SproutCue website at app.sproutcue.com and the SproutCue apps for iPhone and Android. By creating an account or continuing to use SproutCue, you agree to these terms and acknowledge our <Link href="/privacy">Privacy Policy</Link>. If you don’t agree, please don’t use SproutCue.</p>
+        <p>These Terms of Use are an agreement between you and {LEGAL_ENTITY} (“SproutCue”, “we”) for the SproutCue website at app.sproutcue.com and the SproutCue apps for iPhone and Android. By creating an account or continuing to use SproutCue, you agree to these terms and acknowledge our <Link href="/privacy">Privacy Policy</Link>. If you don’t agree, please don’t use SproutCue.</p>
 
         <h2>1. Who can use SproutCue</h2>
         <p>SproutCue is for parents and caregivers who are at least 18 years old. Children may not create accounts, use chat, or create playdates. You may only add information about children you are a parent or legal guardian of, or are otherwise authorized to share.</p>
@@ -48,16 +49,17 @@ export default function TermsPage() {
         <p>You keep ownership of the photos, messages, and other content you add. You give SproutCue a limited license to store, process, and display that content only to run the service for you and the families you share it with. You are responsible for having the right to share what you post.</p>
 
         <h2>7. AI features</h2>
-        <p>Picture books, stories, play ideas, and other AI-generated content may be inaccurate or unsuitable. Review it before using it with your child, and always supervise play. Don’t upload photos of other people’s children for AI features without their parent’s permission.</p>
+        <p>Picture books, stories, and play ideas are made with {AI_PROVIDER_NAME}, a third-party AI service. We ask your permission before you first use an AI feature, and you can turn AI features off at any time; the <Link href="/privacy">Privacy Policy</Link> explains exactly what is sent. AI-generated content may be inaccurate or unsuitable. Review it before using it with your child, and always supervise play. Only upload photos of your own child, or of a child whose parent has given you permission.</p>
 
         <h2>8. Places, events, and other services</h2>
         <p>Event, place, weather, and resource information comes from third parties and may be out of date. Check details with the organizer or venue. Links to other sites are provided for convenience and are governed by those sites’ own terms.</p>
 
         <h2>9. Ending your account</h2>
-        <p>You can delete your account at any time from the account menu; see <Link href="/data-deletion">data deletion</Link>. We may suspend or end access if you break these terms or to protect other families. Reports about your conduct may be kept after your account is deleted, as described in the Privacy Policy.</p>
+        <p>You can delete your account at any time from the account menu; see <Link href="/data-deletion">data deletion</Link>. We may suspend or end access if you break these terms or to protect other families. Chat messages are deleted automatically {CHAT_RETENTION_LABEL} after they are sent. Reports about your conduct are kept for {CHAT_RETENTION_LABEL} after they are filed, even if you delete your account, as described in the Privacy Policy.</p>
 
         <h2>10. Disclaimers and limits</h2>
-        <p>SproutCue is provided “as is” without warranties of any kind, to the extent allowed by law. To the extent allowed by law, SproutCue is not liable for indirect, incidental, or consequential damages, or for the conduct of any user online or offline. [Liability cap, governing law ([State]), and dispute terms to be confirmed with counsel.]</p>
+        <p>SproutCue is provided “as is” without warranties of any kind, to the extent allowed by law. To the extent allowed by law, SproutCue is not liable for indirect, incidental, special, or consequential damages, or for the conduct of any user online or offline, and our total liability for any claim relating to SproutCue is limited to the greater of the amount you paid us in the 12 months before the claim or US $100.</p>
+        <p>These terms are governed by the laws of the State of Washington, without regard to its conflict-of-law rules. Any dispute will be brought in the state or federal courts located in King County, Washington, and you and SproutCue consent to their jurisdiction. Nothing in these terms limits rights you have under consumer protection laws that can’t be waived.</p>
 
         <h2>11. Changes</h2>
         <p>We may update these terms. If a change is significant, we’ll tell you in the app and may ask you to accept the new terms before you continue using SproutCue.</p>
@@ -65,7 +67,7 @@ export default function TermsPage() {
         <h2>12. Contact</h2>
         <p>Questions about SproutCue or your account: <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a></p>
         <p>Safety concerns and reports: <a href={`mailto:${SAFETY_EMAIL}`}>{SAFETY_EMAIL}</a></p>
-        <p>Mail: [full mailing address]</p>
+        <p>Mail: {LEGAL_ENTITY}, {LEGAL_ADDRESS}</p>
         <p><Link href="/">Return to SproutCue</Link></p>
       </article>
     </main>

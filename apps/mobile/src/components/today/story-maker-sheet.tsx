@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Sheet } from '@/components/ui';
 import { Colors, Radius, Spacing, Type } from '@/constants/theme';
+import { useAiConsent } from '@/lib/ai-consent';
 import { haptics } from '@/lib/haptics';
 import { createTodayStory, saveTodayStory, type TodayStoryResult } from '@/lib/today-data';
 
@@ -16,6 +17,7 @@ export function StoryMakerSheet({ visible, childName, ageLabel, onClose, onSaved
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState<'' | 'create' | 'save'>('');
   const [saved, setSaved] = useState(false);
+  const consent = useAiConsent();
 
   function reset() {
     setResult(null);
@@ -39,6 +41,11 @@ export function StoryMakerSheet({ visible, childName, ageLabel, onClose, onSaved
       setStatus('Story ready. Read it together or save it for later.');
       haptics.success();
     } catch (error) {
+      if (consent.handleError(error)) {
+        // Consent was turned off elsewhere: close this sheet so the consent sheet can show.
+        close();
+        return;
+      }
       haptics.error();
       setStatus(`Could not create the story: ${error instanceof Error ? error.message : 'please try again.'}`);
     }

@@ -3086,3 +3086,19 @@ input, select, textarea { border-color: #e8c9b4; border-radius: var(--radius-con
 .ai-photo-item button:hover { background: rgba(0, 0, 0, .05); }
 .practice-saved-photos button { position: relative; }
 .practice-saved-photos .photo-check-badge { left: 6px; margin: 0; max-width: calc(100% - 12px); overflow: hidden; position: absolute; text-overflow: ellipsis; top: 6px; white-space: nowrap; }
+
+/* AI consent dialog (src/ai-consent.js) — above every other dialog. */
+.ai-consent-backdrop { z-index: 60; }
+.ai-consent-dialog { display: grid; gap: 10px; max-height: calc(100vh - 40px); overflow-y: auto; }
+.ai-consent-dialog h2 { margin: 0; }
+.ai-consent-dialog p { margin: 0; }
+.ai-consent-icon { align-items: center; background: #fff2ed; border-radius: 999px; color: #b94b27; display: inline-flex; font-weight: 800; height: 44px; justify-content: center; width: 44px; }
+.ai-consent-list { background: #fff; border: 1px solid #f0cfb6; border-radius: 16px; display: grid; gap: 8px; margin: 0; padding: 14px 14px 14px 32px; }
+.ai-consent-dialog a { color: #b94b27; font-weight: 700; }
+/* Actions stay in view while the text scrolls (small screens). */
+.ai-consent-dialog .form-actions { background: #fffaf5; bottom: -24px; display: flex; flex-wrap: wrap; gap: 10px; margin: 6px -24px -24px; padding: 12px 24px 24px; position: sticky; }
+.ai-consent-panel { display: grid; gap: 12px; align-content: start; }
+@media (max-width: 640px) {
+  .ai-consent-dialog { border-radius: 24px 24px 0 0; max-height: 92vh; }
+  .ai-consent-dialog .form-actions button { flex: 1 1 100%; }
+}

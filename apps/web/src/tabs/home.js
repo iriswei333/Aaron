@@ -10,6 +10,7 @@ import {
   todayRecommendation as sharedTodayRecommendation,
   upcomingTodayPlans,
 } from '@sproutcue/shared/today';
+import { handleAiConsentError, withAiConsent } from '../ai-consent.js';
 
 const DEFAULT_ALBUM_LINK = 'photos-redirect://';
 const DEFAULT_HOME_BACKGROUND_KEY = 'morning-table';
@@ -315,7 +316,8 @@ async function generateTodayStory(ctx) {
     state.todayStoryResult = result.story;
     state.todayStoryStatus = 'Story ready. Read it together or save it for later.';
   } catch (error) {
-    state.todayStoryStatus = `Could not create the story: ${error.message}`;
+    if (handleAiConsentError(ctx, error, () => generateTodayStory(ctx))) resetTodayStory(state, { close: true });
+    else state.todayStoryStatus = `Could not create the story: ${error.message}`;
   }
   state.todayStoryGenerating = false;
   ctx.renderCurrent();
@@ -399,11 +401,12 @@ export function renderHome(ctx) {
     state.tab = 'profile';
     ctx.renderCurrent();
   }));
-  document.querySelector('[data-open-today-story]')?.addEventListener('click', () => {
+  // The playground story is written by OpenAI: ask for AI consent before opening the story maker.
+  document.querySelector('[data-open-today-story]')?.addEventListener('click', () => withAiConsent(ctx, () => {
     state.showTodayStory = true;
     state.todayStoryStatus = '';
     ctx.renderCurrent();
-  });
+  }));
   document.querySelectorAll('[data-close-today-story]').forEach((element) => element.addEventListener('click', (event) => {
     if (event.currentTarget.classList.contains('today-story-backdrop') && event.target !== event.currentTarget) return;
     resetTodayStory(state, { close: true });

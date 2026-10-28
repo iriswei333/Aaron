@@ -7,6 +7,7 @@ import {
   PRACTICE_STORY_THEMES,
   challengeFromPracticingStep,
 } from '@sproutcue/shared/practice-story-options';
+import { aiConsentCopy } from '@sproutcue/shared/ai-consent';
 import { FAVORITE_INTEREST_OPTIONS, childDisplayName, getChildProfile } from '@sproutcue/shared/profile-defaults';
 import { isRejectedChildPhoto, photoCheckWarning } from '@sproutcue/shared/photo-check';
 import { PRACTICE_STORY_MAX_PHOTOS, toggleInterest, validateAiPhotos } from '@sproutcue/shared/studio';
@@ -19,6 +20,7 @@ import { PhotoPicker } from '@/components/studio/photo-picker';
 import { ChoiceCards, TagChips, TagGroup } from '@/components/studio/tag-group';
 import { Button, Screen, TextField } from '@/components/ui';
 import { Colors, Radius, Type } from '@/constants/theme';
+import { useAiConsent } from '@/lib/ai-consent';
 import { haptics } from '@/lib/haptics';
 import { PhotoCheckBlockedError, type PhotoProblem, type PickedPhoto } from '@/lib/photo-upload';
 import { useSession } from '@/lib/session';
@@ -32,6 +34,7 @@ export default function StoryMakerScreen() {
   const childName = childDisplayName(child);
   const months = Number(child?.ageMonths) || 30;
   const create = useCreatePracticeStory();
+  const consent = useAiConsent();
   const saved = useSavedPhotos(true);
 
   const [challenge, setChallenge] = useState<string>(() => {
@@ -74,13 +77,17 @@ export default function StoryMakerScreen() {
       const problem = validateAiPhotos(newPhotos, { min: 1, max: PRACTICE_STORY_MAX_PHOTOS });
       if (problem) return setStatus(problem);
     }
+    // The story details (and any photos) go to OpenAI: ask for AI consent first.
+    if (!(await consent.requestConsent())) return setStatus(aiConsentCopy(language).declined);
     setBusy(true);
     try {
       await create({ goal, challenge, interests, parentGoals, storyTheme: theme, adventureLength: length, language, savedPhotoIds: savedIds, newPhotos }, setStatus);
       setStatus('Story queued. We’ll let you know when it is ready.');
       setProblems({});
     } catch (error: any) {
-      if (error instanceof PhotoCheckBlockedError) {
+      if (consent.handleError(error)) {
+        setStatus('');
+      } else if (error instanceof PhotoCheckBlockedError) {
         setProblems(error.uploads);
         const rejected = Object.keys(error.saved);
         if (rejected.length) {

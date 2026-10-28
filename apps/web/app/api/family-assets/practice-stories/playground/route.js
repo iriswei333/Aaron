@@ -4,6 +4,7 @@ import {
   savePlaygroundPracticeStory,
 } from '../../../../../lib/family-practice-stories.js';
 import { getCurrentProfile, profileErrorResponse } from '../../../../../lib/profile-session.js';
+import { aiConsentErrorResponse, aiConsentResponse } from '../../../../../lib/ai-consent.js';
 
 export const runtime = 'nodejs';
 // Story generation waits on the AI model; allow as long as the main practice-story route.
@@ -17,9 +18,13 @@ export async function POST(request) {
   try {
     const current = await getCurrentProfile(request);
     if (!current.user) return profileErrorResponse(current);
+    const blocked = aiConsentResponse(current);
+    if (blocked) return blocked;
     const body = await request.json().catch(() => ({}));
     return Response.json({ story: await generatePlaygroundPracticeStory(current, body.goalId) });
   } catch (error) {
+    const consent = aiConsentErrorResponse(error);
+    if (consent) return consent;
     return Response.json({ error: error.message }, { status: 400 });
   }
 }

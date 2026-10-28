@@ -5,6 +5,7 @@ import { photoCheckErrorResponse } from '../../../../lib/child-photo-check.js';
 import { createFamilyPhoto, photoInputFromForm, requireChildPhotos } from '../../../../lib/family-photos.js';
 import { getCurrentProfile, profileErrorResponse } from '../../../../lib/profile-session.js';
 import { practiceStoryChallenge, practiceStoryLength, practiceStoryParentGoals, practiceStoryTheme } from '@sproutcue/shared/practice-story-options';
+import { aiConsentErrorResponse, aiConsentResponse } from '../../../../lib/ai-consent.js';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -31,6 +32,8 @@ export async function POST(request) {
   try {
     const current = await getCurrentProfile(request);
     if (!current.user) return profileErrorResponse(current);
+    const blocked = aiConsentResponse(current);
+    if (blocked) return blocked;
     const contentType = request.headers.get('content-type') || '';
     let formData;
     if (contentType.includes('application/json')) {
@@ -79,6 +82,8 @@ export async function POST(request) {
     after(() => processAiJob(current, queued.job.id));
     return Response.json(queued, { status: 202 });
   } catch (error) {
+    const consent = aiConsentErrorResponse(error);
+    if (consent) return consent;
     return photoCheckErrorResponse(error)
       ?? Response.json({ error: error.message, code: error.code || null }, { status: error.code === 'DAILY_AI_LIMIT_REACHED' ? 429 : error.code === 'NOT_FOUND' ? 404 : 400 });
   }

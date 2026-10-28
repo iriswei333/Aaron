@@ -7,6 +7,7 @@ import { ActivityIndicator, Alert, Linking, Platform, Pressable, StyleSheet, Tex
 
 import { BlockedFamilies } from '@/components/chat/blocked-families';
 import { ChatsCard } from '@/components/chat/chats-card';
+import { AiFeaturesSetting } from '@/components/family/ai-features-setting';
 import { AssetRow } from '@/components/family/asset-row';
 import { AssetsEmpty } from '@/components/family/assets-empty';
 import { ChildProfileCard } from '@/components/family/child-profile-card';
@@ -14,6 +15,7 @@ import { PlaydateRow } from '@/components/family/playdate-row';
 import { ToyPlaySheet } from '@/components/family/toy-play-sheet';
 import { Avatar, Button, Card, CountBadge, Screen, SectionHeading, Sheet } from '@/components/ui';
 import { Colors, Layout, Spacing, Type } from '@/constants/theme';
+import { useAiConsent } from '@/lib/ai-consent';
 import { useChat } from '@/lib/chat';
 import { config } from '@/lib/config';
 import { useFamilyData, type PracticeStoryAsset, type ToyPlayAsset } from '@/lib/family-data';
@@ -42,6 +44,7 @@ export default function FamilyScreen() {
   const [selectedToyId, setSelectedToyId] = useState('');
   const [showPast, setShowPast] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const aiConsent = useAiConsent();
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [deleteAccountError, setDeleteAccountError] = useState('');
   const refreshChats = chat.refresh;
@@ -261,6 +264,13 @@ export default function FamilyScreen() {
         {!previewMode ? (
           <>
             <BlockedFamilies />
+            <AiFeaturesSetting
+              onAllow={() => {
+                setAccountOpen(false);
+                // Let the account sheet finish closing before the consent sheet opens.
+                setTimeout(() => aiConsent.requestConsent(), 450);
+              }}
+            />
             <View style={styles.help}>
               <Text accessibilityRole="header" style={Type.label}>Help & safety</Text>
               <Button label="Email support" variant="secondary" fullWidth accessibilityHint={`Writes to ${SUPPORT_EMAIL}`} onPress={() => openMail(SUPPORT_EMAIL, 'SproutCue help')} />

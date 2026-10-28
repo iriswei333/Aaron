@@ -2,6 +2,7 @@ import { apiRequest, escapeAttribute, escapeHtml, readFirstStoredValue } from '.
 import { FAVORITE_INTEREST_OPTIONS, childDisplayName, getChildProfile } from '@sproutcue/shared/profile-defaults';
 import { createSupabaseBrowserClient } from '../../lib/supabase/client.js';
 import { startAiJobWait } from '../ai-jobs.js';
+import { handleAiConsentError, withAiConsent } from '../ai-consent.js';
 import {
   isRejectedChildPhoto, photoCheckDetails, photoCheckHelp, photoCheckLabel, photoCheckWarning, splitPhotoProblems,
 } from '@sproutcue/shared/photo-check';
@@ -193,7 +194,9 @@ async function generatePracticeStory(ctx, form) {
     return;
   } catch (error) {
     const details = photoCheckDetails(error, language);
-    if (details && details.severity !== 'retry') {
+    if (handleAiConsentError(ctx, error)) {
+      state.practiceStoryStatus = '';
+    } else if (details && details.severity !== 'retry') {
       applyPracticePhotoProblems(state, details);
       state.practiceStoryStatus = blockedStatus(state.practiceStoryPhotoProblems, language) || `${details.message} ${details.help}`;
     } else {
@@ -321,14 +324,15 @@ async function generateToyPlay(ctx) {
     } else {
       const response = await fetch('/api/family-assets/toy-play/generate', { method: 'POST', body: data, headers: localHeaders() });
       result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.error || `Request failed with ${response.status}`);
+      if (!response.ok) throw Object.assign(new Error(result.error || `Request failed with ${response.status}`), { data: result });
     }
     state.toyPlayStatus = mandarin ? '玩法已加入队列，完成后会通知你。' : 'Play idea queued. We’ll notify you when it is ready.';
     state.toyPlayGenerating = false;
     startAiJobWait(ctx, result.job, result.usage);
     return;
   } catch (error) {
-    state.toyPlayStatus = mandarin ? `暂时无法生成玩法：${error.message}` : `Could not make a play idea: ${error.message}`;
+    if (handleAiConsentError(ctx, error)) state.toyPlayStatus = '';
+    else state.toyPlayStatus = mandarin ? `暂时无法生成玩法：${error.message}` : `Could not make a play idea: ${error.message}`;
   }
   state.toyPlayGenerating = false;
   ctx.renderCurrent();
@@ -486,6 +490,11 @@ async function createBook(ctx, form) {
       response = await fetch('/api/family-assets/picture-books', { method: 'POST', body: data, headers: localHeaders() });
     }
     const result = await response.json().catch(() => ({}));
+    if (!response.ok && handleAiConsentError(ctx, result)) {
+      state.pictureBookStatus = '';
+      ctx.renderCurrent();
+      return;
+    }
     const details = response.ok ? null : photoCheckDetails(result, language);
     if (details && details.severity !== 'retry') {
       const { uploads } = splitPhotoProblems(details, { uploadedPhotoIds: state.pictureBookUploadedPhotoIds || [] });
@@ -503,7 +512,8 @@ async function createBook(ctx, form) {
     state.studioView = 'library';
     globalThis.history.replaceState({}, '', '/picture-books');
   } catch (error) {
-    state.pictureBookStatus = `Could not create the book: ${error.message}`;
+    if (handleAiConsentError(ctx, error)) state.pictureBookStatus = '';
+    else state.pictureBookStatus = `Could not create the book: ${error.message}`;
   }
   ctx.renderCurrent();
 }
@@ -548,7 +558,8 @@ async function makeWholeBook(ctx, bookId) {
     startAiJobWait(ctx, result.job, result.usage);
   } catch (error) {
     state.pictureBookGeneratingBookId = '';
-    state.pictureBookStatus = `Could not queue the whole book: ${error.message}`;
+    if (handleAiConsentError(ctx, error, () => makeWholeBook(ctx, bookId))) state.pictureBookStatus = '';
+    else state.pictureBookStatus = `Could not queue the whole book: ${error.message}`;
     ctx.renderCurrent();
   }
 }
@@ -810,7 +821,8 @@ export function renderStudio(ctx) {
     globalThis.history.pushState({}, '', state.studioView === 'library' ? '/picture-books' : '/play-studio');
     ctx.renderCurrent();
   }));
-  document.querySelectorAll('[data-studio-feature]').forEach((button) => button.addEventListener('click', () => {
+  // Opening a creation flow asks for AI consent first, before the parent fills anything in.
+  document.querySelectorAll('[data-studio-feature]').forEach((button) => button.addEventListener('click', () => withAiConsent(ctx, () => {
     if (button.dataset.studioFeature === 'book') state.showPictureBookChooser = true;
     else if (button.dataset.studioFeature === 'toy') {
       state.studioView = 'toy';
@@ -833,7 +845,7 @@ export function renderStudio(ctx) {
     }
     else state.studioFeatureNotice = button.dataset.studioFeature;
     ctx.renderCurrent();
-  }));
+  })));
   document.querySelectorAll('[data-close-book-chooser]').forEach((button) => button.addEventListener('click', (event) => {
     if (event.currentTarget.classList.contains('studio-modal-backdrop') && event.target !== event.currentTarget) return;
     state.showPictureBookChooser = false;
@@ -928,13 +940,13 @@ export function renderStudio(ctx) {
     state.practiceStoryStatus = '';
     ctx.renderCurrent();
   });
-  document.getElementById('practice-story-form')?.addEventListener('submit', (event) => { event.preventDefault(); generatePracticeStory(ctx, event.currentTarget); });
+  document.getElementById('practice-story-form')?.addEventListener('submit', (event) => { event.preventDefault(); const form = event.currentTarget; withAiConsent(ctx, () => generatePracticeStory(ctx, form)); });
   document.querySelector('[data-new-practice-story]')?.addEventListener('click', () => { resetPracticeStoryDraft(state); ctx.renderCurrent(); });
   document.querySelectorAll('[data-book-template]').forEach((button) => button.addEventListener('click', () => { state.pictureBookTemplateSlug = button.dataset.bookTemplate; ctx.renderCurrent(); }));
   document.querySelectorAll('[data-open-book-chooser]').forEach((button) => button.addEventListener('click', () => { state.showPictureBookChooser = true; ctx.renderCurrent(); }));
   document.querySelector('[data-start-picture-book]')?.addEventListener('click', () => { state.showPictureBookChooser = false; state.studioView = 'create'; globalThis.history.pushState({}, '', '/play-studio?create=picture-book'); ctx.renderCurrent(); });
   document.querySelector('[data-view-picture-books]')?.addEventListener('click', () => { state.showPictureBookChooser = false; state.studioView = 'library'; globalThis.history.pushState({}, '', '/picture-books'); ctx.renderCurrent(); });
-  document.getElementById('picture-book-form')?.addEventListener('submit', (event) => { event.preventDefault(); createBook(ctx, event.currentTarget); });
+  document.getElementById('picture-book-form')?.addEventListener('submit', (event) => { event.preventDefault(); const form = event.currentTarget; withAiConsent(ctx, () => createBook(ctx, form)); });
   document.querySelector('#picture-book-form input[name="photos"]')?.addEventListener('change', (event) => {
     const files = Array.from(event.currentTarget.files || []);
     if (!files.length) return;
@@ -960,9 +972,13 @@ export function renderStudio(ctx) {
   document.getElementById('refresh-picture-books')?.addEventListener('click', () => loadBooks(ctx));
   document.getElementById('close-book-preview')?.addEventListener('click', () => { URL.revokeObjectURL(state.pictureBookPreviewUrl); state.pictureBookPreviewUrl = ''; state.pictureBookPreviewTitle = ''; ctx.renderCurrent(); });
   document.querySelectorAll('[data-generate-book]').forEach((button) => button.addEventListener('click', async () => {
-    try { await generatePage(ctx, button.dataset.generateBook, button.dataset.generatePage); } catch (error) { state.pictureBookStatus = `Could not make this page: ${error.message}`; } ctx.renderCurrent();
+    const { generateBook: bookId, generatePage: pageKey } = button.dataset;
+    const run = async () => {
+      try { await generatePage(ctx, bookId, pageKey); } catch (error) { if (handleAiConsentError(ctx, error, run)) state.pictureBookStatus = ''; else state.pictureBookStatus = `Could not make this page: ${error.message}`; } ctx.renderCurrent();
+    };
+    withAiConsent(ctx, run);
   }));
-  document.querySelectorAll('[data-generate-whole-book]').forEach((button) => button.addEventListener('click', () => makeWholeBook(ctx, button.dataset.generateWholeBook)));
+  document.querySelectorAll('[data-generate-whole-book]').forEach((button) => button.addEventListener('click', () => withAiConsent(ctx, () => makeWholeBook(ctx, button.dataset.generateWholeBook))));
   document.querySelectorAll('[data-view-book]').forEach((button) => button.addEventListener('click', () => viewPage(ctx, button.dataset.viewBook, button.dataset.viewPage)));
   document.querySelectorAll('[data-view-pdf]').forEach((button) => button.addEventListener('click', () => viewPdf(ctx, button.dataset.viewPdf)));
   document.querySelectorAll('[data-delete-book]').forEach((button) => button.addEventListener('click', () => deleteBook(ctx, button.dataset.deleteBook)));
@@ -988,7 +1004,7 @@ export function renderStudio(ctx) {
     state.toyPlaySaved = false;
     ctx.renderCurrent();
   });
-  document.getElementById('toy-play-form')?.addEventListener('submit', (event) => { event.preventDefault(); generateToyPlay(ctx); });
+  document.getElementById('toy-play-form')?.addEventListener('submit', (event) => { event.preventDefault(); withAiConsent(ctx, () => generateToyPlay(ctx)); });
   document.querySelectorAll('[name="toyPlayLanguage"]').forEach((input) => input.addEventListener('change', (event) => {
     state.toyPlayLanguage = event.currentTarget.value === 'zh-CN' ? 'zh-CN' : 'en';
     state.toyPlayAnalysis = null;

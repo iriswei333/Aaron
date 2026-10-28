@@ -4,6 +4,8 @@ import {
   LOCAL_USER_COOKIE,
   ensureSupabaseProfile,
   mutateStore,
+  PROFILE_COLUMNS,
+  profileRowToUser,
   readStore,
   updateSupabaseProfileField,
   updateUser,
@@ -95,25 +97,12 @@ export async function updateCurrentProfileDetails(request, body = {}) {
       .from('profiles')
       .update(updates)
       .eq('id', current.authUser.id)
-        .select('id, email, display_name, child_profile, social_links, location, play_preferences, created_at, updated_at')
+      .select(PROFILE_COLUMNS)
       .single();
 
     if (error) throw new Error(error.message || 'Could not update the profile.');
 
-    return {
-      ...current,
-      user: {
-        id: data.id,
-        email: data.email || '',
-        displayName: data.display_name || 'Family Profile',
-        childProfile: normalizeChildProfile(data.child_profile),
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        socialLinks: data.social_links || { icloudPhotosUrl: '', instagramUrl: '', tiktokUrl: '' },
-        location: data.location,
-        playPreferences: normalizePlayPreferences(data.play_preferences),
-      },
-    };
+    return { ...current, user: profileRowToUser(data) };
   }
 
   const user = await mutateStore((store) => {

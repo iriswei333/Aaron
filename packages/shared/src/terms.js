@@ -4,7 +4,9 @@
 // families must re-accept, bump it here AND add a migration that changes the
 // default of public.profiles.terms_version (see 202610270002_terms_acceptance.sql).
 
-export const TERMS_VERSION = '2026-10-27';
+export const TERMS_VERSION = '2026-10-28';
+/** TERMS_VERSION written out for the /terms page. */
+export const TERMS_EFFECTIVE_DATE = 'October 28, 2026';
 export const TERMS_PATH = '/terms';
 export const PRIVACY_PATH = '/privacy';
 
