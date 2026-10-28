@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { buildAiAssetPushMessages, isExpoPushToken, sendExpoPushMessages } from './expo-push.js';
+import { buildAiAssetPushMessages, buildChatPushMessages, isExpoPushToken, sendExpoPushMessages } from './expo-push.js';
 
 // Expo push tokens registered by the native app. Supabase table `push_tokens`
 // in production; a JSON file for local (no-Supabase) development, like ai-jobs.js.
@@ -84,5 +84,64 @@ export async function pushNotificationToDevices(current, notification, { send = 
   } catch (error) {
     console.warn('[push] Could not send push notification:', error?.message || error);
     return { sent: 0, invalidTokens: [], errors: [String(error?.message || error)] };
+  }
+}
+
+/**
+ * Pushes a new chat message to every device of the thread's other members.
+ * Needs the service-role client (createSupabaseAdminClient): row-level security
+ * rightly stops the sender from reading other families' push tokens.
+ * Members who blocked the sender get no push (they don't see the message either).
+ * Never throws: the message is already saved.
+ * @param {import('@supabase/supabase-js').SupabaseClient|null} admin
+ * @param {{ senderId: string, message: { id?: string, threadId?: string, text?: string, mediaType?: string } }} chat
+ * @param {{ send?: typeof sendExpoPushMessages }} [options]
+ */
+export async function pushChatMessageToMembers(admin, { senderId, message }, { send = sendExpoPushMessages } = {}) {
+  const none = { sent: 0, invalidTokens: [], errors: [] };
+  try {
+    const threadId = message?.threadId;
+    if (!threadId || !senderId) return none;
+    if (!admin) {
+      console.warn('[push] Chat push skipped: SUPABASE_SERVICE_ROLE_KEY is not set.');
+      return none;
+    }
+    const [members, thread, sender] = await Promise.all([
+      admin.from('chat_thread_members').select('user_id').eq('thread_id', threadId).neq('user_id', senderId),
+      admin.from('chat_threads').select('thread_type, play_date_id').eq('id', threadId).maybeSingle(),
+      admin.from('profiles').select('display_name').eq('id', senderId).maybeSingle(),
+    ]);
+    if (members.error) throw members.error;
+    if (thread.error) throw thread.error;
+    let recipients = (members.data || []).map((row) => row.user_id);
+    if (!recipients.length) return none;
+
+    const blocks = await admin.from('user_blocks').select('blocker_id').eq('blocked_id', senderId).in('blocker_id', recipients);
+    if (blocks.error) throw blocks.error;
+    const blockers = new Set((blocks.data || []).map((row) => row.blocker_id));
+    recipients = recipients.filter((id) => !blockers.has(id));
+    if (!recipients.length) return none;
+
+    const tokenRows = await admin.from('push_tokens').select('token').in('profile_id', recipients);
+    if (tokenRows.error) throw tokenRows.error;
+    const tokens = (tokenRows.data || []).map((row) => row.token);
+    if (!tokens.length) return none;
+
+    const threadType = thread.data?.thread_type || 'direct';
+    let threadTitle = '';
+    if (threadType === 'playdate' && thread.data?.play_date_id) {
+      const playDate = await admin.from('play_dates').select('playground_name').eq('id', thread.data.play_date_id).maybeSingle();
+      threadTitle = playDate.data?.playground_name || '';
+    }
+    const senderName = String(sender.data?.display_name || '').trim() || 'A family';
+    const messages = buildChatPushMessages(tokens, { threadId, messageId: message.id, threadType, threadTitle, senderName, message });
+    if (!messages.length) return none;
+    const result = await send(messages);
+    if (result.invalidTokens.length) await admin.from('push_tokens').delete().in('token', result.invalidTokens).then(() => {}, () => {});
+    if (result.errors.length) console.warn('[push] Expo chat push errors:', result.errors.slice(0, 3).join(' | '));
+    return result;
+  } catch (error) {
+    console.warn('[push] Could not send chat push:', error?.message || error);
+    return { ...none, errors: [String(error?.message || error)] };
   }
 }

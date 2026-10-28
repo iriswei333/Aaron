@@ -307,15 +307,18 @@ Same flows and API calls as the web app (`apps/web/src/tabs/play.js`):
 
 When an AI creation (picture-book page or whole book, practice story, toy play) finishes, the server sends a push notification through **Expo's push service**, which delivers to Apple (APNs) and Google (FCM). Tapping it opens the creation; a failed creation opens the Studio tab.
 
+A new **family chat message** is pushed to every other member of the thread (direct or playdate group), except families who blocked the sender. A direct chat shows the sender's name as the title; a playdate chat shows the playground, with "Name: message" as the body. Tapping it opens the conversation.
+
 | Piece | Where |
 |---|---|
 | Ask permission, get the Expo push token, register it, Android channel `ai-creations`, tap handling | `src/lib/push-notifications.ts`, `src/lib/ai-jobs.tsx` |
 | Register / remove a device token | `POST` / `DELETE /api/notifications/push-tokens` (`{ token, platform, deviceName }`) |
 | Token storage | Supabase table `push_tokens` (migration `202610090001_push_tokens.sql`) |
 | Sending | `apps/web/lib/push-tokens.js` + `lib/expo-push.js`, called when the job's in-app notification is created (`lib/ai-jobs.js`) |
+| Chat pushes | `pushChatMessageToMembers` in `apps/web/lib/push-tokens.js`, run after the response in `POST /api/chat`. Needs `SUPABASE_SERVICE_ROLE_KEY` on the server (other families' tokens aren't readable with the sender's session). Android channel `chat`; tap handling in `src/lib/ai-jobs.tsx`, banner/refresh in `src/lib/chat.tsx` |
 
-- **When we ask:** the first time the family starts an AI creation (it finishes in the background, so the prompt makes sense). After that the token re-registers quietly on every launch. Signing out removes the token for that family.
-- **While the app is open,** the creation you're watching already shows its sheet/toast, so its push shows no banner. Pushes for other creations (e.g. started on the web) still show, and refresh the lists.
+- **When we ask:** the first time the family starts an AI creation (it finishes in the background, so the prompt makes sense) or sends a chat message. After that the token re-registers quietly on every launch. Signing out removes the token for that family.
+- **While the app is open,** the creation you're watching already shows its sheet/toast, so its push shows no banner. Pushes for other creations (e.g. started on the web) still show, and refresh the lists. Likewise a chat push for the conversation on screen shows no banner and just loads the message; pushes for other chats show and update the unread counts.
 - **Uninstalled apps:** when Expo reports `DeviceNotRegistered`, the server deletes that token.
 
 **One-time setup**

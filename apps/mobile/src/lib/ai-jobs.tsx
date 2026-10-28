@@ -210,6 +210,10 @@ export function AiJobsProvider({ children }: { children: ReactNode }) {
       if (handledResponses.current.has(key)) return;
       handledResponses.current.add(key);
       const data: AiPushData = pushDataFrom(response.notification);
+      if (data.type === 'chat_message') {
+        if (data.threadId) router.push({ pathname: '/chat/thread', params: { threadId: data.threadId } });
+        return;
+      }
       if (!data.type?.startsWith('ai_asset_')) return;
       refreshNotifications();
       if (data.type === 'ai_asset_failed') {

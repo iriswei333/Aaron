@@ -17,7 +17,7 @@ Toy play is not checked here. It looks for a toy and already returns `not_a_toy`
 ## How a photo is judged
 
 1. **Safety screen**: `omni-moderation-latest`. Flagged → `PHOTO_UNSAFE`.
-2. **Classification**: one Responses API call (`CHILD_PHOTO_CHECK_MODEL`, default `gpt-5-mini`, `store: false`, image `detail: low`) with a strict JSON schema: real photo?, person count, child count, is a child the main subject?, rough age band, face visible?, quality issues, confidence. The model is told to classify only. It must never identify anyone or describe faces.
+2. **Classification**: one Responses API call (`CHILD_PHOTO_CHECK_MODEL`, default `gpt-5-mini`, `store: false`, image `detail: high`) with a strict JSON schema: real photo?, person count, child count, is a child the main subject?, rough age band, face visible?, quality issues, confidence. The model is told to classify only. It must never identify anyone or describe faces.
 3. **Rules** (`evaluateChildPhoto`, `DEFAULT_CHILD_PHOTO_POLICY` in `apps/web/lib/child-photo-check.js`):
 
 | Result | Code | Effect |
@@ -25,7 +25,7 @@ Toy play is not checked here. It looks for a toy and already returns `not_a_toy`
 | Drawing, cartoon, AI image, screenshot | `PHOTO_NOT_REAL` | Blocked |
 | No people (pet, toy, scenery) | `PHOTO_NOT_A_CHILD` | Blocked |
 | People but no child, or the child looks like a teen/adult | `PHOTO_ADULT_ONLY` | Blocked |
-| More than one child | `PHOTO_MULTIPLE_CHILDREN` | Blocked (`allowMultipleChildren: false`) |
+| More than one child | `PHOTO_MULTIPLE_CHILDREN` | **Warning**: saved and usable. The model sometimes overcounts (dolls, posters, reflections), so this is not a block unless `blockMultipleChildren: true` |
 | Safety screen flagged it | `PHOTO_UNSAFE` | Blocked |
 | Face hidden, too small, dark, blurry, or child not the main subject | `PHOTO_FACE_UNCLEAR` | **Warning**: saved and usable |
 | The model itself reports low confidence on a block | same code | Downgraded to a warning |
@@ -98,7 +98,7 @@ CHILD_PHOTO_CHECK_MODE=            # "off" only for local development without an
 | Adult only | Blocked: `PHOTO_ADULT_ONLY` |
 | Dog, toy, food, landscape | Blocked: `PHOTO_NOT_A_CHILD` |
 | Cartoon or drawing of a child, screenshot | Blocked: `PHOTO_NOT_REAL` |
-| Two siblings | Blocked: `PHOTO_MULTIPLE_CHILDREN` |
+| Two siblings | Passes with "Maybe more than one child" warning |
 | Same flows with the story language set to 中文 | Messages in Mandarin |
 | `OPENAI_API_KEY` unset or wrong (staging only) | 503 "couldn’t check this photo right now", nothing saved |
 

@@ -1,11 +1,13 @@
 import { chatThreadSchedule } from '@sproutcue/shared/playdates';
 import { BLOCKED_MESSAGE_ERROR } from '@sproutcue/shared/user-blocks';
+import * as Notifications from 'expo-notifications';
 import { useFocusEffect } from 'expo-router';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 import { apiRequest } from './api';
 import { onPlaydatesChanged } from './playdates';
+import { pushDataFrom, registerForPushNotifications, setVisibleChatThreadId } from './push-notifications';
 import { useSession } from './session';
 
 // Family chat — the same /api/chat endpoints the web Family tab uses (apps/web/src/tabs/social.js):
@@ -127,9 +129,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       if (state === 'active') refresh();
     });
     const unsubscribe = onPlaydatesChanged(() => refresh());
+    // A chat push while the app is open: update unread counts and the tab badge.
+    const pushes = Platform.OS === 'web' ? null : Notifications.addNotificationReceivedListener((notification) => {
+      if (pushDataFrom(notification).type === 'chat_message') refresh();
+    });
     return () => {
       appState.remove();
       unsubscribe();
+      pushes?.remove();
     };
   }, [enabled, refresh]);
 
@@ -246,11 +253,20 @@ export function useChatThread(threadId: string) {
       const appState = AppState.addEventListener('change', (state) => {
         if (state === 'active') load('poll');
       });
+      // Pushes for this thread show no banner while it's open (push-notifications.ts);
+      // load the new message right away instead of waiting for the next poll.
+      setVisibleChatThreadId(threadId);
+      const pushes = Platform.OS === 'web' ? null : Notifications.addNotificationReceivedListener((notification) => {
+        const data = pushDataFrom(notification);
+        if (data.type === 'chat_message' && data.threadId === threadId) load('poll');
+      });
       return () => {
         clearInterval(timer);
         appState.remove();
+        pushes?.remove();
+        setVisibleChatThreadId('');
       };
-    }, [load]),
+    }, [load, threadId]),
   );
 
   const post = useCallback(
@@ -301,6 +317,9 @@ export function useChatThread(threadId: string) {
         localState: 'sending',
       };
       setPending((current) => [...current, message]);
+      // Sending is a natural moment to ask for notifications, so replies reach this phone.
+      // No-op if already asked, denied, or unsupported.
+      if (user?.id) registerForPushNotifications({ prompt: true, userId: user.id });
       return post(message);
     },
     [threadId, user?.id, post],

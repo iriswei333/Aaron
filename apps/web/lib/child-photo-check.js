@@ -29,7 +29,11 @@ export const DEFAULT_CHILD_PHOTO_POLICY = Object.freeze({
   // Oldest apparent age band still accepted. Age estimates for kids are imprecise, so this is
   // deliberately lenient: only clear teens/adults are blocked, not 6–8 year olds.
   maxAgeBand: 'school_age',
+  // true: a second child passes silently. false: it is flagged. The model sometimes counts a
+  // doll, poster, reflection or background stranger as a second child, so by default it is only a
+  // warning the parent may override; set blockMultipleChildren to make it a hard block again.
   allowMultipleChildren: false,
+  blockMultipleChildren: false,
   // When the model itself reports low confidence, a block becomes a warning the parent may override.
   downgradeLowConfidence: true,
 });
@@ -54,7 +58,8 @@ const CLASSIFY_PROMPT = [
   'You screen photos a parent uploads so an app can illustrate a story about their young child.',
   'Classify the image only. Do not identify, name, or describe any person, and do not describe facial features.',
   'isRealPhoto: true for a real camera photo; false for drawings, cartoons, illustrations, AI-generated images, screenshots of apps or videos, or photos of a screen.',
-  'personCount: number of people visible. childCount: number of people who appear younger than about 13.',
+  'personCount: number of real, living people physically in the scene. childCount: how many of those appear younger than about 13.',
+  'Count each person once. Do not count dolls, toys, stuffed animals, statues, drawings, posters, photos or screens within the photo, reflections in mirrors or windows, or shadows. If unsure whether something is a second child, do not count it.',
   'primarySubjectIsChild: true when a child is the main, most prominent subject.',
   'apparentAgeBand: rough apparent age of the most prominent child (infant <1, toddler 1–2, preschool 3–5, school_age 6–12); if there is no child, use teen or adult for the most prominent person, or none when there are no people.',
   'faceClearlyVisible: true when the most prominent child\'s face is visible and large enough to recognize as a face.',
@@ -160,7 +165,7 @@ export async function classifyPhoto(image, { model = process.env.CHILD_PHOTO_CHE
     store: false,
     input: [{ role: 'user', content: [
       { type: 'input_text', text: CLASSIFY_PROMPT },
-      { type: 'input_image', image_url: toDataUrl(image), detail: 'low' },
+      { type: 'input_image', image_url: toDataUrl(image), detail: 'high' },
     ] }],
     text: { format: { type: 'json_schema', name: 'child_photo_check', strict: true, schema: CHILD_PHOTO_SCHEMA } },
   }, options);
@@ -184,7 +189,7 @@ export function evaluateChildPhoto(input, policy = DEFAULT_CHILD_PHOTO_POLICY) {
   if (!result.isRealPhoto) block = CODES.NOT_REAL;
   else if (result.personCount === 0) block = CODES.NOT_A_CHILD;
   else if (result.childCount === 0) block = CODES.ADULT_ONLY;
-  else if (result.childCount > 1 && !rules.allowMultipleChildren) block = CODES.MULTIPLE_CHILDREN;
+  else if (result.childCount > 1 && !rules.allowMultipleChildren && rules.blockMultipleChildren) block = CODES.MULTIPLE_CHILDREN;
   else if (AGE_BANDS.indexOf(result.apparentAgeBand) > maxBandIndex) block = CODES.ADULT_ONLY;
 
   if (block) {
@@ -195,6 +200,9 @@ export function evaluateChildPhoto(input, policy = DEFAULT_CHILD_PHOTO_POLICY) {
     return { status: 'rejected', code: block, severity: 'block', reasons };
   }
 
+  if (result.childCount > 1 && !rules.allowMultipleChildren) {
+    return { status: 'passed', code: CODES.MULTIPLE_CHILDREN, severity: 'warning', reasons: [CODES.MULTIPLE_CHILDREN] };
+  }
   if (!result.primarySubjectIsChild) reasons.push('child_not_main_subject');
   if (!result.faceClearlyVisible) reasons.push('face_not_visible');
   reasons.push(...result.issues);

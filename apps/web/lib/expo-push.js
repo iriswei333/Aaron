@@ -74,3 +74,42 @@ export async function sendExpoPushMessages(messages, { fetchImpl = globalThis.fe
   }
   return { sent: messages.length, invalidTokens, errors };
 }
+
+// ── Family chat ─────────────────────────────────────────────────────────────
+
+// Must match the Android channel the app creates (apps/mobile/src/lib/push-notifications.ts).
+export const CHAT_CHANNEL_ID = 'chat';
+const CHAT_PREVIEW_MAX = 140;
+
+/** One-line lock-screen preview of a chat message. */
+export function chatPushPreview(message) {
+  const text = String(message?.text || '').replace(/\s+/g, ' ').trim();
+  if (text) return text.length > CHAT_PREVIEW_MAX ? `${text.slice(0, CHAT_PREVIEW_MAX - 1)}…` : text;
+  if (message?.mediaType === 'video') return 'Sent a video';
+  if (message?.mediaType === 'photo') return 'Sent a photo';
+  return 'New message';
+}
+
+/**
+ * Push messages for a new chat message. A direct chat is titled with the sender;
+ * a playdate group chat with the playground (like the chat list), sender before the preview.
+ * `data.threadId` is what the app opens when the family taps the notification.
+ * @param {string[]} tokens
+ * @param {{ threadId: string, messageId?: string|null, threadType: string, senderName: string, threadTitle?: string, message: { text?: string, mediaType?: string } }} chat
+ */
+export function buildChatPushMessages(tokens, chat) {
+  const preview = chatPushPreview(chat.message);
+  const group = chat.threadType === 'playdate';
+  const title = group ? chat.threadTitle || 'Playdate chat' : chat.senderName;
+  const body = group ? `${chat.senderName}: ${preview}` : preview;
+  const data = { type: 'chat_message', threadId: chat.threadId, messageId: chat.messageId || null };
+  return [...new Set(tokens)].filter(isExpoPushToken).map((to) => ({
+    to,
+    title,
+    body,
+    data,
+    sound: 'default',
+    priority: 'high',
+    channelId: CHAT_CHANNEL_ID,
+  }));
+}

@@ -7,15 +7,18 @@ import { apiRequest } from './api';
 
 // Push notifications through Expo's push service (it forwards to APNs and FCM).
 // The app registers this device's Expo push token with POST /api/notifications/push-tokens;
-// the server pushes when an AI creation is ready (apps/web/lib/push-tokens.js).
+// the server pushes when an AI creation is ready and when a family chat message arrives
+// (apps/web/lib/push-tokens.js).
 //
 // Remote push needs a development or store build: Expo Go on Android can't receive it,
 // and getExpoPushTokenAsync needs the EAS projectId in app.json (`npx eas-cli@latest init`).
 
 /** Must match AI_CREATIONS_CHANNEL_ID in apps/web/lib/expo-push.js. */
 export const AI_CREATIONS_CHANNEL_ID = 'ai-creations';
+/** Must match CHAT_CHANNEL_ID in apps/web/lib/expo-push.js. */
+export const CHAT_CHANNEL_ID = 'chat';
 
-/** What the server puts in `data` (buildAiAssetPushMessages). */
+/** What the server puts in `data` (buildAiAssetPushMessages, buildChatPushMessages). */
 export type AiPushData = {
   type?: string;
   notificationId?: string | null;
@@ -24,6 +27,9 @@ export type AiPushData = {
   assetType?: string | null;
   pageKey?: string | null;
   href?: string | null;
+  /** Chat pushes (type 'chat_message'). */
+  threadId?: string | null;
+  messageId?: string | null;
 };
 
 // The job whose progress sheet / toast is on screen right now. Its push is
@@ -33,11 +39,19 @@ export function setVisibleAiJobId(jobId: string) {
   visibleJobId = jobId;
 }
 
+// Likewise the chat thread on screen: its new messages appear right there, no banner needed.
+let visibleChatThreadId = '';
+export function setVisibleChatThreadId(threadId: string) {
+  visibleChatThreadId = threadId;
+}
+
 if (Platform.OS !== 'web') {
   Notifications.setNotificationHandler({
     handleNotification: async (notification) => {
       const data = (notification.request.content.data || {}) as AiPushData;
-      const show = !(data.jobId && data.jobId === visibleJobId);
+      const show = data.type === 'chat_message'
+        ? !(data.threadId && data.threadId === visibleChatThreadId)
+        : !(data.jobId && data.jobId === visibleJobId);
       return { shouldShowBanner: show, shouldShowList: true, shouldPlaySound: show, shouldSetBadge: false };
     },
   });
@@ -59,7 +73,7 @@ let registeredFor = '';
 /**
  * Gets this device's Expo push token and registers it with the server.
  * `prompt: false` only registers when the family already allowed notifications;
- * `prompt: true` asks first (we ask when they start an AI creation, so the request makes sense).
+ * `prompt: true` asks first (we ask when they start an AI creation or send a chat message, so the request makes sense).
  * Returns the token, or null when push isn't available or allowed.
  */
 export async function registerForPushNotifications({ prompt, userId }: { prompt: boolean; userId: string }): Promise<string | null> {
@@ -70,6 +84,11 @@ export async function registerForPushNotifications({ prompt, userId }: { prompt:
     await Notifications.setNotificationChannelAsync(AI_CREATIONS_CHANNEL_ID, {
       name: 'AI creations',
       description: 'When your picture books, practice stories and toy play ideas are ready',
+      importance: Notifications.AndroidImportance.HIGH,
+    });
+    await Notifications.setNotificationChannelAsync(CHAT_CHANNEL_ID, {
+      name: 'Family chat',
+      description: 'New messages from families you chat with',
       importance: Notifications.AndroidImportance.HIGH,
     });
   }

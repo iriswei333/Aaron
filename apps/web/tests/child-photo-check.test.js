@@ -42,7 +42,7 @@ describe('evaluateChildPhoto', () => {
     ['adults only', { ...KID, personCount: 2, childCount: 0, primarySubjectIsChild: false, apparentAgeBand: 'adult' }, 'rejected', 'PHOTO_ADULT_ONLY'],
     ['a teenager', { ...KID, apparentAgeBand: 'teen' }, 'rejected', 'PHOTO_ADULT_ONLY'],
     ['a cartoon of a kid', { ...KID, isRealPhoto: false }, 'rejected', 'PHOTO_NOT_REAL'],
-    ['siblings together', { ...KID, personCount: 2, childCount: 2 }, 'rejected', 'PHOTO_MULTIPLE_CHILDREN'],
+    ['siblings together (warning: the model can overcount)', { ...KID, personCount: 2, childCount: 2 }, 'passed', 'PHOTO_MULTIPLE_CHILDREN'],
   ])('%s → %s', (_label, input, status, code) => {
     const result = evaluateChildPhoto(input);
     expect(result.status).toBe(status);
@@ -71,7 +71,8 @@ describe('evaluateChildPhoto', () => {
   });
 
   it('honors policy overrides', () => {
-    expect(evaluateChildPhoto({ ...KID, childCount: 2, personCount: 2 }, { allowMultipleChildren: true }).status).toBe('passed');
+    expect(evaluateChildPhoto({ ...KID, childCount: 2, personCount: 2 }, { allowMultipleChildren: true })).toMatchObject({ status: 'passed', code: null });
+    expect(evaluateChildPhoto({ ...KID, childCount: 2, personCount: 2 }, { blockMultipleChildren: true })).toMatchObject({ status: 'rejected', code: 'PHOTO_MULTIPLE_CHILDREN' });
     expect(evaluateChildPhoto({ ...KID, apparentAgeBand: 'school_age' }, { maxAgeBand: 'preschool' }).code).toBe('PHOTO_ADULT_ONLY');
     expect(evaluateChildPhoto({ ...KID, personCount: 0, childCount: 0, confidence: 'low' }, { downgradeLowConfidence: false }).status).toBe('rejected');
   });
@@ -95,7 +96,7 @@ describe('OpenAI calls', () => {
     expect(classification.childCount).toBe(1);
     const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
     expect(body).toMatchObject({ model: 'test-model', store: false, text: { format: { type: 'json_schema', strict: true } } });
-    expect(body.input[0].content[1]).toMatchObject({ type: 'input_image', detail: 'low' });
+    expect(body.input[0].content[1]).toMatchObject({ type: 'input_image', detail: 'high' });
     expect(body.input[0].content[1].image_url).toMatch(/^data:image\/jpeg;base64,/);
   });
 

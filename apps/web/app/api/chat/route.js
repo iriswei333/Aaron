@@ -1,5 +1,8 @@
 import { createLocalChatMessage, createSupabaseChatMessage, listLocalChatThreads, listLocalChatMessages, listSupabaseChatThreads, listSupabaseChatMessages, markLocalChatThreadRead, markSupabaseChatThreadRead } from '../../../lib/backend.js';
+import { after } from 'next/server';
+import { pushChatMessageToMembers } from '../../../lib/push-tokens.js';
 import { getCurrentProfile, profileErrorResponse } from '../../../lib/profile-session.js';
+import { createSupabaseAdminClient } from '../../../lib/supabase/server.js';
 
 export const runtime = 'nodejs';
 
@@ -20,6 +23,8 @@ export async function POST(request) {
     if (!current.user) return profileErrorResponse(current);
     const body = await request.json();
     const message = current.mode === 'supabase' ? await createSupabaseChatMessage(current.supabase, current.authUser, body) : await createLocalChatMessage(current.localUserId, body);
+    // Push to the other members' phones after the response, so sending stays fast.
+    if (current.mode === 'supabase') after(() => pushChatMessageToMembers(createSupabaseAdminClient(), { senderId: current.authUser.id, message }));
     return Response.json({ message, authMode: current.mode });
   } catch (error) { return Response.json({ error: error.message }, { status: error.status || 500 }); }
 }
