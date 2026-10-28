@@ -57,6 +57,7 @@ export default function PrivacyPage() {
 
         <h2>5. What other families can see</h2>
         <p><strong>Public playdates</strong> show the playground, address and map location, date and time, age range, notes, your display name as host, and how many families have joined, to signed-in SproutCue families. <strong>Private playdates</strong> are visible only to you and the families who join.</p>
+        <p><strong>Other families never see your email address, your child’s details, or your saved location.</strong> The only part of your profile they can see is your display name, and only when you share a chat or a public playdate with them.</p>
         <p><strong>Chat</strong> messages, photos, and videos are visible to the members of that chat, along with your display name. Please don’t share your child’s full name, home address, school, or health details in chat or in playdate notes.</p>
 
         <h2>6. Who we share information with</h2>

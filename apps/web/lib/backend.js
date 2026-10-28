@@ -1047,7 +1047,9 @@ export async function listSupabaseChatThreads(supabase, authUser) {
   const { data: readMessages, error: readMessageError } = await supabase.from('chat_messages').select('thread_id, sender_id, created_at, text, media_type').in('thread_id', ids);
   if (readMessageError) throw supabaseError(readMessageError, 'Could not load unread chat counts.');
   const userIds = [...new Set((memberRows || []).map((row) => row.user_id))];
-  const { data: profiles, error: profileError } = await supabase.from('profiles').select('id, display_name, email, child_profile').in('id', userIds);
+  // Other families' profile rows aren't readable; this returns only id + display_name for
+  // families who share a chat or a public playdate with us (202610290001_profile_privacy.sql).
+  const { data: profiles, error: profileError } = await supabase.rpc('chat_member_names', { user_ids: userIds });
   if (profileError) throw supabaseError(profileError, 'Could not load chat participants.');
   const profileById = new Map((profiles || []).map((profile) => [profile.id, profile]));
   const playDateIds = (threadRows || []).map((row) => row.play_date_id).filter(Boolean);
