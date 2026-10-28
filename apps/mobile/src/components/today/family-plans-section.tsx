@@ -8,11 +8,12 @@ import { DayOfItCard } from './day-of-it-card';
 import { ImageHero } from './image-hero';
 import { todayImageSource } from './images';
 
-type Props = { plans: any[]; childName: string; onOpenPlans: () => void; onOpenStory: () => void };
+type Props = { plans: any[]; childName: string; onOpenPlans: () => void; onOpenPlan: (plan: any) => void; onOpenStory: () => void };
 
 // Web renderTodayPlans (phone layout): section title + "View all", the next plan as a photo card,
 // then "Make a little day of it" with the getting-ready story button (all plans: "View all").
-export function FamilyPlansSection({ plans, childName, onOpenPlans, onOpenStory }: Props) {
+// "View plan" opens that plan's own detail (playdate page, or the event / story time detail).
+export function FamilyPlansSection({ plans, childName, onOpenPlans, onOpenPlan, onOpenStory }: Props) {
   const featured = todayPlanView(plans[0]);
   return (
     <LinearGradient colors={[Colors.plansFrom, Colors.plansTo]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.section}>
@@ -31,7 +32,7 @@ export function FamilyPlansSection({ plans, childName, onOpenPlans, onOpenStory 
         shade="up"
         minHeight={360}
         radius={20}
-        onPress={onOpenPlans}
+        onPress={() => onOpenPlan(plans[0])}
         accessibilityLabel={`Open ${featured.title}`}>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{featured.icon} Your next plan</Text>

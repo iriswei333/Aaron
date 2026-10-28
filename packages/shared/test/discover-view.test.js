@@ -4,8 +4,8 @@ import { normalizeFamilyEvent, normalizePlayground, normalizeStoryTime, uniqueDi
 import { createDiscoverClient } from '../src/discover-client.js';
 import {
   createPlaydatePayload, discoverCountLabel, discoverEmptyCopy, discoverFilterIsActive, discoverGeocodeQuery, discoverKindIcon,
-  discoverKindLabel, discoverMapUrl, discoverPlanFor, discoverScheduleLabel, familyEventId, formatReverseGeocode, geocodeAddress,
-  playgroundRecommendationReason, savedPlanFor, storyTimeId, uniqueById,
+  discoverKindLabel, discoverMapUrl, discoverPlanFor, discoverScheduleLabel, familyEventId, familyEventPlan, formatReverseGeocode, geocodeAddress,
+  playgroundRecommendationReason, savedPlanEvent, savedPlanFor, storyTimeId, storyTimePlan, uniqueById,
 } from '../src/discover-view.js';
 import * as shared from '../src/index.js';
 
@@ -99,4 +99,24 @@ test('repeated provider ids stay unique (one story time at two branches)', async
   const client = createDiscoverClient(async () => ({ events }));
   const result = await client.loadDiscover({ kinds: ['story_time'] });
   assert.equal(new Set(result.groups.storyTimes.map((item) => item.id)).size, 2);
+});
+
+test('savedPlanEvent rebuilds the event behind a saved family event', () => {
+  const plan = { id: 'p1', ...familyEventPlan(event) };
+  const item = normalizeFamilyEvent(savedPlanEvent(plan));
+  assert.equal(item.kind, 'family_event');
+  assert.equal(item.title, 'Pumpkin Patch Fun!');
+  assert.equal(item.location.venue, 'Oxbow Farm');
+  assert.equal(item.schedule.dateLabel, 'Sat, Oct 10');
+  assert.equal(item.schedule.timeLabel, '10 AM');
+  assert.equal(item.href, 'https://example.com/e/1');
+  assert.equal(familyEventPlan(item.detail).externalId, plan.externalId);
+});
+
+test('savedPlanEvent keeps story time details', () => {
+  const plan = storyTimePlan({ ...event, title: 'Toddler Story Time', venue: 'Ballard Library', sourceLabel: 'SPL', latitude: 47.6, longitude: -122.3 });
+  const item = normalizeStoryTime(savedPlanEvent(plan));
+  assert.equal(item.kind, 'story_time');
+  assert.equal(item.location.latitude, 47.6);
+  assert.equal(item.source.label, 'SPL');
 });

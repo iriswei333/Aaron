@@ -1,8 +1,11 @@
 import { childAgeLabel, childDisplayName, getChildProfile } from '@sproutcue/shared/profile-defaults';
+import { normalizeFamilyEvent, normalizeStoryTime } from '@sproutcue/shared/discover-normalizers';
+import { savedPlanEvent } from '@sproutcue/shared/discover-view';
 import { firstName, todayRecommendation, upcomingTodayPlans, weatherIcon } from '@sproutcue/shared/today';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 
+import { EventDetailSheet } from '@/components/discover/event-detail-sheet';
 import { AdventureSection } from '@/components/today/adventure-section';
 import { FamilyPlansSection } from '@/components/today/family-plans-section';
 import { TodayGreeting } from '@/components/today/greeting';
@@ -11,9 +14,14 @@ import { StoryMakerSheet } from '@/components/today/story-maker-sheet';
 import { LocationSheet } from '@/components/location/location-sheet';
 import { Screen } from '@/components/ui';
 import { useAiConsent } from '@/lib/ai-consent';
+import { familyPlans } from '@/lib/api';
+import type { DiscoverItem } from '@/lib/discover-data';
+import type { PlayDate } from '@/lib/family-data';
+import { haptics } from '@/lib/haptics';
 import { useLocationEditor } from '@/lib/location-editor';
+import { rememberPlaydate } from '@/lib/playdates';
 import { useSession } from '@/lib/session';
-import { useTodayData } from '@/lib/today-data';
+import { useTodayData, type FamilyPlan } from '@/lib/today-data';
 
 // Mirrors the web Today tab (apps/web/src/tabs/home.js):
 // greeting + weather → your family's plans, or the next little adventure → three intent shortcuts.
@@ -40,6 +48,40 @@ export default function TodayScreen() {
   const recommendation = todayRecommendation({ weather: today.weather, options: today.options, childName });
   const goDiscover = () => router.push('/discover');
 
+  // "View plan": a playdate opens its own page; a saved family event / story time opens its
+  // event detail right here (the same detail Discover shows), not the Discover tab.
+  const [openPlan, setOpenPlan] = useState<{ plan: FamilyPlan; item: DiscoverItem; saved: boolean } | null>(null);
+  const viewPlan = (plan: any) => {
+    if (!plan) return goDiscover();
+    if (plan.homeKind === 'playdate') {
+      rememberPlaydate(plan as PlayDate);
+      router.push({ pathname: '/playdate/details', params: { playDateId: plan.id } });
+      return;
+    }
+    const event = savedPlanEvent(plan);
+    const item = (plan.kind === 'story_time' ? normalizeStoryTime(event) : normalizeFamilyEvent(event)) as DiscoverItem;
+    setOpenPlan({ plan, item, saved: true });
+  };
+  // Saved ↔ unsaved from the detail: remove the saved plan, or save it back.
+  const togglePlanSaved = async () => {
+    if (!openPlan) return;
+    const { plan, saved } = openPlan;
+    try {
+      if (saved) {
+        await familyPlans.removeFamilyPlan(plan.id);
+        setOpenPlan({ ...openPlan, saved: false });
+      } else {
+        const { id, userId, createdAt, updatedAt, homeKind, date, dateLabel, timeLabel, imageUrl, ...payload } = plan;
+        const response: any = await familyPlans.saveFamilyPlan(payload);
+        setOpenPlan({ ...openPlan, plan: response?.item ?? plan, saved: true });
+        haptics.success();
+      }
+      today.refresh();
+    } catch {
+      haptics.error();
+    }
+  };
+
   return (
     <Screen refreshing={today.refreshing} onRefresh={today.refresh}>
       <TodayGreeting
@@ -51,7 +93,7 @@ export default function TodayScreen() {
         onLocationPress={() => setLocationOpen(true)}
       />
       {plans.length ? (
-        <FamilyPlansSection plans={plans} childName={childName} onOpenPlans={goDiscover} onOpenStory={openStory} />
+        <FamilyPlansSection plans={plans} childName={childName} onOpenPlans={goDiscover} onOpenPlan={viewPlan} onOpenStory={openStory} />
       ) : (
         <AdventureSection recommendation={recommendation} childName={childName} onExplore={goDiscover} onOpenStory={openStory} />
       )}
@@ -74,6 +116,13 @@ export default function TodayScreen() {
           setLocationOpen(false);
           locationEditor.setStatus('');
         }}
+      />
+      <EventDetailSheet
+        item={openPlan?.item ?? null}
+        saved={Boolean(openPlan?.saved)}
+        searchLabel={locationLabel}
+        onToggleSave={togglePlanSaved}
+        onClose={() => setOpenPlan(null)}
       />
       <StoryMakerSheet visible={storyOpen} childName={childName} ageLabel={childAgeLabel(child)} onClose={() => setStoryOpen(false)} />
     </Screen>

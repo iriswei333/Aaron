@@ -111,6 +111,31 @@ export function storyTimePlan(event = {}) {
 }
 
 /**
+ * A saved family plan (GET /family-plans row) turned back into the raw provider event shape, so it
+ * can be shown with normalizeFamilyEvent / normalizeStoryTime in the event detail view (Today → View plan).
+ * @param {any} plan saved plan with kind 'external_event' or 'story_time'
+ */
+export function savedPlanEvent(plan = {}) {
+  const meta = plan.metadata || {};
+  return {
+    title: plan.title || '',
+    summary: plan.summary || '',
+    date: meta.date || plan.dueDate || plan.date || '',
+    dateLabel: meta.dateLabel || plan.dateLabel || '',
+    timeLabel: meta.timeLabel || plan.timeLabel || '',
+    venue: plan.venue || '',
+    address: meta.address || '',
+    url: plan.url || '',
+    imageUrl: meta.imageUrl || plan.imageUrl || '',
+    source: plan.source || '',
+    sourceLabel: meta.sourceLabel || '',
+    tags: Array.isArray(meta.tags) ? meta.tags : [],
+    latitude: meta.latitude ?? null,
+    longitude: meta.longitude ?? null,
+  };
+}
+
+/**
  * The family-plan payload for a savable Discover item (family event or story time), else null.
  * @param {any} item normalized Discover item
  * @returns {Record<string, any> | null}
