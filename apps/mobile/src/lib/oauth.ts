@@ -30,7 +30,7 @@ export function isAuthPopup() {
 
 function networkMessage(error: unknown) {
   const text = error instanceof Error ? error.message : String(error || '');
-  if (/code verifier/i.test(text)) return 'This sign-in was started somewhere else. Tap Continue with Google again on this device.';
+  if (/code verifier/i.test(text)) return 'This sign-in or confirmation was started somewhere else. Start again and open the link on this device.';
   return /fetch|network/i.test(text)
     ? 'Couldn’t reach the sign-in service. Check your connection and try again.'
     : text || 'Sign-in didn’t finish. Please try again.';

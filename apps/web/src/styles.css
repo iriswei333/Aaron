@@ -1107,7 +1107,8 @@ time { color: #e26f39; font-weight: 900; }
 .facebook-login-button { background: #1877f2; border-color: #1877f2; justify-content: center; margin: 0; width: 100%; }
 .facebook-login-button:hover { background: #166fe5; }
 .password-login-button { background: #2f6b4e; margin-top: 10px; width: 100%; }
-.password-login-button:disabled { opacity: .5; }
+.password-signup-button { background: #fff; border: 1px solid #2f6b4e; color: #2f6b4e; margin-top: 10px; width: 100%; }
+.password-login-button:disabled, .password-signup-button:disabled { opacity: .5; }
 .data-deletion-page { max-width: 760px; margin: 0 auto; }
 .data-deletion-page h1 { color: #1d343c; margin-bottom: 12px; }
 .data-deletion-page h2 { margin-top: 28px; }

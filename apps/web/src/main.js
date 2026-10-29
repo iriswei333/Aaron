@@ -438,16 +438,27 @@ function renderLogin() {
     ? 'We’ll email you a one-time code to open your private parent profile.'
     : 'Use an email to keep each local parent profile separate while you test.';
   const featureNote = 'One child profile turns nearby discoveries, stories, and small daily steps into ideas that fit your family.';
-  root.innerHTML = `<div class="app-shell auth-shell family-auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">For parents of little ones</p><h1>${APP_NAME}</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><div class="auth-mobile-brand"><img src="/favicon.svg" alt="" /><strong>SproutCue</strong></div><p class="eyebrow">Welcome to your family space</p><h2>${heading}</h2><p>${intro}</p>${useSupabase ? '<div class="social-login-options"><button id="google-login" type="button" class="google-login-button"><svg class="social-logo google-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.79-.07-1.55-.2-2.27H12v4.3h5.38a4.6 4.6 0 0 1-1.99 3.02v2.5h3.22c1.88-1.73 2.99-4.28 2.99-7.55Z"/><path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.45l-3.22-2.5c-.9.6-2.04.95-3.4.95-2.61 0-4.82-1.76-5.61-4.13H3.06v2.58A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.39 13.87A6 6 0 0 1 6.08 12c0-.65.11-1.28.31-1.87V7.55H3.06A10 10 0 0 0 2 12c0 1.61.39 3.14 1.06 4.45l3.33-2.58Z"/><path fill="#EA4335" d="M12 6c1.47 0 2.79.51 3.83 1.51l2.87-2.87C16.96 2.91 14.7 2 12 2a10 10 0 0 0-8.94 5.55l3.33 2.58C7.18 7.76 9.39 6 12 6Z"/></svg>Continue with Google</button><button id="facebook-login" type="button" class="facebook-login-button"><svg class="social-logo facebook-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 8h3V4.5c-.52-.07-1.72-.17-3.27-.17-3.24 0-5.46 1.98-5.46 5.62V13H5v3.91h3.27V24h4.01v-7.09h3.34l.53-3.91h-3.87V10.3c0-1.13.31-2.3 1.72-2.3Z"/></svg>Continue with Facebook</button></div><div class="auth-divider"><span>or use email</span></div>' : ''}<form id="login-form"><label class="input-label" for="login-email">Parent email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required />${useSupabase ? '<label class="input-label" for="login-password">Password</label><input id="login-password" type="password" autocomplete="current-password" placeholder="Your password" minlength="6" />' : ''}<label class="input-label" for="login-name">Parent display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="The Rivera family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>${buttonText}</button>${useSupabase ? '<button id="password-login" type="button" class="password-login-button" disabled>Sign in with password</button>' : ''}</form><p class="muted">${escapeHtml(state.authStatus || state.apiMessage)}</p><div class="auth-parent-note"><span aria-hidden="true">♡</span><p>A grown-up account. Your child never needs an email or login.</p></div><p class="privacy-link terms-consent">By continuing, you agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms of Use</a>, including zero tolerance for objectionable content and abusive behavior, and acknowledge the <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.</p></section><section class="panel auth-note family-auth-story"><p class="eyebrow">Little adventures, made personal</p><h2>One family profile.<br />More ways to play.</h2><p>${featureNote}</p><ul><li><span>1</span>Name and age in months</li><li><span>2</span>Story language and favorites</li><li><span>3</span>Little steps they’re practicing</li></ul><div class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/playdates.png" alt="Parents meeting at a neighborhood playground for a playdate" /><strong>Private by default, useful from day one</strong><p>Set visibility and play preferences after sign-in, then adjust them anytime in Family.</p></div></section></main></div>`;
+  root.innerHTML = `<div class="app-shell auth-shell family-auth-shell"><header class="app-header"><div class="brand"><img class="brand-mark-image" src="/favicon.svg" alt="" aria-hidden="true" /><div><p class="eyebrow">For parents of little ones</p><h1>${APP_NAME}</h1></div></div></header><main class="auth-layout"><section class="panel auth-panel"><div class="auth-mobile-brand"><img src="/favicon.svg" alt="" /><strong>SproutCue</strong></div><p class="eyebrow">Welcome to your family space</p><h2>${heading}</h2><p>${intro}</p>${useSupabase ? '<div class="social-login-options"><button id="google-login" type="button" class="google-login-button"><svg class="social-logo google-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.79-.07-1.55-.2-2.27H12v4.3h5.38a4.6 4.6 0 0 1-1.99 3.02v2.5h3.22c1.88-1.73 2.99-4.28 2.99-7.55Z"/><path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.45l-3.22-2.5c-.9.6-2.04.95-3.4.95-2.61 0-4.82-1.76-5.61-4.13H3.06v2.58A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.39 13.87A6 6 0 0 1 6.08 12c0-.65.11-1.28.31-1.87V7.55H3.06A10 10 0 0 0 2 12c0 1.61.39 3.14 1.06 4.45l3.33-2.58Z"/><path fill="#EA4335" d="M12 6c1.47 0 2.79.51 3.83 1.51l2.87-2.87C16.96 2.91 14.7 2 12 2a10 10 0 0 0-8.94 5.55l3.33 2.58C7.18 7.76 9.39 6 12 6Z"/></svg>Continue with Google</button><button id="facebook-login" type="button" class="facebook-login-button"><svg class="social-logo facebook-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 8h3V4.5c-.52-.07-1.72-.17-3.27-.17-3.24 0-5.46 1.98-5.46 5.62V13H5v3.91h3.27V24h4.01v-7.09h3.34l.53-3.91h-3.87V10.3c0-1.13.31-2.3 1.72-2.3Z"/></svg>Continue with Facebook</button></div><div class="auth-divider"><span>or use email</span></div>' : ''}<form id="login-form"><label class="input-label" for="login-email">Parent email</label><input id="login-email" type="email" autocomplete="email" value="${escapeAttribute(state.loginEmail)}" placeholder="parent@example.com" required />${useSupabase ? '<label class="input-label" for="login-password">Password</label><input id="login-password" type="password" autocomplete="current-password" placeholder="At least 6 characters" minlength="6" />' : ''}<label class="input-label" for="login-name">Parent display name</label><input id="login-name" autocomplete="name" value="${escapeAttribute(state.loginName)}" placeholder="The Rivera family" /><button type="submit" ${state.apiReady ? '' : 'disabled'}>${buttonText}</button>${useSupabase ? '<button id="password-login" type="button" class="password-login-button" disabled>Sign in with password</button><button id="password-signup" type="button" class="password-signup-button" disabled>Create account with password</button>' : ''}</form><p class="muted" role="status" aria-live="polite">${escapeHtml(state.authStatus || state.apiMessage)}</p><div class="auth-parent-note"><span aria-hidden="true">♡</span><p>A grown-up account. Your child never needs an email or login.</p></div><p class="privacy-link terms-consent">By continuing, you agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms of Use</a>, including zero tolerance for objectionable content and abusive behavior, and acknowledge the <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.</p></section><section class="panel auth-note family-auth-story"><p class="eyebrow">Little adventures, made personal</p><h2>One family profile.<br />More ways to play.</h2><p>${featureNote}</p><ul><li><span>1</span>Name and age in months</li><li><span>2</span>Story language and favorites</li><li><span>3</span>Little steps they’re practicing</li></ul><div class="auth-feature-card"><img class="auth-feature-art" src="/illustrations/playdates.png" alt="Parents meeting at a neighborhood playground for a playdate" /><strong>Private by default, useful from day one</strong><p>Set visibility and play preferences after sign-in, then adjust them anytime in Family.</p></div></section></main></div>`;
   document.getElementById('login-form').addEventListener('submit', useSupabase ? revealAuthMethods : loginUser);
   document.getElementById('google-login')?.addEventListener('click', signInWithGoogle);
   document.getElementById('facebook-login')?.addEventListener('click', signInWithFacebook);
   const passwordInput = document.getElementById('login-password');
   const passwordButton = document.getElementById('password-login');
+  const passwordSignupButton = document.getElementById('password-signup');
   if (useSupabase) setupAuthMethodMenu();
-  passwordInput?.addEventListener('input', () => { passwordButton.disabled = !passwordInput.value || !state.loginEmail.trim(); });
+  const updatePasswordButtons = () => {
+    if (!passwordInput || !passwordButton || !passwordSignupButton) return;
+    const disabled = passwordInput.value.length < 6 || !state.loginEmail.trim();
+    passwordButton.disabled = disabled;
+    passwordSignupButton.disabled = disabled;
+  };
+  passwordInput?.addEventListener('input', updatePasswordButtons);
   passwordButton?.addEventListener('click', signInWithPassword);
-  document.getElementById('login-email').addEventListener('input', (event) => { state.loginEmail = event.target.value; });
+  passwordSignupButton?.addEventListener('click', signUpWithPassword);
+  document.getElementById('login-email').addEventListener('input', (event) => {
+    state.loginEmail = event.target.value;
+    updatePasswordButtons();
+  });
   document.getElementById('login-name').addEventListener('input', (event) => { state.loginName = event.target.value; });
 }
 
@@ -565,7 +576,8 @@ function setupAuthMethodMenu() {
   const nameInput = document.getElementById('login-name');
   const submitButton = form?.querySelector('button[type="submit"]');
   const passwordButton = document.getElementById('password-login');
-  if (!form || !emailInput || !passwordLabel || !passwordInput || !nameLabel || !nameInput || !submitButton || !passwordButton) return;
+  const passwordSignupButton = document.getElementById('password-signup');
+  if (!form || !emailInput || !passwordLabel || !passwordInput || !nameLabel || !nameInput || !submitButton || !passwordButton || !passwordSignupButton) return;
 
   const menu = document.createElement('div');
   menu.id = 'auth-method-menu';
@@ -573,7 +585,7 @@ function setupAuthMethodMenu() {
   menu.hidden = true;
   menu.innerHTML = '<p class="auth-method-title">How would you like to continue?</p>';
   form.insertBefore(menu, passwordLabel);
-  [passwordLabel, passwordInput, nameLabel, nameInput, submitButton, passwordButton].forEach((element) => menu.appendChild(element));
+  [passwordLabel, passwordInput, nameLabel, nameInput, submitButton, passwordButton, passwordSignupButton].forEach((element) => menu.appendChild(element));
   submitButton.type = 'button';
   submitButton.addEventListener('click', loginUser);
 
@@ -612,6 +624,55 @@ async function signInWithPassword() {
     render();
   } catch (error) {
     state.authStatus = error.message || 'Password sign-in failed.';
+    renderLogin();
+  }
+}
+
+async function signUpWithPassword() {
+  if (!usesSupabaseAuth()) return;
+  const emailInput = document.getElementById('login-email');
+  const email = state.loginEmail.trim();
+  const password = document.getElementById('login-password')?.value || '';
+  const displayName = state.loginName.trim() || 'Family Profile';
+  if (!emailInput?.checkValidity()) {
+    emailInput?.reportValidity();
+    return;
+  }
+  if (password.length < 6) {
+    state.authStatus = 'Choose a password with at least 6 characters.';
+    renderLogin();
+    return;
+  }
+  state.authStatus = 'Creating your account…';
+  renderLogin();
+  try {
+    const origin = globalThis.location?.origin;
+    const { data, error } = await getSupabaseClient().auth.signUp({
+      email,
+      password,
+      options: {
+        data: { display_name: displayName },
+        ...(origin ? { emailRedirectTo: authCallbackUrl(origin) } : {}),
+      },
+    });
+    if (error) throw error;
+    if (!data.session) {
+      state.authStatus = 'Check your email and select the confirmation link to finish creating your account.';
+      renderLogin();
+      return;
+    }
+    const { user } = await apiRequest('/profile');
+    state.apiReady = true;
+    state.authStatus = '';
+    applyUserProfile(user);
+    state.apiMessage = 'Family profile synced with Supabase.';
+    if (!getChildProfileState(user).onboardingComplete) {
+      openWelcome();
+      return;
+    }
+    render();
+  } catch (error) {
+    state.authStatus = error.message || 'Password signup failed.';
     renderLogin();
   }
 }

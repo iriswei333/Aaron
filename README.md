@@ -168,7 +168,7 @@ The app stores a few browser-local values such as the login email and selected H
 2. Apply `supabase/migrations/202607150001_initial_profiles.sql`.
 3. Apply every remaining migration in filename order, including `supabase/migrations/202610240001_account_deletion_cascade.sql`. The account-deletion migration verifies that user-owned records are removed when an auth user is deleted.
 4. Copy `.env.example` to `.env.local` and set the Supabase URL and publishable key. Production account deletion also requires the server-only `SUPABASE_SERVICE_ROLE_KEY`; never expose this key to browser code.
-5. Add your deployed `/auth/confirm` URL and local `http://localhost:3000/auth/confirm` or `http://127.0.0.1:3000/auth/confirm` URL to the Supabase auth redirect allow list.
+5. Add your deployed `/auth/confirm` URL and local `http://localhost:3000/auth/confirm` or `http://127.0.0.1:3000/auth/confirm` URL to the Supabase auth redirect allow list. For the native app, also allow `sproutcue://auth/callback` (and `exp://**` when testing with Expo Go). Password-signup confirmation uses this callback so the phone that created the PKCE verifier can finish the exchange.
 6. Start the app and sign in with the email magic-link flow. The callback route exchanges Supabase `code` links for a server session, and also accepts `token_hash` links if you later use a custom email template.
 7. Move existing local profile data from `data/app-state.json` into `public.profiles` if needed.
 8. Deploy with the same env vars and keep `data/app-state.json` out of production.

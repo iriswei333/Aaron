@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 
 import { apiRequest } from './api';
 import { isSupabaseConfigured } from './config';
+import { authRedirectUrl } from './oauth';
 import { forgetPushRegistration, unregisterPushNotifications } from './push-notifications';
 import { supabase } from './supabase';
 
@@ -92,7 +93,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const signUpWithPassword = useCallback(async (email: string, password: string) => {
     if (!supabase) throw new Error('Sign-in is not configured for this build.');
-    const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        // Password signup uses PKCE too. Return to this app so the same device that
+        // created the verifier can exchange the confirmation code for a session.
+        emailRedirectTo: authRedirectUrl(),
+      },
+    });
     if (error) throw error;
     return { needsConfirmation: !data.session };
   }, []);

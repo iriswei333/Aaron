@@ -85,7 +85,12 @@ export default function SignInScreen() {
         await signInWithPassword(email, password);
       } else {
         const { needsConfirmation } = await signUpWithPassword(email, password);
-        if (needsConfirmation) setStatus({ tone: 'info', text: 'Check your email to confirm your account, then sign in here.' });
+        if (needsConfirmation) {
+          setStatus({
+            tone: 'info',
+            text: 'Check your email on this phone and tap the confirmation link. It will return you to SproutCue and sign you in.',
+          });
+        }
       }
     } catch (error) {
       setStatus({ tone: 'error', text: error instanceof Error ? error.message : 'Could not sign in. Please try again.' });
